@@ -1,0 +1,372 @@
+/* style.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo h1 {
+    color: #667eea;
+    font-size: 28px;
+}
+
+.logo p {
+    color: #666;
+    margin-top: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.btn, .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn:hover, .btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+.message {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.error {
+    color: #e74c3c;
+    background: #fde8e8;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.success {
+    color: #27ae60;
+    background: #e8f8e8;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.login-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.btn-logout {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 30px;
+}
+
+.stat-info h3 {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-info p {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.section {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.referral-link-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.referral-link-box input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.btn-copy {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.share-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.share-btn.whatsapp { background: #25D366; color: white; }
+.share-btn.telegram { background: #0088cc; color: white; }
+.share-btn.facebook { background: #1877f2; color: white; }
+
+.referral-stats {
+    display: flex;
+    gap: 15px;
+    text-align: center;
+}
+
+.stat-small {
+    flex: 1;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.stat-small span {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stat-small strong {
+    font-size: 20px;
+    color: #333;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.action-btn {
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.task-btn {
+    padding: 5px 15px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.withdraw-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.withdraw-form input, .withdraw-form select {
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+.wheel-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.wheel {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: conic-gradient(#FF6B6B 0deg 60deg, #4ECDC4 60deg 120deg, #45B7D1 120deg 180deg, #96CEB4 180deg 240deg, #FFEAA7 240deg 300deg, #DDA0DD 300deg 360deg);
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.wheel-piece {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.spin-btn {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .share-buttons {
+        flex-direction: column;
+    }
+    
+    .referral-stats {
+        flex-direction: column;
+    }
+}
