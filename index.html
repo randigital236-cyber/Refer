@@ -3,83 +3,293 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards - Sign Up</title>
-    <link rel="stylesheet" href="style.css">
+    <title>RND Rewards - Earn Crypto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: #059669;
+            border-left: 4px solid #059669;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 25px;
+            color: #6b7280;
+        }
+
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .floating {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 30px 20px;
+            }
+            .logo h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="card">
+        <!-- Signup Card -->
+        <div class="card" id="signupCard">
             <div class="logo">
-                <h1>🎡 RND Rewards</h1>
-                <p>Earn RND Coins by Referring Friends</p>
+                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h1>RND Rewards</h1>
+                <p>Earn Crypto by Referring Friends</p>
             </div>
 
             <form id="signupForm">
                 <div class="form-group">
+                    <i class="fas fa-user"></i>
                     <input type="text" id="name" placeholder="Full Name" required>
                 </div>
 
                 <div class="form-group">
+                    <i class="fas fa-envelope"></i>
                     <input type="email" id="email" placeholder="Email Address" required>
                 </div>
 
                 <div class="form-group">
+                    <i class="fas fa-lock"></i>
                     <input type="password" id="password" placeholder="Password (min 6 characters)" required>
                 </div>
 
                 <div class="form-group">
+                    <i class="fas fa-gift"></i>
                     <input type="text" id="referralCode" placeholder="Referral Code (Optional)">
                 </div>
 
-                <button type="submit" class="btn btn-primary">Create Account</button>
+                <button type="submit" class="btn">
+                    <i class="fas fa-rocket"></i> Create Account
+                </button>
             </form>
 
             <div id="message" class="message"></div>
 
-            <div class="login-link">
-                Already have an account? <a href="#" onclick="showLogin()">Login</a>
+            <div class="link-text">
+                Already have an account? <a onclick="showLogin()">Login Here</a>
             </div>
         </div>
 
-        <!-- Login Form (Hidden by default) -->
-        <div class="card" id="loginForm" style="display:none;">
-            <h2>Login to RND Rewards</h2>
-            <form id="loginFormData">
+        <!-- Login Card -->
+        <div class="card" id="loginCard" style="display:none;">
+            <div class="logo">
+                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h1>Welcome Back</h1>
+                <p>Login to your account</p>
+            </div>
+
+            <form id="loginForm">
                 <div class="form-group">
+                    <i class="fas fa-envelope"></i>
                     <input type="email" id="loginEmail" placeholder="Email Address" required>
                 </div>
 
                 <div class="form-group">
+                    <i class="fas fa-lock"></i>
                     <input type="password" id="loginPassword" placeholder="Password" required>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn">
+                    <i class="fas fa-arrow-right"></i> Login
+                </button>
             </form>
 
-            <div class="login-link">
-                New user? <a href="#" onclick="showSignup()">Create Account</a>
+            <div id="loginMessage" class="message"></div>
+
+            <div class="link-text">
+                New user? <a onclick="showSignup()">Create Account</a>
             </div>
         </div>
     </div>
 
+    <div class="floating">
+        <i class="fas fa-shield-alt"></i> Secure Platform
+    </div>
+
     <script type="module">
-        import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, ref, set, get } from './firebase-config.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Generate unique referral code
-        function generateReferralCode(name, uid) {
-            return name.substring(0, 3).toUpperCase() + uid.substring(0, 5);
+        const firebaseConfig = {
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
+            authDomain: "randigital-e7715.firebaseapp.com",
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "randigital-e7715",
+            storageBucket: "randigital-e7715.firebasestorage.app",
+            messagingSenderId: "218883279353",
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Generate referral code from User ID (first 5 chars)
+        function generateReferralCode(userId) {
+            return userId.substring(0, 8).toUpperCase();
         }
 
-        // Show Login Form
         window.showLogin = function() {
-            document.querySelector('.card:first-child').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('signupCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
         }
 
-        // Show Signup Form
         window.showSignup = function() {
-            document.querySelector('.card:first-child').style.display = 'block';
-            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupCard').style.display = 'block';
+            document.getElementById('loginCard').style.display = 'none';
         }
 
         // Signup Handler
@@ -93,132 +303,159 @@
             const messageDiv = document.getElementById('message');
 
             if (password.length < 6) {
-                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>';
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Password must be at least 6 characters!</div>';
                 return;
             }
 
             try {
-                // Create user in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                const userReferralCode = generateReferralCode(name, user.uid);
+                // Generate referral code from USER ID (first 8 chars)
+                const userReferralCode = generateReferralCode(user.uid);
                 
-                // Find referrer if referral code provided
+                // Find referrer
                 let referredBy = null;
                 let level1Referrer = null;
                 let level2Referrer = null;
                 
                 if (referralCode) {
-                    // Search for user with this referral code
                     const usersRef = ref(db, 'users');
                     const snapshot = await get(usersRef);
                     const users = snapshot.val();
                     
-                    for (let uid in users) {
-                        if (users[uid].referralCode === referralCode) {
-                            referredBy = uid;
-                            
-                            // Get level 1 and level 2 referrers
-                            if (users[uid].referredBy) {
-                                level1Referrer = users[uid].referredBy;
-                                
-                                const level1User = users[level1Referrer];
-                                if (level1User && level1User.referredBy) {
-                                    level2Referrer = level1User.referredBy;
+                    if (users) {
+                        for (let uid in users) {
+                            if (users[uid].referralCode === referralCode.toUpperCase()) {
+                                referredBy = uid;
+                                if (users[uid].referredBy) {
+                                    level1Referrer = users[uid].referredBy;
+                                    if (users[level1Referrer] && users[level1Referrer].referredBy) {
+                                        level2Referrer = users[level1Referrer].referredBy;
+                                    }
                                 }
+                                break;
                             }
-                            break;
                         }
                     }
                 }
                 
                 // Save user data
-                await set(ref(db, 'users/' + user.uid), {
+                const userData = {
                     name: name,
                     email: email,
+                    userId: user.uid,
                     referralCode: userReferralCode,
-                    referredBy: referredBy,
-                    referralWallet: referredBy ? 5 : 0, // Signup bonus only if referred
+                    referredBy: referredBy || null,
+                    referralWallet: referredBy ? 5 : 0,
                     spinWallet: 0,
                     totalEarned: referredBy ? 5 : 0,
                     totalWithdrawn: 0,
                     status: 'active',
                     createdAt: new Date().toISOString()
-                });
+                };
                 
-                // Initialize empty referral structure
-                await set(ref(db, 'referrals/' + user.uid), {
-                    level1: [],
-                    level2: []
-                });
+                await set(ref(db, 'users/' + user.uid), userData);
+                await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
                 
                 // Give rewards to referrers
                 if (referredBy) {
-                    // Update referrer's wallet (Level 1 - gets 2 RND)
+                    // Level 1 reward (2 RND)
                     const referrerRef = ref(db, 'users/' + referredBy);
                     const referrerSnap = await get(referrerRef);
-                    const referrer = referrerSnap.val();
-                    
-                    await update(ref(db, 'users/' + referredBy), {
-                        referralWallet: (referrer.referralWallet || 0) + 2,
-                        totalEarned: (referrer.totalEarned || 0) + 2
-                    });
-                    
-                    // Add to level1 referrals
-                    const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
-                    const level1Data = await get(level1Ref);
-                    let level1List = level1Data.val() || [];
-                    level1List.push(user.uid);
-                    await set(level1Ref, level1List);
-                    
-                    // Level 2 referrer (gets 1 RND)
-                    if (level1Referrer) {
-                        const level2Ref = ref(db, 'users/' + level1Referrer);
-                        const level2Snap = await get(level2Ref);
-                        const level2User = level2Snap.val();
-                        
-                        await update(ref(db, 'users/' + level1Referrer), {
-                            referralWallet: (level2User.referralWallet || 0) + 1,
-                            totalEarned: (level2User.totalEarned || 0) + 1
+                    if (referrerSnap.exists()) {
+                        const referrer = referrerSnap.val();
+                        await update(ref(db, 'users/' + referredBy), {
+                            referralWallet: (referrer.referralWallet || 0) + 2,
+                            totalEarned: (referrer.totalEarned || 0) + 2
                         });
                         
-                        // Add to level2 referrals
-                        const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
-                        const level2ListData = await get(level2ListRef);
-                        let level2List = level2ListData.val() || [];
-                        level2List.push(user.uid);
-                        await set(level2ListRef, level2List);
+                        const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
+                        const level1Data = await get(level1Ref);
+                        let level1List = level1Data.val() || [];
+                        level1List.push(user.uid);
+                        await set(level1Ref, level1List);
+                    }
+                    
+                    // Level 2 reward (1 RND)
+                    if (level1Referrer) {
+                        const level2UserRef = ref(db, 'users/' + level1Referrer);
+                        const level2Snap = await get(level2UserRef);
+                        if (level2Snap.exists()) {
+                            const level2User = level2Snap.val();
+                            await update(ref(db, 'users/' + level1Referrer), {
+                                referralWallet: (level2User.referralWallet || 0) + 1,
+                                totalEarned: (level2User.totalEarned || 0) + 1
+                            });
+                            
+                            const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
+                            const level2ListData = await get(level2ListRef);
+                            let level2List = level2ListData.val() || [];
+                            level2List.push(user.uid);
+                            await set(level2ListRef, level2List);
+                        }
                     }
                 }
                 
-                messageDiv.innerHTML = '<div class="success">Account created successfully! Redirecting...</div>';
+                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                
+                localStorage.setItem('userReferralCode', userReferralCode);
+                localStorage.setItem('userName', name);
+                localStorage.setItem('userId', user.uid);
                 
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
-                }, 2000);
+                }, 2500);
                 
             } catch (error) {
+                console.error(error);
                 if (error.code === 'auth/email-already-in-use') {
-                    messageDiv.innerHTML = '<div class="error">Email already registered!</div>';
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-envelope"></i> Email already registered! Please login.</div>';
+                } else if (error.code === 'auth/configuration-not-found') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-cog"></i> Please enable Email/Password in Firebase Console > Authentication</div>';
                 } else {
-                    messageDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
                 }
             }
         });
         
         // Login Handler
-        document.getElementById('loginFormData').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('loginMessage');
             
             try {
-                await signInWithEmailAndPassword(auth, email, password);
-                window.location.href = 'dashboard.html';
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Get user data from database
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                const userData = snapshot.val();
+                
+                if (userData && userData.status === 'active') {
+                    localStorage.setItem('userReferralCode', userData.referralCode);
+                    localStorage.setItem('userName', userData.name);
+                    localStorage.setItem('userId', user.uid);
+                    
+                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
+                }
             } catch (error) {
-                alert('Login failed: ' + error.message);
+                if (error.code === 'auth/user-not-found') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found. Please sign up.</div>';
+                } else if (error.code === 'auth/wrong-password') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Wrong password. Try again.</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                }
             }
         });
     </script>
