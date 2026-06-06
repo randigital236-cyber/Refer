@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RND Rewards - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h2>🎡 RND Rewards</h2>
+            <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-info">
+                    <h3>Total Coins</h3>
+                    <p id="totalCoins">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3>Referral Wallet</h3>
+                    <p id="referralWallet">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎡</div>
+                <div class="stat-info">
+                    <h3>Spin Wallet</h3>
+                    <p id="spinWallet">0</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                    <h3>Total Earned</h3>
+                    <p id="totalEarned">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Referral Section -->
+        <div class="section">
+            <h3>Your Referral Link</h3>
+            <div class="referral-link-box">
+                <input type="text" id="referralLink" readonly>
+                <button onclick="copyReferralLink()" class="btn-copy">Copy</button>
+            </div>
+            <div class="share-buttons">
+                <button onclick="shareWhatsApp()" class="share-btn whatsapp">📱 WhatsApp</button>
+                <button onclick="shareTelegram()" class="share-btn telegram">📨 Telegram</button>
+                <button onclick="shareFacebook()" class="share-btn facebook">📘 Facebook</button>
+            </div>
+        </div>
+        
+        <!-- Referral Stats -->
+        <div class="section">
+            <h3>Your Team</h3>
+            <div class="referral-stats">
+                <div class="stat-small">
+                    <span>Level 1 Team</span>
+                    <strong id="level1Count">0</strong>
+                </div>
+                <div class="stat-small">
+                    <span>Level 2 Team</span>
+                    <strong id="level2Count">0</strong>
+                </div>
+                <div class="stat-small">
+                    <span>Total Referrals</span>
+                    <strong id="totalReferrals">0</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="actions-grid">
+            <button onclick="window.location.href='#tasks'" class="action-btn">📋 Complete Tasks</button>
+            <button onclick="window.location.href='#withdraw'" class="action-btn">💸 Withdraw</button>
+            <button onclick="showSpinWheel()" class="action-btn">🎡 Spin Wheel</button>
+            <button onclick="viewHistory()" class="action-btn">📜 History</button>
+        </div>
+        
+        <!-- Task Section -->
+        <div class="section" id="tasks">
+            <h3>Complete Social Tasks</h3>
+            <div class="task-list">
+                <div class="task-item">
+                    <span>📘 Follow on Facebook</span>
+                    <button onclick="completeTask('facebook')" class="task-btn">Complete</button>
+                </div>
+                <div class="task-item">
+                    <span>🐦 Follow on Twitter</span>
+                    <button onclick="completeTask('twitter')" class="task-btn">Complete</button>
+                </div>
+                <div class="task-item">
+                    <span>📷 Follow on Instagram</span>
+                    <button onclick="completeTask('instagram')" class="task-btn">Complete</button>
+                </div>
+                <div class="task-item">
+                    <span>💬 Join Telegram</span>
+                    <button onclick="completeTask('telegram')" class="task-btn">Complete</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Withdrawal Section -->
+        <div class="section" id="withdraw">
+            <h3>Withdraw Coins</h3>
+            <div class="withdraw-form">
+                <select id="walletType">
+                    <option value="referralWallet">Referral Wallet</option>
+                    <option value="spinWallet">Spin Wallet</option>
+                </select>
+                <input type="number" id="withdrawAmount" placeholder="Amount (Min 50 RND)">
+                <input type="text" id="bep20Address" placeholder="BEP20 Wallet Address">
+                <button onclick="requestWithdrawal()" class="btn-primary">Request Withdrawal</button>
+            </div>
+            <div id="withdrawMessage" class="message"></div>
+        </div>
+    </div>
+    
+    <!-- Spin Wheel Modal -->
+    <div id="spinModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSpinModal()">&times;</span>
+            <h3>🎡 Spin the Wheel</h3>
+            <div class="wheel-container">
+                <div class="wheel" id="wheel">
+                    <div class="wheel-piece">1 RND</div>
+                    <div class="wheel-piece">2 RND</div>
+                    <div class="wheel-piece">5 RND</div>
+                    <div class="wheel-piece">10 RND</div>
+                    <div class="wheel-piece">Better Luck</div>
+                    <div class="wheel-piece">2 RND</div>
+                </div>
+                <button onclick="spinWheel()" class="spin-btn">SPIN</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { auth, db, signOut, ref, get, update, push } from './firebase-config.js';
+        
+        let currentUser = null;
+        let userData = null;
+        
+        // Check authentication
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = user;
+            await loadUserData();
+            await loadReferralStats();
+        });
+        
+        // Load user data
+        async function loadUserData() {
+            const userRef = ref(db, 'users/' + currentUser.uid);
+            const snapshot = await get(userRef);
+            userData = snapshot.val();
+            
+            // Update UI
+            document.getElementById('totalCoins').innerText = (userData.referralWallet || 0) + (userData.spinWallet || 0);
+            document.getElementById('referralWallet').innerText = userData.referralWallet || 0;
+            document.getElementById('spinWallet').innerText = userData.spinWallet || 0;
+            document.getElementById('totalEarned').innerText = userData.totalEarned || 0;
+            
+            // Set referral link
+            const referralLink = `https://randigital.in/register.html?ref=${userData.referralCode}`;
+            document.getElementById('referralLink').value = referralLink;
+        }
+        
+        // Load referral stats
+        async function loadReferralStats() {
+            const referralsRef = ref(db, 'referrals/' + currentUser.uid);
+            const snapshot = await get(referralsRef);
+            const referrals = snapshot.val() || { level1: [], level2: [] };
+            
+            document.getElementById('level1Count').innerText = referrals.level1.length;
+            document.getElementById('level2Count').innerText = referrals.level2.length;
+            document.getElementById('totalReferrals').innerText = referrals.level1.length + referrals.level2.length;
+        }
+        
+        // Copy referral link
+        window.copyReferralLink = function() {
+            const link = document.getElementById('referralLink');
+            link.select();
+            document.execCommand('copy');
+            alert('Referral link copied!');
+        }
+        
+        // Share functions
+        window.shareWhatsApp = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://wa.me/?text=Join RND Rewards using my link: ${link}`, '_blank');
+        }
+        
+        window.shareTelegram = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://t.me/share/url?url=${link}&text=Join RND Rewards`, '_blank');
+        }
+        
+        window.shareFacebook = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${link}`, '_blank');
+        }
+        
+        // Complete task
+        window.completeTask = async function(task) {
+            const taskRef = ref(db, 'taskCompletion/' + currentUser.uid + '/' + task);
+            await update(ref(db, 'taskCompletion/' + currentUser.uid), {
+                [task]: true
+            });
+            alert(`${task} task completed! You can now withdraw.`);
+        }
+        
+        // Show spin wheel
+        window.showSpinWheel = function() {
+            document.getElementById('spinModal').style.display = 'block';
+        }
+        
+        window.closeSpinModal = function() {
+            document.getElementById('spinModal').style.display = 'none';
+        }
+        
+        // Spin wheel
+        window.spinWheel = async function() {
+            const rewards = [1, 2, 5, 10, 0, 2];
+            const randomIndex = Math.floor(Math.random() * rewards.length);
+            const reward = rewards[randomIndex];
+            
+            if (reward > 0) {
+                // Update spin wallet
+                const newSpinWallet = (userData.spinWallet || 0) + reward;
+                await update(ref(db, 'users/' + currentUser.uid), {
+                    spinWallet: newSpinWallet,
+                    totalEarned: (userData.totalEarned || 0) + reward
+                });
+                userData.spinWallet = newSpinWallet;
+                alert(`🎉 Congratulations! You won ${reward} RND!`);
+                await loadUserData();
+            } else {
+                alert('😢 Better luck next time!');
+            }
+            
+            closeSpinModal();
+        }
+        
+        // Request withdrawal
+        window.requestWithdrawal = async function() {
+            const walletType = document.getElementById('walletType').value;
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const address = document.getElementById('bep20Address').value;
+            const messageDiv = document.getElementById('withdrawMessage');
+            
+            if (amount < 50) {
+                messageDiv.innerHTML = '<div class="error">Minimum withdrawal is 50 RND!</div>';
+                return;
+            }
+            
+            if (!address) {
+                messageDiv.innerHTML = '<div class="error">Please enter BEP20 address!</div>';
+                return;
+            }
+            
+            // Check if tasks completed
+            const tasksRef = ref(db, 'taskCompletion/' + currentUser.uid);
+            const tasksSnap = await get(tasksRef);
+            const tasks = tasksSnap.val() || {};
+            
+            const allTasksDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
+            if (!allTasksDone) {
+                messageDiv.innerHTML = '<div class="error">Please complete all social tasks first!</div>';
+                return;
+            }
+            
+            // Check balance
+            const currentBalance = userData[walletType] || 0;
+            if (currentBalance < amount) {
+                messageDiv.innerHTML = '<div class="error">Insufficient balance!</div>';
+                return;
+            }
+            
+            // Create withdrawal request
+            const withdrawalRef = push(ref(db, 'withdrawals'));
+            await set(withdrawalRef, {
+                uid: currentUser.uid,
+                walletType: walletType,
+                amount: amount,
+                walletAddress: address,
+                status: 'pending',
+                date: new Date().toISOString()
+            });
+            
+            messageDiv.innerHTML = '<div class="success">Withdrawal request submitted! Admin will approve soon.</div>';
+            
+            // Clear form
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('bep20Address').value = '';
+        }
+        
+        window.viewHistory = function() {
+            alert('Transaction history feature coming soon!');
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'index.html';
+        });
+        
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('spinModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

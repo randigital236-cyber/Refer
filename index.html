@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RND Rewards - Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <h1>🎡 RND Rewards</h1>
+                <p>Earn RND Coins by Referring Friends</p>
+            </div>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Full Name" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <div class="login-link">
+                Already have an account? <a href="#" onclick="showLogin()">Login</a>
+            </div>
+        </div>
+
+        <!-- Login Form (Hidden by default) -->
+        <div class="card" id="loginForm" style="display:none;">
+            <h2>Login to RND Rewards</h2>
+            <form id="loginFormData">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <div class="login-link">
+                New user? <a href="#" onclick="showSignup()">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, ref, set, get } from './firebase-config.js';
+
+        // Generate unique referral code
+        function generateReferralCode(name, uid) {
+            return name.substring(0, 3).toUpperCase() + uid.substring(0, 5);
+        }
+
+        // Show Login Form
+        window.showLogin = function() {
+            document.querySelector('.card:first-child').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        // Show Signup Form
+        window.showSignup = function() {
+            document.querySelector('.card:first-child').style.display = 'block';
+            document.getElementById('loginForm').style.display = 'none';
+        }
+
+        // Signup Handler
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const referralCode = document.getElementById('referralCode').value;
+            const messageDiv = document.getElementById('message');
+
+            if (password.length < 6) {
+                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>';
+                return;
+            }
+
+            try {
+                // Create user in Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                const userReferralCode = generateReferralCode(name, user.uid);
+                
+                // Find referrer if referral code provided
+                let referredBy = null;
+                let level1Referrer = null;
+                let level2Referrer = null;
+                
+                if (referralCode) {
+                    // Search for user with this referral code
+                    const usersRef = ref(db, 'users');
+                    const snapshot = await get(usersRef);
+                    const users = snapshot.val();
+                    
+                    for (let uid in users) {
+                        if (users[uid].referralCode === referralCode) {
+                            referredBy = uid;
+                            
+                            // Get level 1 and level 2 referrers
+                            if (users[uid].referredBy) {
+                                level1Referrer = users[uid].referredBy;
+                                
+                                const level1User = users[level1Referrer];
+                                if (level1User && level1User.referredBy) {
+                                    level2Referrer = level1User.referredBy;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                // Save user data
+                await set(ref(db, 'users/' + user.uid), {
+                    name: name,
+                    email: email,
+                    referralCode: userReferralCode,
+                    referredBy: referredBy,
+                    referralWallet: referredBy ? 5 : 0, // Signup bonus only if referred
+                    spinWallet: 0,
+                    totalEarned: referredBy ? 5 : 0,
+                    totalWithdrawn: 0,
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                });
+                
+                // Initialize empty referral structure
+                await set(ref(db, 'referrals/' + user.uid), {
+                    level1: [],
+                    level2: []
+                });
+                
+                // Give rewards to referrers
+                if (referredBy) {
+                    // Update referrer's wallet (Level 1 - gets 2 RND)
+                    const referrerRef = ref(db, 'users/' + referredBy);
+                    const referrerSnap = await get(referrerRef);
+                    const referrer = referrerSnap.val();
+                    
+                    await update(ref(db, 'users/' + referredBy), {
+                        referralWallet: (referrer.referralWallet || 0) + 2,
+                        totalEarned: (referrer.totalEarned || 0) + 2
+                    });
+                    
+                    // Add to level1 referrals
+                    const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
+                    const level1Data = await get(level1Ref);
+                    let level1List = level1Data.val() || [];
+                    level1List.push(user.uid);
+                    await set(level1Ref, level1List);
+                    
+                    // Level 2 referrer (gets 1 RND)
+                    if (level1Referrer) {
+                        const level2Ref = ref(db, 'users/' + level1Referrer);
+                        const level2Snap = await get(level2Ref);
+                        const level2User = level2Snap.val();
+                        
+                        await update(ref(db, 'users/' + level1Referrer), {
+                            referralWallet: (level2User.referralWallet || 0) + 1,
+                            totalEarned: (level2User.totalEarned || 0) + 1
+                        });
+                        
+                        // Add to level2 referrals
+                        const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
+                        const level2ListData = await get(level2ListRef);
+                        let level2List = level2ListData.val() || [];
+                        level2List.push(user.uid);
+                        await set(level2ListRef, level2List);
+                    }
+                }
+                
+                messageDiv.innerHTML = '<div class="success">Account created successfully! Redirecting...</div>';
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    messageDiv.innerHTML = '<div class="error">Email already registered!</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error">Error: ' + error.message + '</div>';
+                }
+            }
+        });
+        
+        // Login Handler
+        document.getElementById('loginFormData').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = 'dashboard.html';
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
