@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>My Referrals - RND Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 0 0 30px 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 18px; border-radius: 50px; cursor: pointer; font-size: 14px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .stats-cards { display: flex; gap: 15px; padding: 20px; margin-top: -20px; }
+        .stat-card { background: white; border-radius: 20px; padding: 20px; flex: 1; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .stat-card .number { font-size: 36px; font-weight: bold; color: #667eea; }
+        .section { background: white; margin: 20px; padding: 25px; border-radius: 20px; }
+        .section-title { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .referral-list { list-style: none; }
+        .referral-item { padding: 15px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px; }
+        .referral-item i { font-size: 20px; color: #667eea; }
+        .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
+        @media (max-width: 480px) { .stats-cards { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top"><h2><i class="fas fa-user-friends"></i> My Referrals</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <p>Track your referral team and earnings</p>
+    </div>
+    <div class="stats-cards">
+        <div class="stat-card"><div class="number" id="level1Count">0</div><p>Level 1 Team</p><small>+2 RND each</small></div>
+        <div class="stat-card"><div class="number" id="level2Count">0</div><p>Level 2 Team</p><small>+1 RND each</small></div>
+        <div class="stat-card"><div class="number" id="totalEarnedFromRef">0</div><p>RND from Referrals</p></div>
+    </div>
+    <div class="section">
+        <div class="section-title"><i class="fas fa-list"></i><span>Your Referral Tree</span></div>
+        <div id="referralList"><div class="empty-state"><i class="fas fa-users" style="font-size: 48px; opacity: 0.3;"></i><p>No referrals yet. Share your link!</p></div></div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } await loadReferralData(user.uid); });
+        
+        async function loadReferralData(uid) {
+            const userSnap = await get(ref(db, 'users/' + uid));
+            const userData = userSnap.val();
+            const referralsSnap = await get(ref(db, 'referrals/' + uid));
+            const referrals = referralsSnap.val() || { level1: [], level2: [] };
+            
+            document.getElementById('level1Count').innerText = referrals.level1.length;
+            document.getElementById('level2Count').innerText = referrals.level2.length;
+            let totalEarned = (referrals.level1.length * 2) + (referrals.level2.length * 1);
+            document.getElementById('totalEarnedFromRef').innerText = totalEarned;
+            
+            const container = document.getElementById('referralList');
+            if(referrals.level1.length === 0 && referrals.level2.length === 0){
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-users" style="font-size:48px;opacity:0.3;"></i><p>No referrals yet. Share your link!</p></div>';
+                return;
+            }
+            let html = '';
+            for(let refId of referrals.level1){
+                const refSnap = await get(ref(db, 'users/' + refId));
+                const refUser = refSnap.val();
+                if(refUser) html += `<div class="referral-item"><i class="fas fa-user-check"></i><div><strong>${refUser.name}</strong><br><small>Level 1 • Joined ${new Date(refUser.createdAt).toLocaleDateString()}</small></div></div>`;
+            }
+            for(let refId of referrals.level2){
+                const refSnap = await get(ref(db, 'users/' + refId));
+                const refUser = refSnap.val();
+                if(refUser) html += `<div class="referral-item"><i class="fas fa-user-plus"></i><div><strong>${refUser.name}</strong><br><small>Level 2 • Joined ${new Date(refUser.createdAt).toLocaleDateString()}</small></div></div>`;
+            }
+            container.innerHTML = html;
+        }
+        window.goBack = function() { window.location.href = 'dashboard.html'; };
+    </script>
+</body>
+</html>

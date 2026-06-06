@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Spin Wheel - RND Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 14px; }
+        .spin-card { background: white; border-radius: 40px; padding: 40px 30px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); }
+        .balance-badge { background: linear-gradient(135deg, #667eea20, #764ba220); padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; }
+        .wheel-container { margin: 30px 0; }
+        .wheel { width: 280px; height: 280px; margin: 0 auto; }
+        .spin-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 18px 50px; border-radius: 50px; font-size: 20px; font-weight: bold; cursor: pointer; transition: transform 0.2s; margin-top: 20px; }
+        .spin-btn:active { transform: scale(0.95); }
+        .prize-list { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .prize-badge { background: #f3f4f6; padding: 8px 15px; border-radius: 50px; font-size: 12px; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 15px; font-weight: bold; }
+        .result.win { background: #d1fae5; color: #059669; }
+        .result.lose { background: #fee2e2; color: #dc2626; }
+        @media (max-width: 480px) { .wheel { width: 250px; height: 250px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header"><h2 style="color:white;"><i class="fas fa-gamepad"></i> Spin & Earn</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <div class="spin-card">
+            <div class="balance-badge"><i class="fas fa-coins"></i> Your Spin Wallet: <strong id="spinWallet">0</strong> RND</div>
+            <div class="wheel-container"><canvas id="wheelCanvas" width="280" height="280" class="wheel"></canvas></div>
+            <button class="spin-btn" id="spinBtn" onclick="startSpin()"><i class="fas fa-sync-alt"></i> SPIN NOW</button>
+            <div class="prize-list"><span class="prize-badge">🎁 0 RND</span><span class="prize-badge">🎁 1 RND</span><span class="prize-badge">🎁 2 RND</span><span class="prize-badge">🎁 5 RND</span><span class="prize-badge">🎁 10 RND</span></div>
+            <div id="resultMsg" class="result" style="display:none;"></div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        let currentUser = null, userData = null, spinning = false;
+        const segments = [{ label: '1 RND', value: 1, color: '#FF6B6B' },{ label: '2 RND', value: 2, color: '#4ECDC4' },{ label: '0 RND', value: 0, color: '#FFEAA7' },{ label: '5 RND', value: 5, color: '#45B7D1' },{ label: '2 RND', value: 2, color: '#96CEB4' },{ label: '10 RND', value: 10, color: '#DDA0DD' }];
+        
+        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } currentUser = user; await loadUserData(); });
+        
+        async function loadUserData() { const snap = await get(ref(db, 'users/' + currentUser.uid)); userData = snap.val(); if(userData) document.getElementById('spinWallet').innerText = userData.spinWallet || 0; }
+        
+        function drawWheel(rotationAngle = 0) {
+            const canvas = document.getElementById('wheelCanvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const center = 140, radius = 130;
+            const angleStep = (Math.PI * 2) / segments.length;
+            for(let i = 0; i < segments.length; i++) {
+                const start = i * angleStep + rotationAngle;
+                const end = start + angleStep;
+                ctx.beginPath();
+                ctx.fillStyle = segments[i].color;
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, start, end);
+                ctx.fill();
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(start + angleStep / 2);
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 12px Poppins';
+                ctx.fillText(segments[i].label, 75, 5);
+                ctx.restore();
+            }
+        }
+        
+        drawWheel(0);
+        
+        window.startSpin = async function() {
+            if(spinning) return;
+            spinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
+            
+            let randomIndex = Math.floor(Math.random() * segments.length);
+            const reward = segments[randomIndex];
+            const spinDuration = 2000;
+            const startTime = Date.now();
+            
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(1, elapsed / spinDuration);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentRot = (Math.PI * 2 * 10 * easeOut) + (randomIndex * (Math.PI * 2 / segments.length));
+                drawWheel(currentRot % (Math.PI * 2));
+                if(progress < 1) requestAnimationFrame(animate);
+                else {
+                    drawWheel(randomIndex * (Math.PI * 2 / segments.length));
+                    if(reward.value > 0) {
+                        const newSpin = (userData.spinWallet || 0) + reward.value;
+                        update(ref(db, 'users/' + currentUser.uid), { spinWallet: newSpin, totalEarned: (userData.totalEarned || 0) + reward.value }).then(async() => {
+                            userData.spinWallet = newSpin;
+                            await loadUserData();
+                            const resultDiv = document.getElementById('resultMsg');
+                            resultDiv.style.display = 'block';
+                            resultDiv.className = 'result win';
+                            resultDiv.innerHTML = `<i class="fas fa-trophy"></i> Congratulations! You won ${reward.value} RND!`;
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN AGAIN';
+                            spinning = false;
+                            setTimeout(() => resultDiv.style.display = 'none', 3000);
+                        });
+                    } else {
+                        const resultDiv = document.getElementById('resultMsg');
+                        resultDiv.style.display = 'block';
+                        resultDiv.className = 'result lose';
+                        resultDiv.innerHTML = `<i class="fas fa-frown"></i> Better luck next time! 0 RND.`;
+                        spinBtn.disabled = false;
+                        spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN AGAIN';
+                        spinning = false;
+                        setTimeout(() => resultDiv.style.display = 'none', 2000);
+                    }
+                }
+            };
+            animate();
+        };
+        
+        window.goBack = function() { window.location.href = 'dashboard.html'; };
+    </script>
+</body>
+</html>

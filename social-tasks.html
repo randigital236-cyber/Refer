@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Social Tasks - RND Rewards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #f0f2f5; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 0 0 30px 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 18px; border-radius: 50px; cursor: pointer; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .section { background: white; margin: 20px; padding: 25px; border-radius: 20px; }
+        .section-title { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .task-card { background: #f8f9fa; border-radius: 20px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+        .task-info { display: flex; align-items: center; gap: 15px; }
+        .task-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .fb-icon { background: #1877f2; color: white; }
+        .tw-icon { background: #1da1f2; color: white; }
+        .ig-icon { background: linear-gradient(45deg, #f09433, #d62976); color: white; }
+        .tg-icon { background: #0088cc; color: white; }
+        .task-details h4 { font-size: 16px; margin-bottom: 5px; }
+        .task-details p { font-size: 12px; color: #6b7280; }
+        .task-btn { padding: 10px 25px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .task-btn.pending { background: #667eea; color: white; }
+        .task-btn.completed { background: #10b981; color: white; cursor: default; }
+        .task-btn:active { transform: scale(0.95); }
+        .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; }
+        @media (max-width: 480px) { .task-card { flex-direction: column; text-align: center; } .task-info { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-top"><h2><i class="fab fa-facebook"></i> Social Tasks</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <p>Complete all tasks to enable withdrawals</p>
+    </div>
+    <div class="section">
+        <div class="warning-box"><i class="fas fa-info-circle"></i> <strong>Important:</strong> You must complete ALL 4 tasks to withdraw your earnings. Each task gives +3 RND reward!</div>
+        
+        <div class="task-card"><div class="task-info"><div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div><div class="task-details"><h4>Facebook Page</h4><p>Follow our Facebook page and like recent post</p><small>https://facebook.com/...</small></div></div><button id="facebookBtn" class="task-btn pending" onclick="verifyTask('facebook')">Verify Task</button></div>
+        
+        <div class="task-card"><div class="task-info"><div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div><div class="task-details"><h4>Twitter / X</h4><p>Follow @RanDigitalRND and retweet pinned post</p><small>https://x.com/RanDigitalRND</small></div></div><button id="twitterBtn" class="task-btn pending" onclick="verifyTask('twitter')">Verify Task</button></div>
+        
+        <div class="task-card"><div class="task-info"><div class="task-icon ig-icon"><i class="fab fa-instagram"></i></div><div class="task-details"><h4>Instagram</h4><p>Follow our Instagram page</p><small>@Randigital</small></div></div><button id="instagramBtn" class="task-btn pending" onclick="verifyTask('instagram')">Verify Task</button></div>
+        
+        <div class="task-card"><div class="task-info"><div class="task-icon tg-icon"><i class="fab fa-telegram"></i></div><div class="task-details"><h4>Telegram</h4><p>Join our official Telegram channel</p><small>https://t.me/RanDigitalOfficial</small></div></div><button id="telegramBtn" class="task-btn pending" onclick="verifyTask('telegram')">Verify Task</button></div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        let currentUser = null, userData = null;
+        const socialLinks = { facebook: "https://www.facebook.com/profile.php?id=61590396932149", twitter: "https://x.com/RanDigitalRND", instagram: "https://www.instagram.com/", telegram: "https://t.me/RanDigitalOfficial" };
+        
+        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } currentUser = user; await loadUserData(); });
+        
+        async function loadUserData() { const snap = await get(ref(db, 'users/' + currentUser.uid)); userData = snap.val(); updateButtons(); }
+        
+        function updateButtons() {
+            const tasks = userData?.socialTasks || {};
+            const btns = ['facebook', 'twitter', 'instagram', 'telegram'];
+            btns.forEach(t => { 
+                let btn = document.getElementById(`${t}Btn`);
+                if(tasks[t]) { btn.innerText = '✓ Completed'; btn.classList.remove('pending'); btn.classList.add('completed'); btn.disabled = true; }
+                else { btn.innerText = 'Verify Task'; btn.classList.remove('completed'); btn.classList.add('pending'); btn.disabled = false; }
+            });
+        }
+        
+        window.verifyTask = async (platform) => {
+            window.open(socialLinks[platform], '_blank');
+            setTimeout(() => {
+                if(confirm(`✅ After following ${platform}, click OK to upload screenshot proof.`)){
+                    let input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (e) => {
+                        let file = e.target.files[0];
+                        if(file){
+                            let reader = new FileReader();
+                            reader.onload = async (ev) => {
+                                await update(ref(db, `users/${currentUser.uid}`), { [`socialTasks.${platform}`]: true, [`${platform}Proof`]: ev.target.result });
+                                let reward = 3;
+                                await update(ref(db, `users/${currentUser.uid}`), { spinWallet: (userData.spinWallet||0)+reward, totalEarned: (userData.totalEarned||0)+reward });
+                                userData.spinWallet = (userData.spinWallet||0)+reward;
+                                userData.totalEarned = (userData.totalEarned||0)+reward;
+                                await loadUserData();
+                                alert(`✅ ${platform} verified! +3 RND added to Spin Wallet!`);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    input.click();
+                }
+            }, 1000);
+        };
+        
+        window.goBack = function() { window.location.href = 'dashboard.html'; };
+    </script>
+</body>
+</html>
