@@ -3,130 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards - Earn Crypto</title>
+    <title>RND Rewards - Signup/Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 40px 30px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            width: 100%;
-            animation: slideUp 0.5s ease;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px);}
-            to { opacity: 1; transform: translateY(0);}
-        }
-        .logo {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-        .logo h1 {
-            font-size: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-        .form-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            font-size: 15px;
-            transition: 0.3s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .btn:hover { transform: translateY(-2px); }
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-        }
-        .error { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; }
-        .success { background: #d1fae5; color: #059669; border-left: 4px solid #059669; }
-        .link-text {
-            text-align: center;
-            margin-top: 25px;
-            color: #6b7280;
-        }
-        .link-text a {
-            color: #667eea;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .floating {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 12px;
-        }
-        @media (max-width: 480px) {
-            .card { padding: 30px 20px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; align-items: center; }
+        .card { background: rgba(255,255,255,0.96); border-radius: 30px; padding: 40px 30px; width: 100%; animation: slideUp 0.5s ease; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        @keyframes slideUp { from { opacity:0; transform:translateY(30px);} to { opacity:1; transform:translateY(0);} }
+        .logo { text-align: center; margin-bottom: 35px; }
+        .logo h1 { font-size: 32px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .form-group input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 15px; }
+        .form-group input:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; }
+        .message { margin-top: 20px; padding: 12px; border-radius: 12px; text-align: center; font-size: 14px; }
+        .error { background: #fee2e2; color: #dc2626; }
+        .success { background: #d1fae5; color: #059669; }
+        .link-text { text-align: center; margin-top: 25px; }
+        .link-text a { color: #667eea; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Signup Card -->
         <div class="card" id="signupCard">
-            <div class="logo">
-                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>RND Rewards</h1>
-                <p>Earn Crypto by Referring Friends</p>
-            </div>
+            <div class="logo"><i class="fas fa-coins" style="font-size:50px; background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i><h1>RND Rewards</h1><p>Earn Crypto by Referring Friends</p></div>
             <form id="signupForm">
                 <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required></div>
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required></div>
@@ -137,13 +39,8 @@
             <div id="message" class="message"></div>
             <div class="link-text">Already have an account? <a onclick="showLogin()">Login Here</a></div>
         </div>
-
-        <!-- Login Card -->
         <div class="card" id="loginCard" style="display:none;">
-            <div class="logo">
-                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>Welcome Back</h1>
-            </div>
+            <div class="logo"><h1>Welcome Back</h1></div>
             <form id="loginForm">
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email" required></div>
                 <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div>
@@ -153,49 +50,22 @@
             <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
         </div>
     </div>
-    <div class="floating"><i class="fas fa-shield-alt"></i> Secure Platform</div>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
-            authDomain: "randigital-e7715.firebaseapp.com",
-            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "randigital-e7715",
-            storageBucket: "randigital-e7715.firebasestorage.app",
-            messagingSenderId: "218883279353",
-            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-
         function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
-
-        window.showLogin = function() {
-            document.getElementById('signupCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'block';
-        };
-        window.showSignup = function() {
-            document.getElementById('signupCard').style.display = 'block';
-            document.getElementById('loginCard').style.display = 'none';
-        };
-
-        // Signup
+        window.showLogin = function() { document.getElementById('signupCard').style.display = 'none'; document.getElementById('loginCard').style.display = 'block'; };
+        window.showSignup = function() { document.getElementById('signupCard').style.display = 'block'; document.getElementById('loginCard').style.display = 'none'; };
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const referralCode = document.getElementById('referralCode').value;
+            const name = document.getElementById('name').value, email = document.getElementById('email').value, password = document.getElementById('password').value, referralCode = document.getElementById('referralCode').value;
             const msgDiv = document.getElementById('message');
-            if (password.length < 6) {
-                msgDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Password minimum 6 characters!</div>';
-                return;
-            }
+            if (password.length < 6) { msgDiv.innerHTML = '<div class="error">Password minimum 6 characters!</div>'; return; }
             try {
                 const userCred = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCred.user;
@@ -215,25 +85,15 @@
                         }
                     }
                 }
-                const userData = {
-                    name, email, userId: user.uid, referralCode: userReferralCode,
-                    referredBy: referredBy || null, referralWallet: referredBy ? 5 : 0,
-                    spinWallet: 0, totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0,
-                    status: 'active', createdAt: new Date().toISOString(),
-                    socialTasks: { facebook: false, twitter: false, instagram: false, telegram: false }
-                };
+                const userData = { name, email, userId: user.uid, referralCode: userReferralCode, referredBy: referredBy || null, referralWallet: referredBy ? 5 : 0, spinWallet: 0, totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0, status: 'active', createdAt: new Date().toISOString(), socialTasks: { facebook: false, twitter: false, instagram: false, telegram: false }, facebookProof: null, twitterProof: null };
                 await set(ref(db, 'users/' + user.uid), userData);
                 await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
-                
                 if(referredBy){
                     const referrerRef = ref(db, 'users/' + referredBy);
                     const refSnap = await get(referrerRef);
                     if(refSnap.exists()){
                         const referrer = refSnap.val();
-                        await update(ref(db, 'users/' + referredBy), {
-                            referralWallet: (referrer.referralWallet || 0) + 2,
-                            totalEarned: (referrer.totalEarned || 0) + 2
-                        });
+                        await update(ref(db, 'users/' + referredBy), { referralWallet: (referrer.referralWallet || 0) + 2, totalEarned: (referrer.totalEarned || 0) + 2 });
                         let level1List = (await get(ref(db, 'referrals/' + referredBy + '/level1'))).val() || [];
                         level1List.push(user.uid);
                         await set(ref(db, 'referrals/' + referredBy + '/level1'), level1List);
@@ -242,17 +102,14 @@
                         const l2Snap = await get(ref(db, 'users/' + level1Referrer));
                         if(l2Snap.exists()){
                             const l2User = l2Snap.val();
-                            await update(ref(db, 'users/' + level1Referrer), {
-                                referralWallet: (l2User.referralWallet || 0) + 1,
-                                totalEarned: (l2User.totalEarned || 0) + 1
-                            });
+                            await update(ref(db, 'users/' + level1Referrer), { referralWallet: (l2User.referralWallet || 0) + 1, totalEarned: (l2User.totalEarned || 0) + 1 });
                             let level2List = (await get(ref(db, 'referrals/' + level1Referrer + '/level2'))).val() || [];
                             level2List.push(user.uid);
                             await set(ref(db, 'referrals/' + level1Referrer + '/level2'), level2List);
                         }
                     }
                 }
-                msgDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created! Your Referral Code: <strong>'+userReferralCode+'</strong><br>Redirecting...</div>';
+                msgDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>'+userReferralCode+'</strong><br>Redirecting...</div>';
                 localStorage.setItem('userReferralCode', userReferralCode);
                 localStorage.setItem('userName', name);
                 localStorage.setItem('userId', user.uid);
@@ -262,12 +119,9 @@
                 else msgDiv.innerHTML = '<div class="error">'+error.message+'</div>';
             }
         });
-
-        // Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('loginEmail').value, password = document.getElementById('loginPassword').value;
             const msgDiv = document.getElementById('loginMessage');
             try{
                 const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -279,9 +133,7 @@
                     localStorage.setItem('userId', cred.user.uid);
                     msgDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
                     setTimeout(() => window.location.href = 'dashboard.html', 1000);
-                } else {
-                    msgDiv.innerHTML = '<div class="error">Account blocked.</div>';
-                }
+                } else { msgDiv.innerHTML = '<div class="error">Account blocked.</div>'; }
             } catch(error){
                 if(error.code === 'auth/user-not-found') msgDiv.innerHTML = '<div class="error">No account found.</div>';
                 else if(error.code === 'auth/wrong-password') msgDiv.innerHTML = '<div class="error">Wrong password.</div>';
