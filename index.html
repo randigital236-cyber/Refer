@@ -361,6 +361,9 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
+        // OFFICIAL DOMAIN - Referral link yahi domain use karega
+        const OFFICIAL_DOMAIN = "http://app.randigital.in";
+
         // Get URL parameter for referral code
         function getReferralCodeFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -374,6 +377,7 @@
                 const referralInput = document.getElementById('referralCode');
                 if (referralInput) {
                     referralInput.value = refCode.toUpperCase();
+                    // Show message that referral code applied
                     const messageDiv = document.getElementById('message');
                     messageDiv.innerHTML = '<div class="success"><i class="fas fa-gift"></i> Referral code applied! You will get +5 RND on signup.</div>';
                     setTimeout(() => messageDiv.innerHTML = '', 4000);
@@ -429,8 +433,7 @@
                 totalWithdrawn: 0,
                 status: 'active',
                 createdAt: new Date().toISOString(),
-                socialTasks: {},
-                authProvider: referredBy ? 'email' : 'google'
+                socialTasks: {}
             };
             
             await set(ref(db, 'users/' + user.uid), userData);
@@ -500,10 +503,9 @@
             document.getElementById('forgotCard').style.display = 'block';
         }
 
-        // Call this when page loads
         setReferralCodeFromURL();
 
-        // Email/Password Signup Handler
+        // Email/Password Signup
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -514,17 +516,16 @@
             const messageDiv = document.getElementById('message');
 
             if (password.length < 6) {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Password must be at least 6 characters!</div>';
+                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>';
                 return;
             }
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                
                 const userReferralCode = await saveUserToDatabase(user, name, referralCode);
                 
-                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
                 
                 localStorage.setItem('userReferralCode', userReferralCode);
                 localStorage.setItem('userName', name);
@@ -535,16 +536,15 @@
                 }, 2500);
                 
             } catch (error) {
-                console.error(error);
                 if (error.code === 'auth/email-already-in-use') {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-envelope"></i> Email already registered! Please login.</div>';
+                    messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
                 } else {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
                 }
             }
         });
         
-        // Email/Password Login Handler
+        // Email/Password Login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -565,27 +565,25 @@
                     localStorage.setItem('userName', userData.name);
                     localStorage.setItem('userId', user.uid);
                     
-                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                    messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 1000);
                 } else {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
+                    messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>';
                 }
             } catch (error) {
                 if (error.code === 'auth/user-not-found') {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found. Please sign up.</div>';
+                    messageDiv.innerHTML = '<div class="error">No account found. Please sign up.</div>';
                 } else if (error.code === 'auth/wrong-password') {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Wrong password. Try again.</div>';
-                } else if (error.code === 'auth/invalid-credential') {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Invalid email or password.</div>';
+                    messageDiv.innerHTML = '<div class="error">Wrong password. Try again.</div>';
                 } else {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
                 }
             }
         });
         
-        // Google Signup Handler
+        // Google Signup
         document.getElementById('googleSignupBtn').addEventListener('click', async () => {
             const messageDiv = document.getElementById('message');
             const referralCode = document.getElementById('referralCode').value;
@@ -595,30 +593,24 @@
                 const user = result.user;
                 const name = user.displayName || user.email.split('@')[0];
                 
-                // Check if user already exists in database
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
                 
                 if (snapshot.exists()) {
-                    // User already exists, login
                     const userData = snapshot.val();
                     if (userData.status === 'active') {
                         localStorage.setItem('userReferralCode', userData.referralCode);
                         localStorage.setItem('userName', userData.name);
                         localStorage.setItem('userId', user.uid);
                         
-                        messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
                         }, 1500);
-                    } else {
-                        messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
                     }
                 } else {
-                    // New user, create account
                     const userReferralCode = await saveUserToDatabase(user, name, referralCode);
-                    
-                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created with Google! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                    messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
                     
                     localStorage.setItem('userReferralCode', userReferralCode);
                     localStorage.setItem('userName', name);
@@ -629,12 +621,11 @@
                     }, 2500);
                 }
             } catch (error) {
-                console.error(error);
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Google sign in failed: ' + error.message + '</div>';
+                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
             }
         });
         
-        // Google Login Handler
+        // Google Login
         document.getElementById('googleLoginBtn').addEventListener('click', async () => {
             const messageDiv = document.getElementById('loginMessage');
             
@@ -652,23 +643,20 @@
                         localStorage.setItem('userName', userData.name);
                         localStorage.setItem('userId', user.uid);
                         
-                        messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
                         }, 1500);
-                    } else {
-                        messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
                     }
                 } else {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found with this Google account. Please sign up first.</div>';
+                    messageDiv.innerHTML = '<div class="error">No account found. Please sign up first.</div>';
                 }
             } catch (error) {
-                console.error(error);
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Google sign in failed: ' + error.message + '</div>';
+                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
             }
         });
         
-        // Forgot Password Handler
+        // Forgot Password
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -677,17 +665,12 @@
             
             try {
                 await sendPasswordResetEmail(auth, email);
-                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Password reset email sent! Check your inbox.</div>';
-                
+                messageDiv.innerHTML = '<div class="success">Password reset email sent! Check your inbox.</div>';
                 setTimeout(() => {
                     showLogin();
                 }, 3000);
             } catch (error) {
-                if (error.code === 'auth/user-not-found') {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found with this email!</div>';
-                } else {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
-                }
+                messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
         });
     </script>
