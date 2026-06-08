@@ -147,17 +147,26 @@
         });
         
         async function loadUserData() {
-            const snap = await get(ref(db, 'users/' + currentUser.uid));
-            userData = snap.val();
-            if (!userData) userData = {};
-            if (!userData.socialTasks) userData.socialTasks = {};
-            updateButtons();
+            try {
+                const userRef = ref(db, 'users/' + currentUser.uid);
+                const snap = await get(userRef);
+                userData = snap.val();
+                if (!userData) {
+                    userData = { spinWallet: 0, referralWallet: 0, totalEarned: 0, socialTasks: {} };
+                }
+                if (!userData.socialTasks) {
+                    userData.socialTasks = {};
+                }
+                updateButtons();
+            } catch (error) {
+                console.error("Error loading user data:", error);
+            }
         }
         
         function updateButtons() {
             const tasks = userData?.socialTasks || {};
             
-            if (tasks.facebook) {
+            if (tasks.facebook === true) {
                 facebookBtn.innerText = '✓ Completed';
                 facebookBtn.classList.remove('pending');
                 facebookBtn.classList.add('completed');
@@ -169,7 +178,7 @@
                 facebookBtn.disabled = false;
             }
             
-            if (tasks.twitter) {
+            if (tasks.twitter === true) {
                 twitterBtn.innerText = '✓ Completed';
                 twitterBtn.classList.remove('pending');
                 twitterBtn.classList.add('completed');
@@ -182,7 +191,7 @@
             }
         }
         
-        // Temporary screenshot storage (memory only - auto delete after 5 min)
+        // Temporary screenshot storage (memory only)
         let tempScreenshots = {};
         
         function autoDeleteScreenshot(platform) {
@@ -194,11 +203,10 @@
             }, 5 * 60 * 1000);
         }
         
-        // Open modal for task verification
         async function openVerificationModal(platform) {
             // Check if already completed
-            if (userData?.socialTasks?.[platform]) {
-                alert(`✅ ${platform} task already completed!`);
+            if (userData?.socialTasks?.[platform] === true) {
+                alert(`✅ ${platform === 'facebook' ? 'Facebook' : 'Twitter'} task already completed!`);
                 return;
             }
             
@@ -210,7 +218,6 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Submit';
             
-            // Update modal content
             if (platform === 'facebook') {
                 modalTitle.innerHTML = '<i class="fab fa-facebook"></i> Facebook Verification';
                 modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed our page<br>2️⃣ You commented "RND" on latest post';
@@ -230,14 +237,12 @@
         screenshotInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     alert('❌ File too large! Please select image under 5MB.');
                     screenshotInput.value = '';
                     return;
                 }
                 
-                // Check file type
                 if (!file.type.startsWith('image/')) {
                     alert('❌ Please select an image file!');
                     screenshotInput.value = '';
@@ -254,7 +259,6 @@
             }
         });
         
-        // Submit verification
         async function submitVerification() {
             if (isSubmitting) return;
             
@@ -270,28 +274,34 @@
             submitBtn.innerHTML = '<span class="loading-spinner"></span> Processing...';
             
             try {
-                // Store temporarily in memory (not saved to Firebase)
+                // Store screenshot temporarily in memory
                 tempScreenshots[currentPlatform] = {
                     data: currentImageData,
                     userId: currentUser.uid,
                     timestamp: Date.now()
                 };
                 
-                // Add reward (3 RND to spin wallet)
-                const reward = 3;
+                // Get current balances
                 const currentSpinWallet = userData.spinWallet || 0;
                 const currentTotalEarned = userData.totalEarned || 0;
+                const reward = 3;
                 
-                // Update Firebase - only task completion status and reward, NO screenshot saved
-                await update(ref(db, `users/${currentUser.uid}`), {
-                    [`socialTasks.${currentPlatform}`]: true,
-                    spinWallet: currentSpinWallet + reward,
-                    totalEarned: currentTotalEarned + reward,
-                    [`${currentPlatform}VerifiedAt`]: new Date().toISOString()
-                });
+                // Create update object - FIXED: using proper nested object
+                const updateData = {};
+                updateData[`socialTasks/${currentPlatform}`] = true;
+                updateData.spinWallet = currentSpinWallet + reward;
+                updateData.totalEarned = currentTotalEarned + reward;
+                updateData[`${currentPlatform}VerifiedAt`] = new Date().toISOString();
                 
-                // Refresh user data
-                await loadUserData();
+                // Update Firebase
+                const userRef = ref(db, 'users/' + currentUser.uid);
+                await update(userRef, updateData);
+                
+                // Update local userData
+                if (!userData.socialTasks) userData.socialTasks = {};
+                userData.socialTasks[currentPlatform] = true;
+                userData.spinWallet = currentSpinWallet + reward;
+                userData.totalEarned = currentTotalEarned + reward;
                 
                 // Auto-delete screenshot after 5 minutes
                 autoDeleteScreenshot(currentPlatform);
@@ -301,15 +311,17 @@
                 
                 // Reset
                 currentImageData = null;
-                currentPlatform = null;
                 screenshotInput.value = '';
                 previewImg.style.display = 'none';
+                
+                // Update button UI
+                updateButtons();
                 
                 alert(`✅ ${currentPlatform === 'facebook' ? 'Facebook' : 'Twitter'} verified! +3 RND added to Spin Wallet!\n\n📸 Your screenshot has been received and will be automatically deleted after 5 minutes for your privacy.`);
                 
             } catch (error) {
-                console.error("Error:", error);
-                alert('❌ Something went wrong! Please try again.');
+                console.error("Error details:", error);
+                alert('❌ Something went wrong! Error: ' + error.message);
             } finally {
                 isSubmitting = false;
                 submitBtn.disabled = false;
@@ -317,7 +329,6 @@
             }
         }
         
-        // Cancel modal
         function cancelModal() {
             modal.style.display = 'none';
             currentImageData = null;
@@ -334,7 +345,6 @@
         submitBtn.addEventListener('click', submitVerification);
         cancelBtn.addEventListener('click', cancelModal);
         
-        // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 cancelModal();
@@ -342,8 +352,10 @@
         });
         
         // Set social links
-        document.getElementById('fbLink').href = socialLinks.facebook;
-        document.getElementById('twLink').href = socialLinks.twitter;
+        const fbLink = document.getElementById('fbLink');
+        const twLink = document.getElementById('twLink');
+        if (fbLink) fbLink.href = socialLinks.facebook;
+        if (twLink) twLink.href = socialLinks.twitter;
         
         window.goBack = function() {
             window.location.href = 'dashboard.html';
