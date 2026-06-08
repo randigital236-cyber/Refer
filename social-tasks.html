@@ -27,79 +27,267 @@
         .task-btn.completed { background: #10b981; color: white; cursor: default; }
         .task-btn:active { transform: scale(0.95); }
         .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; }
+        .upload-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 350px; text-align: center; }
+        .modal-content input { margin: 20px 0; padding: 12px; border: 2px dashed #667eea; border-radius: 15px; width: 100%; }
+        .close-modal { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 50px; margin-top: 10px; cursor: pointer; }
+        .upload-preview { max-width: 100%; max-height: 200px; margin: 10px 0; border-radius: 15px; display: none; }
         @media (max-width: 480px) { .task-card { flex-direction: column; text-align: center; } .task-info { flex-direction: column; } }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="header-top"><h2><i class="fab fa-facebook"></i> Social Tasks</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <div class="header-top">
+            <h2><i class="fab fa-facebook"></i> Social Tasks</h2>
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
         <p>Complete all tasks to enable withdrawals</p>
     </div>
     <div class="section">
-        <div class="warning-box"><i class="fas fa-info-circle"></i> <strong>Important:</strong> You must complete ALL 4 tasks to withdraw your earnings. Each task gives +3 RND reward!</div>
+        <div class="warning-box">
+            <i class="fas fa-info-circle"></i> <strong>Important:</strong> 
+            Complete Facebook & Twitter tasks to withdraw earnings. Each task gives +3 RND reward!<br>
+            <small><i class="fas fa-shield-alt"></i> Your screenshot is temporary and will be automatically deleted after verification.</small>
+        </div>
         
-        <div class="task-card"><div class="task-info"><div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div><div class="task-details"><h4>Facebook Page</h4><p>Follow our Facebook page and like recent post</p><small>https://facebook.com/...</small></div></div><button id="facebookBtn" class="task-btn pending" onclick="verifyTask('facebook')">Verify Task</button></div>
+        <div class="task-card">
+            <div class="task-info">
+                <div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div>
+                <div class="task-details">
+                    <h4>Facebook Page</h4>
+                    <p>Follow our Facebook page AND comment "RND" on latest post</p>
+                    <small><a href="#" id="fbLink" style="color:#1877f2; text-decoration:none;">https://facebook.com/...</a></small>
+                </div>
+            </div>
+            <button id="facebookBtn" class="task-btn pending" onclick="verifyTask('facebook')">Verify Task</button>
+        </div>
         
-        <div class="task-card"><div class="task-info"><div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div><div class="task-details"><h4>Twitter / X</h4><p>Follow @RanDigitalRND and retweet pinned post</p><small>https://x.com/RanDigitalRND</small></div></div><button id="twitterBtn" class="task-btn pending" onclick="verifyTask('twitter')">Verify Task</button></div>
-        
-        <div class="task-card"><div class="task-info"><div class="task-icon ig-icon"><i class="fab fa-instagram"></i></div><div class="task-details"><h4>Instagram</h4><p>Follow our Instagram page</p><small>@Randigital</small></div></div><button id="instagramBtn" class="task-btn pending" onclick="verifyTask('instagram')">Verify Task</button></div>
-        
-        <div class="task-card"><div class="task-info"><div class="task-icon tg-icon"><i class="fab fa-telegram"></i></div><div class="task-details"><h4>Telegram</h4><p>Join our official Telegram channel</p><small>https://t.me/RanDigitalOfficial</small></div></div><button id="telegramBtn" class="task-btn pending" onclick="verifyTask('telegram')">Verify Task</button></div>
+        <div class="task-card">
+            <div class="task-info">
+                <div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div>
+                <div class="task-details">
+                    <h4>Twitter / X</h4>
+                    <p>Follow @RanDigitalRND AND comment "RND" on pinned post</p>
+                    <small><a href="#" id="twLink" style="color:#1da1f2; text-decoration:none;">https://x.com/RanDigitalRND</a></small>
+                </div>
+            </div>
+            <button id="twitterBtn" class="task-btn pending" onclick="verifyTask('twitter')">Verify Task</button>
+        </div>
     </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="upload-modal">
+        <div class="modal-content">
+            <i class="fas fa-camera" style="font-size: 40px; color: #667eea;"></i>
+            <h3 id="modalTitle">Upload Screenshot</h3>
+            <p id="modalDesc">Please upload screenshot showing you followed & commented</p>
+            <input type="file" id="screenshotInput" accept="image/*" capture="environment">
+            <img id="previewImg" class="upload-preview" alt="Preview">
+            <div>
+                <button id="submitUpload" class="task-btn pending" style="margin: 5px;">Submit</button>
+                <button id="closeModal" class="close-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
+            authDomain: "randigital-e7715.firebaseapp.com",
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "randigital-e7715",
+            storageBucket: "randigital-e7715.firebasestorage.app",
+            messagingSenderId: "218883279353",
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        
         let currentUser = null, userData = null;
-        const socialLinks = { facebook: "https://www.facebook.com/profile.php?id=61590396932149", twitter: "https://x.com/RanDigitalRND", instagram: "https://www.instagram.com/", telegram: "https://t.me/RanDigitalOfficial" };
+        let currentPlatform = null;
+        let uploadedImageData = null;
         
-        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } currentUser = user; await loadUserData(); });
+        const socialLinks = {
+            facebook: "https://www.facebook.com/profile.php?id=61590396932149",
+            twitter: "https://x.com/RanDigitalRND"
+        };
         
-        async function loadUserData() { const snap = await get(ref(db, 'users/' + currentUser.uid)); userData = snap.val(); updateButtons(); }
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = user;
+            await loadUserData();
+        });
+        
+        async function loadUserData() {
+            const snap = await get(ref(db, 'users/' + currentUser.uid));
+            userData = snap.val();
+            if (!userData) userData = {};
+            if (!userData.socialTasks) userData.socialTasks = {};
+            updateButtons();
+        }
         
         function updateButtons() {
             const tasks = userData?.socialTasks || {};
-            const btns = ['facebook', 'twitter', 'instagram', 'telegram'];
-            btns.forEach(t => { 
-                let btn = document.getElementById(`${t}Btn`);
-                if(tasks[t]) { btn.innerText = '✓ Completed'; btn.classList.remove('pending'); btn.classList.add('completed'); btn.disabled = true; }
-                else { btn.innerText = 'Verify Task'; btn.classList.remove('completed'); btn.classList.add('pending'); btn.disabled = false; }
-            });
+            
+            if (tasks.facebook) {
+                const btn = document.getElementById('facebookBtn');
+                btn.innerText = '✓ Completed';
+                btn.classList.remove('pending');
+                btn.classList.add('completed');
+                btn.disabled = true;
+            }
+            
+            if (tasks.twitter) {
+                const btn = document.getElementById('twitterBtn');
+                btn.innerText = '✓ Completed';
+                btn.classList.remove('pending');
+                btn.classList.add('completed');
+                btn.disabled = true;
+            }
+        }
+        
+        // Temporary screenshot storage (in memory only, not saved to Firebase)
+        let tempScreenshots = {};
+        
+        // Auto-delete screenshot after 5 minutes
+        function autoDeleteScreenshot(platform) {
+            setTimeout(() => {
+                if (tempScreenshots[platform]) {
+                    delete tempScreenshots[platform];
+                    console.log(`🔄 Screenshot for ${platform} auto-deleted after 5 minutes`);
+                }
+            }, 5 * 60 * 1000); // 5 minutes
         }
         
         window.verifyTask = async (platform) => {
+            // Check if already completed
+            if (userData?.socialTasks?.[platform]) {
+                alert(`✅ ${platform} task already completed!`);
+                return;
+            }
+            
+            currentPlatform = platform;
+            
+            // Open social media page
             window.open(socialLinks[platform], '_blank');
-            setTimeout(() => {
-                if(confirm(`✅ After following ${platform}, click OK to upload screenshot proof.`)){
-                    let input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.onchange = async (e) => {
-                        let file = e.target.files[0];
-                        if(file){
-                            let reader = new FileReader();
-                            reader.onload = async (ev) => {
-                                await update(ref(db, `users/${currentUser.uid}`), { [`socialTasks.${platform}`]: true, [`${platform}Proof`]: ev.target.result });
-                                let reward = 3;
-                                await update(ref(db, `users/${currentUser.uid}`), { spinWallet: (userData.spinWallet||0)+reward, totalEarned: (userData.totalEarned||0)+reward });
-                                userData.spinWallet = (userData.spinWallet||0)+reward;
-                                userData.totalEarned = (userData.totalEarned||0)+reward;
-                                await loadUserData();
-                                alert(`✅ ${platform} verified! +3 RND added to Spin Wallet!`);
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    };
-                    input.click();
-                }
-            }, 1000);
+            
+            // Show upload modal with instructions
+            const modal = document.getElementById('uploadModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDesc = document.getElementById('modalDesc');
+            
+            if (platform === 'facebook') {
+                modalTitle.innerHTML = '<i class="fab fa-facebook"></i> Facebook Verification';
+                modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed our page<br>2️⃣ You commented "RND" on latest post';
+            } else {
+                modalTitle.innerHTML = '<i class="fab fa-twitter"></i> Twitter Verification';
+                modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed @RanDigitalRND<br>2️⃣ You commented "RND" on pinned post';
+            }
+            
+            modal.style.display = 'flex';
+            
+            // Clear previous data
+            uploadedImageData = null;
+            document.getElementById('screenshotInput').value = '';
+            document.getElementById('previewImg').style.display = 'none';
         };
         
-        window.goBack = function() { window.location.href = 'dashboard.html'; };
+        // Preview image
+        document.getElementById('screenshotInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    uploadedImageData = ev.target.result;
+                    const preview = document.getElementById('previewImg');
+                    preview.src = uploadedImageData;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Submit upload
+        document.getElementById('submitUpload').addEventListener('click', async () => {
+            if (!uploadedImageData) {
+                alert('❌ Please select a screenshot first!');
+                return;
+            }
+            
+            if (!currentPlatform) return;
+            
+            // Store temporarily in memory (not saved to Firebase)
+            tempScreenshots[currentPlatform] = {
+                data: uploadedImageData,
+                userId: currentUser.uid,
+                timestamp: Date.now()
+            };
+            
+            // Add reward (3 RND to spin wallet)
+            const reward = 3;
+            const currentSpinWallet = userData.spinWallet || 0;
+            const currentTotalEarned = userData.totalEarned || 0;
+            
+            // Update Firebase - only task completion status and reward, NO screenshot saved
+            await update(ref(db, `users/${currentUser.uid}`), {
+                [`socialTasks.${currentPlatform}`]: true,
+                spinWallet: currentSpinWallet + reward,
+                totalEarned: currentTotalEarned + reward,
+                [`${currentPlatform}VerifiedAt`]: new Date().toISOString()
+            });
+            
+            // Refresh user data
+            await loadUserData();
+            
+            // Close modal
+            document.getElementById('uploadModal').style.display = 'none';
+            
+            // Clear temp screenshot after 5 minutes
+            autoDeleteScreenshot(currentPlatform);
+            
+            alert(`✅ ${currentPlatform} verified! +3 RND added to Spin Wallet!\n\n📸 Your screenshot has been received and will be automatically deleted after 5 minutes for your privacy.`);
+            
+            // Reset
+            uploadedImageData = null;
+            currentPlatform = null;
+            document.getElementById('screenshotInput').value = '';
+            document.getElementById('previewImg').style.display = 'none';
+        });
+        
+        // Close modal
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('uploadModal').style.display = 'none';
+            uploadedImageData = null;
+            currentPlatform = null;
+            document.getElementById('screenshotInput').value = '';
+            document.getElementById('previewImg').style.display = 'none';
+        });
+        
+        // Click outside modal to close
+        document.getElementById('uploadModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('uploadModal')) {
+                document.getElementById('uploadModal').style.display = 'none';
+                uploadedImageData = null;
+                currentPlatform = null;
+            }
+        });
+        
+        window.goBack = function() {
+            window.location.href = 'dashboard.html';
+        };
+        
+        // Set social links
+        document.getElementById('fbLink').href = socialLinks.facebook;
+        document.getElementById('twLink').href = socialLinks.twitter;
     </script>
 </body>
 </html>
