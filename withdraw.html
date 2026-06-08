@@ -19,14 +19,17 @@
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: #667eea; }
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 16px; }
+        .withdraw-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .info-text { font-size: 12px; color: #6b7280; text-align: center; margin-top: 20px; }
         .task-warning { background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .task-success { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .message { margin-top: 15px; padding: 12px; border-radius: 12px; text-align: center; }
         .error { background: #fee2e2; color: #dc2626; }
         .success { background: #d1fae5; color: #059669; }
-        .lock-message { background: #fef3c7; color: #b45309; }
+        .lock-message { background: #fef3c7; color: #b45309; border-left: 4px solid #f59e0b; text-align: left; }
+        .lock-message i { margin-right: 8px; }
         .address-hint { font-size: 12px; color: #6b7280; margin-top: 5px; }
+        .warning-text { font-weight: 600; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -56,16 +59,16 @@
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-coins"></i> Amount (Only 1 RND allowed)</label>
-                    <input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1">
+                    <input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1" readonly>
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-link"></i> RND BEP20 Wallet Address</label>
                     <input type="text" id="address" placeholder="0x... (RND BEP20 address)">
                     <div class="address-hint"><i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address</div>
                 </div>
-                <button type="submit" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)</button>
+                <button type="submit" id="withdrawBtn" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)</button>
             </form>
-            <div class="info-text"><i class="fas fa-clock"></i> Withdrawals processed within 24-48 hours</div>
+            <div class="info-text"><i class="fas fa-clock"></i> Withdrawal will be processed within 2-3 working days after listing</div>
             <div id="message" class="message"></div>
         </div>
     </div>
@@ -105,6 +108,7 @@
             if (!userData.socialTasks) userData.socialTasks = {};
             updateBalanceDisplay();
             checkTasks();
+            checkWithdrawalLock();
         }
 
         function updateBalanceDisplay() {
@@ -115,7 +119,6 @@
         }
 
         function checkTasks() {
-            // Only check Facebook and Twitter (NOT Instagram & Telegram)
             const tasks = userData?.socialTasks || {};
             const allDone = tasks.facebook === true && tasks.twitter === true;
             
@@ -132,6 +135,29 @@
             }
         }
 
+        async function checkWithdrawalLock() {
+            // Check if user has already withdrawn once
+            const withdrawSnap = await get(ref(db, 'withdrawals'));
+            let hasWithdrawn = false;
+            withdrawSnap.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
+                    hasWithdrawn = true;
+                }
+            });
+            
+            const withdrawBtn = document.getElementById('withdrawBtn');
+            if (hasWithdrawn) {
+                withdrawBtn.disabled = true;
+                withdrawBtn.style.opacity = '0.5';
+                withdrawBtn.style.cursor = 'not-allowed';
+            } else {
+                withdrawBtn.disabled = false;
+                withdrawBtn.style.opacity = '1';
+                withdrawBtn.style.cursor = 'pointer';
+            }
+        }
+
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
 
         document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
@@ -141,7 +167,6 @@
             const address = document.getElementById('address').value;
             const msgDiv = document.getElementById('message');
             
-            // Only check Facebook and Twitter
             const tasks = userData?.socialTasks || {};
             const allTasksDone = tasks.facebook === true && tasks.twitter === true;
 
@@ -175,19 +200,29 @@
 
             // Check if user has already withdrawn once
             const withdrawSnap = await get(ref(db, 'withdrawals'));
-            let userWithdrawals = [];
+            let hasWithdrawn = false;
             withdrawSnap.forEach((childSnap) => {
                 const data = childSnap.val();
-                if (data.uid === currentUser.uid) {
-                    userWithdrawals.push(data);
+                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
+                    hasWithdrawn = true;
                 }
             });
 
-            if (userWithdrawals.length >= 1) {
+            if (hasWithdrawn) {
                 msgDiv.innerHTML = `<div class="error lock-message">
-                    <i class="fas fa-lock"></i> ⚠️ Withdrawal is locked until the official listing.  
-                    You have already withdrawn 1 RND. Next withdrawal will be available after the listing announcement.  
-                    Keep referring, spinning, and earning until then.
+                    <i class="fas fa-lock" style="font-size: 18px;"></i>
+                    <div>
+                        <div class="warning-text">⚠️ Withdrawal is currently locked!</div>
+                        <div style="font-size: 13px; margin-top: 5px;">
+                            You have already withdrawn 1 RND. Next withdrawal will be available only after the <strong>official listing announcement</strong>.<br><br>
+                            📌 <strong>What to do until listing?</strong><br>
+                            • Keep referring friends to earn more RND<br>
+                            • Keep spinning to earn RND<br>
+                            • Complete tasks and earn RND<br><br>
+                            🚀 <strong>At the time of listing, you will be able to withdraw ALL your accumulated RND at once!</strong><br><br>
+                            ⏰ Withdrawal will be processed within 2-3 working days after listing.
+                        </div>
+                    </div>
                 </div>`;
                 return;
             }
@@ -208,10 +243,10 @@
                 date: new Date().toISOString()
             });
 
-            msgDiv.innerHTML = '<div class="success">✅ Withdrawal request submitted successfully! You will receive 1 RND in your BEP20 wallet after listing.</div>';
-            document.getElementById('amount').value = '1';
+            msgDiv.innerHTML = '<div class="success">✅ Withdrawal request submitted successfully! You will receive 1 RND in your BEP20 wallet after the official listing. Withdrawal will be processed within 2-3 working days after listing.</div>';
             document.getElementById('address').value = '';
-
+            
+            // Refresh data
             await loadUserData();
         });
 
