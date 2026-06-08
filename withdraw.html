@@ -19,17 +19,47 @@
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: #667eea; }
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 16px; }
-        .withdraw-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .info-text { font-size: 12px; color: #6b7280; text-align: center; margin-top: 20px; }
         .task-warning { background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .task-success { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .message { margin-top: 15px; padding: 12px; border-radius: 12px; text-align: center; }
         .error { background: #fee2e2; color: #dc2626; }
-        .success { background: #d1fae5; color: #059669; }
-        .lock-message { background: #fef3c7; color: #b45309; border-left: 4px solid #f59e0b; text-align: left; }
-        .lock-message i { margin-right: 8px; }
         .address-hint { font-size: 12px; color: #6b7280; margin-top: 5px; }
-        .warning-text { font-weight: 600; margin-bottom: 5px; }
+        
+        /* Toast Message Style */
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 18px 22px;
+            border-radius: 20px;
+            max-width: 90%;
+            width: 420px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+            text-align: left;
+        }
+        .toast-success { border-left: 5px solid #10b981; }
+        .toast-warning { border-left: 5px solid #f59e0b; }
+        .toast-message i { margin-right: 12px; font-size: 22px; vertical-align: middle; }
+        .toast-message .toast-title { font-weight: 700; margin-bottom: 8px; font-size: 16px; }
+        .toast-message .toast-desc { font-size: 13px; opacity: 0.9; line-height: 1.5; }
+        .toast-message .toast-close {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+        @keyframes slideUp {
+            from { bottom: -100px; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -59,7 +89,7 @@
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-coins"></i> Amount (Only 1 RND allowed)</label>
-                    <input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1" readonly>
+                    <input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1">
                 </div>
                 <div class="form-group">
                     <label><i class="fas fa-link"></i> RND BEP20 Wallet Address</label>
@@ -68,14 +98,15 @@
                 </div>
                 <button type="submit" id="withdrawBtn" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)</button>
             </form>
-            <div class="info-text"><i class="fas fa-clock"></i> Withdrawal will be processed within 2-3 working days after listing</div>
+            <div class="info-text"><i class="fas fa-clock"></i> Withdrawal will be processed within 2-3 working days</div>
             <div id="message" class="message"></div>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -108,7 +139,6 @@
             if (!userData.socialTasks) userData.socialTasks = {};
             updateBalanceDisplay();
             checkTasks();
-            checkWithdrawalLock();
         }
 
         function updateBalanceDisplay() {
@@ -135,33 +165,50 @@
             }
         }
 
-        async function checkWithdrawalLock() {
-            // Check if user has already withdrawn once
-            const withdrawSnap = await get(ref(db, 'withdrawals'));
+        // Toast functions
+        function showToast(title, message, type = 'warning') {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast-message');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-message toast-${type}`;
+            const icon = type === 'success' ? '✅' : '⚠️';
+            toast.innerHTML = `
+                <span class="toast-close" onclick="this.parentElement.remove();">&times;</span>
+                <div>
+                    <div class="toast-title">${icon} ${title}</div>
+                    <div class="toast-desc">${message}</div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Auto remove after 8 seconds
+            setTimeout(() => {
+                if (toast) toast.remove();
+            }, 8000);
+        }
+
+        async function checkIfUserHasWithdrawn() {
+            const withdrawalsRef = ref(db, 'withdrawals');
+            const userWithdrawalsQuery = query(withdrawalsRef, orderByChild('uid'), equalTo(currentUser.uid));
+            const snapshot = await get(userWithdrawalsQuery);
+            
             let hasWithdrawn = false;
-            withdrawSnap.forEach((childSnap) => {
+            snapshot.forEach((childSnap) => {
                 const data = childSnap.val();
-                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
+                if (data.status !== 'cancelled') {
                     hasWithdrawn = true;
                 }
             });
-            
-            const withdrawBtn = document.getElementById('withdrawBtn');
-            if (hasWithdrawn) {
-                withdrawBtn.disabled = true;
-                withdrawBtn.style.opacity = '0.5';
-                withdrawBtn.style.cursor = 'not-allowed';
-            } else {
-                withdrawBtn.disabled = false;
-                withdrawBtn.style.opacity = '1';
-                withdrawBtn.style.cursor = 'pointer';
-            }
+            return hasWithdrawn;
         }
 
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
 
         document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const walletType = document.getElementById('walletType').value;
             const amount = parseInt(document.getElementById('amount').value);
             const address = document.getElementById('address').value;
@@ -172,16 +219,19 @@
 
             msgDiv.innerHTML = '';
 
+            // Social tasks check
             if (!allTasksDone) {
                 msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +3 RND.</div>';
                 return;
             }
 
+            // Amount validation
             if (amount !== 1) {
-                msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time. Please enter exactly 1 RND.</div>';
+                msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time.</div>';
                 return;
             }
 
+            // Address validation
             if (!address) {
                 msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>';
                 return;
@@ -192,62 +242,65 @@
                 return;
             }
 
+            // Balance check
             const currentBal = userData[walletType] || 0;
             if (currentBal < amount) {
                 msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>';
                 return;
             }
 
-            // Check if user has already withdrawn once
-            const withdrawSnap = await get(ref(db, 'withdrawals'));
-            let hasWithdrawn = false;
-            withdrawSnap.forEach((childSnap) => {
-                const data = childSnap.val();
-                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
-                    hasWithdrawn = true;
-                }
-            });
+            // Check if user has already withdrawn before
+            const hasWithdrawn = await checkIfUserHasWithdrawn();
 
+            // If already withdrawn, show warning toast and DON'T save to database
             if (hasWithdrawn) {
-                msgDiv.innerHTML = `<div class="error lock-message">
-                    <i class="fas fa-lock" style="font-size: 18px;"></i>
-                    <div>
-                        <div class="warning-text">⚠️ Withdrawal is currently locked!</div>
-                        <div style="font-size: 13px; margin-top: 5px;">
-                            You have already withdrawn 1 RND. Next withdrawal will be available only after the <strong>official listing announcement</strong>.<br><br>
-                            📌 <strong>What to do until listing?</strong><br>
-                            • Keep referring friends to earn more RND<br>
-                            • Keep spinning to earn RND<br>
-                            • Complete tasks and earn RND<br><br>
-                            🚀 <strong>At the time of listing, you will be able to withdraw ALL your accumulated RND at once!</strong><br><br>
-                            ⏰ Withdrawal will be processed within 2-3 working days after listing.
-                        </div>
-                    </div>
-                </div>`;
+                showToast(
+                    'अभी Withdrawal उपलब्ध नहीं है',
+                    'RND Coin को जल्द ही बड़े Official Exchange पर List किया जाएगा। Listing के बाद आप अपना पूरा Withdrawal आसानी से कर सकेंगे। तब तक Refer करके कमाई करें, Spin करके RND Coins अर्जित करें और अपनी Income को बढ़ाएँ। आपके सहयोग के लिए धन्यवाद।',
+                    'warning'
+                );
+                msgDiv.innerHTML = ''; // Clear any previous message
                 return;
             }
 
-            // Deduct balance
-            const updatedBal = currentBal - amount;
-            await update(ref(db, 'users/' + currentUser.uid), {
-                [walletType]: updatedBal
-            });
+            // FIRST TIME WITHDRAWAL - Process and save to database
+            try {
+                // Deduct balance
+                const updatedBal = currentBal - amount;
+                await update(ref(db, 'users/' + currentUser.uid), {
+                    [walletType]: updatedBal
+                });
 
-            const withdrawRef = push(ref(db, 'withdrawals'));
-            await set(withdrawRef, {
-                uid: currentUser.uid,
-                walletType,
-                amount,
-                walletAddress: address,
-                status: 'pending',
-                date: new Date().toISOString()
-            });
+                // Save withdrawal request
+                const withdrawRef = push(ref(db, 'withdrawals'));
+                await set(withdrawRef, {
+                    uid: currentUser.uid,
+                    walletType,
+                    amount,
+                    walletAddress: address,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                });
 
-            msgDiv.innerHTML = '<div class="success">✅ Withdrawal request submitted successfully! You will receive 1 RND in your BEP20 wallet after the official listing. Withdrawal will be processed within 2-3 working days after listing.</div>';
-            document.getElementById('address').value = '';
-            
-            // Refresh data
-            await loadUserData();
+                // Update local userData
+                userData[walletType] = updatedBal;
+                updateBalanceDisplay();
+
+                // Clear address field
+                document.getElementById('address').value = '';
+                msgDiv.innerHTML = '';
+
+                // Show success toast
+                showToast(
+                    'Withdrawal Request Successful!',
+                    'आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है। 2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।',
+                    'success'
+                );
+
+            } catch (error) {
+                console.error("Error:", error);
+                msgDiv.innerHTML = '<div class="error">❌ Something went wrong! Please try again.</div>';
+            }
         });
 
         window.goBack = function() {
