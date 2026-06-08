@@ -12,14 +12,11 @@
         .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 18px; border-radius: 50px; cursor: pointer; }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .section { background: white; margin: 20px; padding: 25px; border-radius: 20px; }
-        .section-title { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .task-card { background: #f8f9fa; border-radius: 20px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
         .task-info { display: flex; align-items: center; gap: 15px; }
         .task-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
         .fb-icon { background: #1877f2; color: white; }
         .tw-icon { background: #1da1f2; color: white; }
-        .ig-icon { background: linear-gradient(45deg, #f09433, #d62976); color: white; }
-        .tg-icon { background: #0088cc; color: white; }
         .task-details h4 { font-size: 16px; margin-bottom: 5px; }
         .task-details p { font-size: 12px; color: #6b7280; }
         .task-btn { padding: 10px 25px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -27,11 +24,20 @@
         .task-btn.completed { background: #10b981; color: white; cursor: default; }
         .task-btn:active { transform: scale(0.95); }
         .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; }
+        
+        /* Modal Styles */
         .upload-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 350px; text-align: center; }
-        .modal-content input { margin: 20px 0; padding: 12px; border: 2px dashed #667eea; border-radius: 15px; width: 100%; }
-        .close-modal { background: #dc2626; color: white; border: none; padding: 10px 20px; border-radius: 50px; margin-top: 10px; cursor: pointer; }
-        .upload-preview { max-width: 100%; max-height: 200px; margin: 10px 0; border-radius: 15px; display: none; }
+        .modal-content { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 380px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .modal-content h3 { margin-bottom: 10px; color: #333; }
+        .modal-content p { font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5; }
+        .modal-content input { margin: 15px 0; padding: 12px; border: 2px dashed #667eea; border-radius: 15px; width: 100%; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .submit-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+        .cancel-btn { background: #dc2626; color: white; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; font-weight: 600; }
+        .upload-preview { max-width: 100%; max-height: 200px; margin: 10px 0; border-radius: 15px; display: none; object-fit: contain; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid white; border-top: 2px solid transparent; border-radius: 50%; animation: spin 0.5s linear infinite; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @media (max-width: 480px) { .task-card { flex-direction: column; text-align: center; } .task-info { flex-direction: column; } }
     </style>
 </head>
@@ -56,10 +62,10 @@
                 <div class="task-details">
                     <h4>Facebook Page</h4>
                     <p>Follow our Facebook page AND comment "RND" on latest post</p>
-                    <small><a href="#" id="fbLink" style="color:#1877f2; text-decoration:none;">https://facebook.com/...</a></small>
+                    <small><a href="#" id="fbLink" style="color:#1877f2; text-decoration:none;" target="_blank">Open Facebook Page →</a></small>
                 </div>
             </div>
-            <button id="facebookBtn" class="task-btn pending" onclick="verifyTask('facebook')">Verify Task</button>
+            <button id="facebookBtn" class="task-btn pending">Verify Task</button>
         </div>
         
         <div class="task-card">
@@ -68,10 +74,10 @@
                 <div class="task-details">
                     <h4>Twitter / X</h4>
                     <p>Follow @RanDigitalRND AND comment "RND" on pinned post</p>
-                    <small><a href="#" id="twLink" style="color:#1da1f2; text-decoration:none;">https://x.com/RanDigitalRND</a></small>
+                    <small><a href="#" id="twLink" style="color:#1da1f2; text-decoration:none;" target="_blank">Open Twitter Page →</a></small>
                 </div>
             </div>
-            <button id="twitterBtn" class="task-btn pending" onclick="verifyTask('twitter')">Verify Task</button>
+            <button id="twitterBtn" class="task-btn pending">Verify Task</button>
         </div>
     </div>
 
@@ -79,13 +85,13 @@
     <div id="uploadModal" class="upload-modal">
         <div class="modal-content">
             <i class="fas fa-camera" style="font-size: 40px; color: #667eea;"></i>
-            <h3 id="modalTitle">Upload Screenshot</h3>
-            <p id="modalDesc">Please upload screenshot showing you followed & commented</p>
-            <input type="file" id="screenshotInput" accept="image/*" capture="environment">
+            <h3 id="modalTitle">Facebook Verification</h3>
+            <p id="modalDesc">Please upload screenshot showing:<br>1️⃣ You followed our page<br>2️⃣ You commented "RND" on latest post</p>
+            <input type="file" id="screenshotInput" accept="image/*">
             <img id="previewImg" class="upload-preview" alt="Preview">
-            <div>
-                <button id="submitUpload" class="task-btn pending" style="margin: 5px;">Submit</button>
-                <button id="closeModal" class="close-modal">Cancel</button>
+            <div class="modal-buttons">
+                <button id="submitUploadBtn" class="submit-btn">Submit</button>
+                <button id="cancelModalBtn" class="cancel-btn">Cancel</button>
             </div>
         </div>
     </div>
@@ -109,14 +115,27 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         
-        let currentUser = null, userData = null;
+        let currentUser = null;
+        let userData = null;
         let currentPlatform = null;
-        let uploadedImageData = null;
+        let currentImageData = null;
+        let isSubmitting = false;
         
         const socialLinks = {
             facebook: "https://www.facebook.com/profile.php?id=61590396932149",
             twitter: "https://x.com/RanDigitalRND"
         };
+        
+        // DOM Elements
+        const modal = document.getElementById('uploadModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDesc = document.getElementById('modalDesc');
+        const screenshotInput = document.getElementById('screenshotInput');
+        const previewImg = document.getElementById('previewImg');
+        const submitBtn = document.getElementById('submitUploadBtn');
+        const cancelBtn = document.getElementById('cancelModalBtn');
+        const facebookBtn = document.getElementById('facebookBtn');
+        const twitterBtn = document.getElementById('twitterBtn');
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -139,36 +158,44 @@
             const tasks = userData?.socialTasks || {};
             
             if (tasks.facebook) {
-                const btn = document.getElementById('facebookBtn');
-                btn.innerText = '✓ Completed';
-                btn.classList.remove('pending');
-                btn.classList.add('completed');
-                btn.disabled = true;
+                facebookBtn.innerText = '✓ Completed';
+                facebookBtn.classList.remove('pending');
+                facebookBtn.classList.add('completed');
+                facebookBtn.disabled = true;
+            } else {
+                facebookBtn.innerText = 'Verify Task';
+                facebookBtn.classList.remove('completed');
+                facebookBtn.classList.add('pending');
+                facebookBtn.disabled = false;
             }
             
             if (tasks.twitter) {
-                const btn = document.getElementById('twitterBtn');
-                btn.innerText = '✓ Completed';
-                btn.classList.remove('pending');
-                btn.classList.add('completed');
-                btn.disabled = true;
+                twitterBtn.innerText = '✓ Completed';
+                twitterBtn.classList.remove('pending');
+                twitterBtn.classList.add('completed');
+                twitterBtn.disabled = true;
+            } else {
+                twitterBtn.innerText = 'Verify Task';
+                twitterBtn.classList.remove('completed');
+                twitterBtn.classList.add('pending');
+                twitterBtn.disabled = false;
             }
         }
         
-        // Temporary screenshot storage (in memory only, not saved to Firebase)
+        // Temporary screenshot storage (memory only - auto delete after 5 min)
         let tempScreenshots = {};
         
-        // Auto-delete screenshot after 5 minutes
         function autoDeleteScreenshot(platform) {
             setTimeout(() => {
                 if (tempScreenshots[platform]) {
                     delete tempScreenshots[platform];
                     console.log(`🔄 Screenshot for ${platform} auto-deleted after 5 minutes`);
                 }
-            }, 5 * 60 * 1000); // 5 minutes
+            }, 5 * 60 * 1000);
         }
         
-        window.verifyTask = async (platform) => {
+        // Open modal for task verification
+        async function openVerificationModal(platform) {
             // Check if already completed
             if (userData?.socialTasks?.[platform]) {
                 alert(`✅ ${platform} task already completed!`);
@@ -176,15 +203,14 @@
             }
             
             currentPlatform = platform;
+            currentImageData = null;
+            screenshotInput.value = '';
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Submit';
             
-            // Open social media page
-            window.open(socialLinks[platform], '_blank');
-            
-            // Show upload modal with instructions
-            const modal = document.getElementById('uploadModal');
-            const modalTitle = document.getElementById('modalTitle');
-            const modalDesc = document.getElementById('modalDesc');
-            
+            // Update modal content
             if (platform === 'facebook') {
                 modalTitle.innerHTML = '<i class="fab fa-facebook"></i> Facebook Verification';
                 modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed our page<br>2️⃣ You commented "RND" on latest post';
@@ -193,101 +219,135 @@
                 modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed @RanDigitalRND<br>2️⃣ You commented "RND" on pinned post';
             }
             
-            modal.style.display = 'flex';
+            // Open social page in new tab
+            window.open(socialLinks[platform], '_blank');
             
-            // Clear previous data
-            uploadedImageData = null;
-            document.getElementById('screenshotInput').value = '';
-            document.getElementById('previewImg').style.display = 'none';
-        };
+            // Show modal
+            modal.style.display = 'flex';
+        }
         
-        // Preview image
-        document.getElementById('screenshotInput').addEventListener('change', (e) => {
+        // Handle file selection
+        screenshotInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('❌ File too large! Please select image under 5MB.');
+                    screenshotInput.value = '';
+                    return;
+                }
+                
+                // Check file type
+                if (!file.type.startsWith('image/')) {
+                    alert('❌ Please select an image file!');
+                    screenshotInput.value = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    uploadedImageData = ev.target.result;
-                    const preview = document.getElementById('previewImg');
-                    preview.src = uploadedImageData;
-                    preview.style.display = 'block';
+                    currentImageData = ev.target.result;
+                    previewImg.src = currentImageData;
+                    previewImg.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
         });
         
-        // Submit upload
-        document.getElementById('submitUpload').addEventListener('click', async () => {
-            if (!uploadedImageData) {
+        // Submit verification
+        async function submitVerification() {
+            if (isSubmitting) return;
+            
+            if (!currentImageData) {
                 alert('❌ Please select a screenshot first!');
                 return;
             }
             
             if (!currentPlatform) return;
             
-            // Store temporarily in memory (not saved to Firebase)
-            tempScreenshots[currentPlatform] = {
-                data: uploadedImageData,
-                userId: currentUser.uid,
-                timestamp: Date.now()
-            };
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span> Processing...';
             
-            // Add reward (3 RND to spin wallet)
-            const reward = 3;
-            const currentSpinWallet = userData.spinWallet || 0;
-            const currentTotalEarned = userData.totalEarned || 0;
-            
-            // Update Firebase - only task completion status and reward, NO screenshot saved
-            await update(ref(db, `users/${currentUser.uid}`), {
-                [`socialTasks.${currentPlatform}`]: true,
-                spinWallet: currentSpinWallet + reward,
-                totalEarned: currentTotalEarned + reward,
-                [`${currentPlatform}VerifiedAt`]: new Date().toISOString()
-            });
-            
-            // Refresh user data
-            await loadUserData();
-            
-            // Close modal
-            document.getElementById('uploadModal').style.display = 'none';
-            
-            // Clear temp screenshot after 5 minutes
-            autoDeleteScreenshot(currentPlatform);
-            
-            alert(`✅ ${currentPlatform} verified! +3 RND added to Spin Wallet!\n\n📸 Your screenshot has been received and will be automatically deleted after 5 minutes for your privacy.`);
-            
-            // Reset
-            uploadedImageData = null;
-            currentPlatform = null;
-            document.getElementById('screenshotInput').value = '';
-            document.getElementById('previewImg').style.display = 'none';
-        });
-        
-        // Close modal
-        document.getElementById('closeModal').addEventListener('click', () => {
-            document.getElementById('uploadModal').style.display = 'none';
-            uploadedImageData = null;
-            currentPlatform = null;
-            document.getElementById('screenshotInput').value = '';
-            document.getElementById('previewImg').style.display = 'none';
-        });
-        
-        // Click outside modal to close
-        document.getElementById('uploadModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('uploadModal')) {
-                document.getElementById('uploadModal').style.display = 'none';
-                uploadedImageData = null;
+            try {
+                // Store temporarily in memory (not saved to Firebase)
+                tempScreenshots[currentPlatform] = {
+                    data: currentImageData,
+                    userId: currentUser.uid,
+                    timestamp: Date.now()
+                };
+                
+                // Add reward (3 RND to spin wallet)
+                const reward = 3;
+                const currentSpinWallet = userData.spinWallet || 0;
+                const currentTotalEarned = userData.totalEarned || 0;
+                
+                // Update Firebase - only task completion status and reward, NO screenshot saved
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    [`socialTasks.${currentPlatform}`]: true,
+                    spinWallet: currentSpinWallet + reward,
+                    totalEarned: currentTotalEarned + reward,
+                    [`${currentPlatform}VerifiedAt`]: new Date().toISOString()
+                });
+                
+                // Refresh user data
+                await loadUserData();
+                
+                // Auto-delete screenshot after 5 minutes
+                autoDeleteScreenshot(currentPlatform);
+                
+                // Close modal
+                modal.style.display = 'none';
+                
+                // Reset
+                currentImageData = null;
                 currentPlatform = null;
+                screenshotInput.value = '';
+                previewImg.style.display = 'none';
+                
+                alert(`✅ ${currentPlatform === 'facebook' ? 'Facebook' : 'Twitter'} verified! +3 RND added to Spin Wallet!\n\n📸 Your screenshot has been received and will be automatically deleted after 5 minutes for your privacy.`);
+                
+            } catch (error) {
+                console.error("Error:", error);
+                alert('❌ Something went wrong! Please try again.');
+            } finally {
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit';
+            }
+        }
+        
+        // Cancel modal
+        function cancelModal() {
+            modal.style.display = 'none';
+            currentImageData = null;
+            currentPlatform = null;
+            screenshotInput.value = '';
+            previewImg.style.display = 'none';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Submit';
+        }
+        
+        // Event Listeners
+        facebookBtn.addEventListener('click', () => openVerificationModal('facebook'));
+        twitterBtn.addEventListener('click', () => openVerificationModal('twitter'));
+        submitBtn.addEventListener('click', submitVerification);
+        cancelBtn.addEventListener('click', cancelModal);
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cancelModal();
             }
         });
-        
-        window.goBack = function() {
-            window.location.href = 'dashboard.html';
-        };
         
         // Set social links
         document.getElementById('fbLink').href = socialLinks.facebook;
         document.getElementById('twLink').href = socialLinks.twitter;
+        
+        window.goBack = function() {
+            window.location.href = 'dashboard.html';
+        };
     </script>
 </body>
 </html>
