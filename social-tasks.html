@@ -23,9 +23,9 @@
         .task-btn.pending { background: #667eea; color: white; }
         .task-btn.completed { background: #10b981; color: white; cursor: default; }
         .task-btn:active { transform: scale(0.95); }
-        .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; }
+        .warning-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; color: #065f46; }
+        .warning-box i { color: #10b981; }
         
-        /* Modal Styles */
         .upload-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; border-radius: 30px; padding: 25px; width: 90%; max-width: 380px; text-align: center; max-height: 90vh; overflow-y: auto; }
         .modal-content h3 { margin-bottom: 10px; color: #333; }
@@ -50,10 +50,8 @@
         <p>Complete all tasks to enable withdrawals</p>
     </div>
     <div class="section">
-        <div class="warning-box">
-            <i class="fas fa-info-circle"></i> <strong>Important:</strong> 
-            Complete Facebook & Twitter tasks to withdraw earnings. Each task gives +3 RND reward!<br>
-            <small><i class="fas fa-shield-alt"></i> Your screenshot is temporary and will be automatically deleted after verification.</small>
+        <div class="warning-box" id="completionStatus">
+            <i class="fas fa-info-circle"></i> <strong>Status:</strong> Complete both tasks to enable withdrawal
         </div>
         
         <div class="task-card">
@@ -81,7 +79,6 @@
         </div>
     </div>
 
-    <!-- Upload Modal -->
     <div id="uploadModal" class="upload-modal">
         <div class="modal-content">
             <i class="fas fa-camera" style="font-size: 40px; color: #667eea;"></i>
@@ -126,7 +123,6 @@
             twitter: "https://x.com/RanDigitalRND"
         };
         
-        // DOM Elements
         const modal = document.getElementById('uploadModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalDesc = document.getElementById('modalDesc');
@@ -136,6 +132,7 @@
         const cancelBtn = document.getElementById('cancelModalBtn');
         const facebookBtn = document.getElementById('facebookBtn');
         const twitterBtn = document.getElementById('twitterBtn');
+        const completionStatus = document.getElementById('completionStatus');
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -158,8 +155,26 @@
                     userData.socialTasks = {};
                 }
                 updateButtons();
+                updateStatusMessage();
             } catch (error) {
                 console.error("Error loading user data:", error);
+            }
+        }
+        
+        function updateStatusMessage() {
+            const tasks = userData?.socialTasks || {};
+            const bothDone = tasks.facebook === true && tasks.twitter === true;
+            
+            if (bothDone) {
+                completionStatus.innerHTML = '<i class="fas fa-check-circle"></i> <strong>✅ Great!</strong> All social tasks completed! You are now eligible for withdrawal.';
+                completionStatus.style.background = '#d1fae5';
+                completionStatus.style.borderLeftColor = '#10b981';
+                completionStatus.style.color = '#065f46';
+            } else {
+                completionStatus.innerHTML = '<i class="fas fa-info-circle"></i> <strong>⚠️ Pending:</strong> Complete both Facebook & Twitter tasks to enable withdrawal. Each task gives +3 RND!';
+                completionStatus.style.background = '#fef3c7';
+                completionStatus.style.borderLeftColor = '#f59e0b';
+                completionStatus.style.color = '#92400e';
             }
         }
         
@@ -191,20 +206,7 @@
             }
         }
         
-        // Temporary screenshot storage (memory only)
-        let tempScreenshots = {};
-        
-        function autoDeleteScreenshot(platform) {
-            setTimeout(() => {
-                if (tempScreenshots[platform]) {
-                    delete tempScreenshots[platform];
-                    console.log(`🔄 Screenshot for ${platform} auto-deleted after 5 minutes`);
-                }
-            }, 5 * 60 * 1000);
-        }
-        
         async function openVerificationModal(platform) {
-            // Check if already completed
             if (userData?.socialTasks?.[platform] === true) {
                 alert(`✅ ${platform === 'facebook' ? 'Facebook' : 'Twitter'} task already completed!`);
                 return;
@@ -226,14 +228,10 @@
                 modalDesc.innerHTML = 'Please upload screenshot showing:<br>1️⃣ You followed @RanDigitalRND<br>2️⃣ You commented "RND" on pinned post';
             }
             
-            // Open social page in new tab
             window.open(socialLinks[platform], '_blank');
-            
-            // Show modal
             modal.style.display = 'flex';
         }
         
-        // Handle file selection
         screenshotInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -242,13 +240,11 @@
                     screenshotInput.value = '';
                     return;
                 }
-                
                 if (!file.type.startsWith('image/')) {
                     alert('❌ Please select an image file!');
                     screenshotInput.value = '';
                     return;
                 }
-                
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     currentImageData = ev.target.result;
@@ -261,12 +257,10 @@
         
         async function submitVerification() {
             if (isSubmitting) return;
-            
             if (!currentImageData) {
                 alert('❌ Please select a screenshot first!');
                 return;
             }
-            
             if (!currentPlatform) return;
             
             isSubmitting = true;
@@ -274,50 +268,34 @@
             submitBtn.innerHTML = '<span class="loading-spinner"></span> Processing...';
             
             try {
-                // Store screenshot temporarily in memory
-                tempScreenshots[currentPlatform] = {
-                    data: currentImageData,
-                    userId: currentUser.uid,
-                    timestamp: Date.now()
-                };
-                
-                // Get current balances
                 const currentSpinWallet = userData.spinWallet || 0;
                 const currentTotalEarned = userData.totalEarned || 0;
                 const reward = 3;
                 
-                // Create update object - FIXED: using proper nested object
                 const updateData = {};
                 updateData[`socialTasks/${currentPlatform}`] = true;
                 updateData.spinWallet = currentSpinWallet + reward;
                 updateData.totalEarned = currentTotalEarned + reward;
                 updateData[`${currentPlatform}VerifiedAt`] = new Date().toISOString();
+                updateData.allSocialTasksCompleted = null;
                 
-                // Update Firebase
                 const userRef = ref(db, 'users/' + currentUser.uid);
                 await update(userRef, updateData);
                 
-                // Update local userData
                 if (!userData.socialTasks) userData.socialTasks = {};
                 userData.socialTasks[currentPlatform] = true;
                 userData.spinWallet = currentSpinWallet + reward;
                 userData.totalEarned = currentTotalEarned + reward;
                 
-                // Auto-delete screenshot after 5 minutes
-                autoDeleteScreenshot(currentPlatform);
-                
-                // Close modal
                 modal.style.display = 'none';
-                
-                // Reset
                 currentImageData = null;
                 screenshotInput.value = '';
                 previewImg.style.display = 'none';
                 
-                // Update button UI
                 updateButtons();
+                updateStatusMessage();
                 
-                alert(`✅ ${currentPlatform === 'facebook' ? 'Facebook' : 'Twitter'} verified! +3 RND added to Spin Wallet!\n\n📸 Your screenshot has been received and will be automatically deleted after 5 minutes for your privacy.`);
+                alert(`✅ ${currentPlatform === 'facebook' ? 'Facebook' : 'Twitter'} verified! +3 RND added to Spin Wallet!`);
                 
             } catch (error) {
                 console.error("Error details:", error);
@@ -339,23 +317,17 @@
             submitBtn.innerHTML = 'Submit';
         }
         
-        // Event Listeners
         facebookBtn.addEventListener('click', () => openVerificationModal('facebook'));
         twitterBtn.addEventListener('click', () => openVerificationModal('twitter'));
         submitBtn.addEventListener('click', submitVerification);
         cancelBtn.addEventListener('click', cancelModal);
         
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                cancelModal();
-            }
+            if (e.target === modal) cancelModal();
         });
         
-        // Set social links
-        const fbLink = document.getElementById('fbLink');
-        const twLink = document.getElementById('twLink');
-        if (fbLink) fbLink.href = socialLinks.facebook;
-        if (twLink) twLink.href = socialLinks.twitter;
+        document.getElementById('fbLink').href = socialLinks.facebook;
+        document.getElementById('twLink').href = socialLinks.twitter;
         
         window.goBack = function() {
             window.location.href = 'dashboard.html';
