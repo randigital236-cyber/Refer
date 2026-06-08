@@ -113,9 +113,51 @@
             transform: translateY(0);
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            margin-top: 10px;
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-google i {
+            color: #db4437;
+            font-size: 18px;
+            position: static;
+            transform: none;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e5e7eb;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #9ca3af;
+            font-size: 13px;
         }
 
         .message {
@@ -144,12 +186,6 @@
             border-left: 4px solid #059669;
         }
 
-        .info {
-            background: #dbeafe;
-            color: #2563eb;
-            border-left: 4px solid #2563eb;
-        }
-
         .link-text {
             text-align: center;
             margin-top: 25px;
@@ -174,27 +210,9 @@
             color: #666;
         }
 
-        .otp-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .otp-group input {
-            flex: 1;
-        }
-
-        .otp-group button {
-            width: auto;
-            padding: 14px 20px;
-            white-space: nowrap;
-        }
-
         @media (max-width: 480px) {
             .card { padding: 30px 20px; }
             .logo h1 { font-size: 28px; }
-            .otp-group { flex-direction: column; }
-            .otp-group button { width: 100%; }
         }
     </style>
 </head>
@@ -205,7 +223,7 @@
             <div class="logo">
                 <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
                 <h1>RND Rewards</h1>
-                <p>Verify Email to Create Account</p>
+                <p>Create Account & Start Earning</p>
             </div>
 
             <form id="signupForm">
@@ -226,19 +244,21 @@
 
                 <div class="form-group">
                     <i class="fas fa-gift"></i>
-                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)">
+                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off">
                 </div>
 
-                <div class="form-group otp-group">
-                    <i class="fas fa-key"></i>
-                    <input type="text" id="signupOtp" placeholder="Enter OTP">
-                    <button type="button" class="btn-secondary" id="sendSignupOtpBtn" style="margin:0;">Send OTP</button>
-                </div>
-
-                <button type="submit" class="btn" id="signupSubmitBtn" disabled>
-                    <i class="fas fa-rocket"></i> Verify & Create Account
+                <button type="submit" class="btn">
+                    <i class="fas fa-rocket"></i> Create Account
                 </button>
             </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button id="googleSignupBtn" class="btn btn-google">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
 
             <div id="message" class="message"></div>
 
@@ -247,12 +267,12 @@
             </div>
         </div>
 
-        <!-- Login Card (Email & Password only - No OTP) -->
+        <!-- Login Card -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo">
                 <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
                 <h1>Welcome Back</h1>
-                <p>Login with Email & Password</p>
+                <p>Login to your account</p>
             </div>
 
             <form id="loginForm">
@@ -270,6 +290,14 @@
                     <i class="fas fa-arrow-right"></i> Login
                 </button>
             </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button id="googleLoginBtn" class="btn btn-google">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
 
             <div id="loginMessage" class="message"></div>
 
@@ -315,7 +343,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -331,78 +359,140 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const googleProvider = new GoogleAuthProvider();
 
-        // Store OTPs temporarily
-        let otpStorage = {};
-
-        // Generate random OTP
-        function generateOTP() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
+        // Get URL parameter for referral code
+        function getReferralCodeFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('ref');
         }
 
-        // Send email with OTP (Demo mode - shows alert)
-        async function sendOTPEmail(email, otp) {
-            // For demo - show OTP in alert
-            // In production, integrate EmailJS or any email service
-            alert(`Your OTP for signup is: ${otp}\n\n(For production, this will be sent to your email)`);
-            console.log(`OTP for ${email}: ${otp}`);
-            return true;
-        }
-
-        // Send OTP for signup
-        document.getElementById('sendSignupOtpBtn').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const messageDiv = document.getElementById('message');
-            
-            if (!email) {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Please enter email first!</div>';
-                return;
-            }
-            
-            // Check if email already exists
-            try {
-                const methods = await fetchSignInMethodsForEmail(auth, email);
-                if (methods.length > 0) {
-                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-envelope"></i> Email already registered! Please login.</div>';
-                    return;
+        // Set referral code in input field if present in URL
+        function setReferralCodeFromURL() {
+            const refCode = getReferralCodeFromURL();
+            if (refCode) {
+                const referralInput = document.getElementById('referralCode');
+                if (referralInput) {
+                    referralInput.value = refCode.toUpperCase();
+                    const messageDiv = document.getElementById('message');
+                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-gift"></i> Referral code applied! You will get +5 RND on signup.</div>';
+                    setTimeout(() => messageDiv.innerHTML = '', 4000);
                 }
-            } catch (error) {
-                console.error("Error checking email:", error);
             }
-            
-            const otp = generateOTP();
-            otpStorage[`signup_${email}`] = { otp, timestamp: Date.now() };
-            
-            const sent = await sendOTPEmail(email, otp);
-            if (sent) {
-                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check"></i> OTP sent to your email! Valid for 5 minutes.</div>';
-                document.getElementById('signupSubmitBtn').disabled = false;
-                setTimeout(() => messageDiv.innerHTML = '', 3000);
-            } else {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Failed to send OTP. Try again.</div>';
-            }
-        });
+        }
 
         // Generate referral code from User ID
         function generateReferralCode(userId) {
             return userId.substring(0, 8).toUpperCase();
         }
 
+        // Save user data to database
+        async function saveUserToDatabase(user, name, referralCodeFromInput) {
+            const userReferralCode = generateReferralCode(user.uid);
+            
+            // Find referrer
+            let referredBy = null;
+            let level1Referrer = null;
+            let level2Referrer = null;
+            
+            if (referralCodeFromInput) {
+                const usersRef = ref(db, 'users');
+                const snapshot = await get(usersRef);
+                const users = snapshot.val();
+                
+                if (users) {
+                    for (let uid in users) {
+                        if (users[uid].referralCode === referralCodeFromInput.toUpperCase()) {
+                            referredBy = uid;
+                            if (users[uid].referredBy) {
+                                level1Referrer = users[uid].referredBy;
+                                if (users[level1Referrer] && users[level1Referrer].referredBy) {
+                                    level2Referrer = users[level1Referrer].referredBy;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Save user data
+            const userData = {
+                name: name,
+                email: user.email,
+                userId: user.uid,
+                referralCode: userReferralCode,
+                referredBy: referredBy || null,
+                referralWallet: referredBy ? 5 : 0,
+                spinWallet: 0,
+                totalEarned: referredBy ? 5 : 0,
+                totalWithdrawn: 0,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                socialTasks: {},
+                authProvider: referredBy ? 'email' : 'google'
+            };
+            
+            await set(ref(db, 'users/' + user.uid), userData);
+            await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
+            
+            // Give rewards to referrers
+            if (referredBy) {
+                // Level 1 reward (2 RND)
+                const referrerRef = ref(db, 'users/' + referredBy);
+                const referrerSnap = await get(referrerRef);
+                if (referrerSnap.exists()) {
+                    const referrer = referrerSnap.val();
+                    await update(ref(db, 'users/' + referredBy), {
+                        referralWallet: (referrer.referralWallet || 0) + 2,
+                        totalEarned: (referrer.totalEarned || 0) + 2
+                    });
+                    
+                    const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
+                    const level1Data = await get(level1Ref);
+                    let level1List = level1Data.val() || [];
+                    if (!level1List.includes(user.uid)) {
+                        level1List.push(user.uid);
+                        await set(level1Ref, level1List);
+                    }
+                }
+                
+                // Level 2 reward (1 RND)
+                if (level1Referrer) {
+                    const level2UserRef = ref(db, 'users/' + level1Referrer);
+                    const level2Snap = await get(level2UserRef);
+                    if (level2Snap.exists()) {
+                        const level2User = level2Snap.val();
+                        await update(ref(db, 'users/' + level1Referrer), {
+                            referralWallet: (level2User.referralWallet || 0) + 1,
+                            totalEarned: (level2User.totalEarned || 0) + 1
+                        });
+                        
+                        const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
+                        const level2ListData = await get(level2ListRef);
+                        let level2List = level2ListData.val() || [];
+                        if (!level2List.includes(user.uid)) {
+                            level2List.push(user.uid);
+                            await set(level2ListRef, level2List);
+                        }
+                    }
+                }
+            }
+            
+            return userReferralCode;
+        }
+
         window.showLogin = function() {
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
-            document.getElementById('signupSubmitBtn').disabled = true;
-            document.getElementById('signupOtp').value = '';
-            document.getElementById('email').value = '';
         }
 
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
-            document.getElementById('signupSubmitBtn').disabled = true;
-            document.getElementById('signupOtp').value = '';
+            setReferralCodeFromURL();
         }
         
         window.showForgotPassword = function() {
@@ -410,7 +500,10 @@
             document.getElementById('forgotCard').style.display = 'block';
         }
 
-        // Signup Handler with OTP
+        // Call this when page loads
+        setReferralCodeFromURL();
+
+        // Email/Password Signup Handler
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -418,7 +511,6 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const referralCode = document.getElementById('referralCode').value;
-            const otp = document.getElementById('signupOtp').value;
             const messageDiv = document.getElementById('message');
 
             if (password.length < 6) {
@@ -426,111 +518,11 @@
                 return;
             }
 
-            // Verify OTP
-            const storedOTP = otpStorage[`signup_${email}`];
-            if (!storedOTP) {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Please request OTP first!</div>';
-                return;
-            }
-            
-            if (Date.now() - storedOTP.timestamp > 5 * 60 * 1000) {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-clock"></i> OTP expired! Request new OTP.</div>';
-                delete otpStorage[`signup_${email}`];
-                return;
-            }
-            
-            if (storedOTP.otp !== otp) {
-                messageDiv.innerHTML = '<div class="error"><i class="fas fa-times-circle"></i> Invalid OTP! Try again.</div>';
-                return;
-            }
-
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                const userReferralCode = generateReferralCode(user.uid);
-                
-                // Find referrer
-                let referredBy = null;
-                let level1Referrer = null;
-                let level2Referrer = null;
-                
-                if (referralCode) {
-                    const usersRef = ref(db, 'users');
-                    const snapshot = await get(usersRef);
-                    const users = snapshot.val();
-                    
-                    if (users) {
-                        for (let uid in users) {
-                            if (users[uid].referralCode === referralCode.toUpperCase()) {
-                                referredBy = uid;
-                                if (users[uid].referredBy) {
-                                    level1Referrer = users[uid].referredBy;
-                                    if (users[level1Referrer] && users[level1Referrer].referredBy) {
-                                        level2Referrer = users[level1Referrer].referredBy;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                const userData = {
-                    name: name,
-                    email: email,
-                    userId: user.uid,
-                    referralCode: userReferralCode,
-                    referredBy: referredBy || null,
-                    referralWallet: referredBy ? 5 : 0,
-                    spinWallet: 0,
-                    totalEarned: referredBy ? 5 : 0,
-                    totalWithdrawn: 0,
-                    status: 'active',
-                    createdAt: new Date().toISOString(),
-                    socialTasks: {}
-                };
-                
-                await set(ref(db, 'users/' + user.uid), userData);
-                await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
-                
-                if (referredBy) {
-                    const referrerRef = ref(db, 'users/' + referredBy);
-                    const referrerSnap = await get(referrerRef);
-                    if (referrerSnap.exists()) {
-                        const referrer = referrerSnap.val();
-                        await update(ref(db, 'users/' + referredBy), {
-                            referralWallet: (referrer.referralWallet || 0) + 2,
-                            totalEarned: (referrer.totalEarned || 0) + 2
-                        });
-                        
-                        const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
-                        const level1Data = await get(level1Ref);
-                        let level1List = level1Data.val() || [];
-                        level1List.push(user.uid);
-                        await set(level1Ref, level1List);
-                    }
-                    
-                    if (level1Referrer) {
-                        const level2UserRef = ref(db, 'users/' + level1Referrer);
-                        const level2Snap = await get(level2UserRef);
-                        if (level2Snap.exists()) {
-                            const level2User = level2Snap.val();
-                            await update(ref(db, 'users/' + level1Referrer), {
-                                referralWallet: (level2User.referralWallet || 0) + 1,
-                                totalEarned: (level2User.totalEarned || 0) + 1
-                            });
-                            
-                            const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
-                            const level2ListData = await get(level2ListRef);
-                            let level2List = level2ListData.val() || [];
-                            level2List.push(user.uid);
-                            await set(level2ListRef, level2List);
-                        }
-                    }
-                }
-                
-                delete otpStorage[`signup_${email}`];
+                const userReferralCode = await saveUserToDatabase(user, name, referralCode);
                 
                 messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
                 
@@ -552,7 +544,7 @@
             }
         });
         
-        // Login Handler (Email & Password only - No OTP)
+        // Email/Password Login Handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -564,7 +556,6 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                // Get user data from database
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
                 const userData = snapshot.val();
@@ -591,6 +582,89 @@
                 } else {
                     messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
                 }
+            }
+        });
+        
+        // Google Signup Handler
+        document.getElementById('googleSignupBtn').addEventListener('click', async () => {
+            const messageDiv = document.getElementById('message');
+            const referralCode = document.getElementById('referralCode').value;
+            
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                const name = user.displayName || user.email.split('@')[0];
+                
+                // Check if user already exists in database
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                
+                if (snapshot.exists()) {
+                    // User already exists, login
+                    const userData = snapshot.val();
+                    if (userData.status === 'active') {
+                        localStorage.setItem('userReferralCode', userData.referralCode);
+                        localStorage.setItem('userName', userData.name);
+                        localStorage.setItem('userId', user.uid);
+                        
+                        messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                    } else {
+                        messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
+                    }
+                } else {
+                    // New user, create account
+                    const userReferralCode = await saveUserToDatabase(user, name, referralCode);
+                    
+                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created with Google! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                    
+                    localStorage.setItem('userReferralCode', userReferralCode);
+                    localStorage.setItem('userName', name);
+                    localStorage.setItem('userId', user.uid);
+                    
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2500);
+                }
+            } catch (error) {
+                console.error(error);
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Google sign in failed: ' + error.message + '</div>';
+            }
+        });
+        
+        // Google Login Handler
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            const messageDiv = document.getElementById('loginMessage');
+            
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.status === 'active') {
+                        localStorage.setItem('userReferralCode', userData.referralCode);
+                        localStorage.setItem('userName', userData.name);
+                        localStorage.setItem('userId', user.uid);
+                        
+                        messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                    } else {
+                        messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
+                    }
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found with this Google account. Please sign up first.</div>';
+                }
+            } catch (error) {
+                console.error(error);
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Google sign in failed: ' + error.message + '</div>';
             }
         });
         
