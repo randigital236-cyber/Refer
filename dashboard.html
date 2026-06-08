@@ -58,8 +58,8 @@
         .copy-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 0 25px; border-radius: 12px; cursor: pointer; font-weight: 600; }
         .share-grid { display: flex; gap: 12px; }
         .share-icon { flex: 1; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-weight: 600; }
-        .whatsapp { background: #25D366; color: white; }
-        .telegram { background: #0088cc; color: white; }
+        .facebook { background: #1877f2; color: white; }
+        .twitter { background: #1da1f2; color: white; }
         
         @media (max-width: 480px) {
             .stats-grid { gap: 10px; }
@@ -95,7 +95,13 @@
     <div class="section">
         <div class="section-title"><i class="fas fa-link"></i><span>Your Referral Link</span></div>
         <div class="referral-box"><input type="text" id="referralLink" readonly><button class="copy-btn" onclick="copyLink()"><i class="fas fa-copy"></i> Copy</button></div>
-        <div class="share-grid"><div class="share-icon whatsapp" onclick="shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</div><div class="share-icon telegram" onclick="shareTelegram()"><i class="fab fa-telegram"></i> Telegram</div></div>
+        <div class="share-grid">
+            <div class="share-icon facebook" onclick="openFacebook()"><i class="fab fa-facebook-f"></i> Facebook</div>
+            <div class="share-icon twitter" onclick="openTwitter()"><i class="fab fa-twitter"></i> Twitter</div>
+        </div>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 15px; text-align: center;">
+            <i class="fas fa-info-circle"></i> Follow our official pages for updates
+        </p>
     </div>
 
     <div class="section">
@@ -113,13 +119,38 @@
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
-        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", 
+            authDomain: "randigital-e7715.firebaseapp.com", 
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", 
+            projectId: "randigital-e7715", 
+            storageBucket: "randigital-e7715.firebasestorage.app", 
+            messagingSenderId: "218883279353", 
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
         let currentUser = null, userData = null;
         
-        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href = 'index.html'; return; } currentUser = user; await loadUserData(); });
+        // OFFICIAL DOMAIN
+        const OFFICIAL_DOMAIN = "http://app.randigital.in";
+        
+        // OFFICIAL SOCIAL MEDIA PAGES
+        const SOCIAL_PAGES = {
+            facebook: "https://www.facebook.com/profile.php?id=61590396932149",
+            twitter: "https://x.com/RanDigitalRND"
+        };
+        
+        onAuthStateChanged(auth, async (user) => { 
+            if(!user){ 
+                window.location.href = 'index.html'; 
+                return; 
+            } 
+            currentUser = user; 
+            await loadUserData(); 
+        });
         
         async function loadUserData() {
             const snap = await get(ref(db, 'users/' + currentUser.uid));
@@ -130,12 +161,16 @@
                 document.getElementById('referralWallet').innerText = userData.referralWallet||0;
                 document.getElementById('spinWallet').innerText = userData.spinWallet||0;
                 document.getElementById('totalEarned').innerText = userData.totalEarned||0;
-                const baseUrl = window.location.origin + window.location.pathname.replace('dashboard.html', '');
-                document.getElementById('referralLink').value = `${baseUrl}index.html?ref=${userData.referralCode}`;
+                // Referral link with official domain
+                document.getElementById('referralLink').value = `${OFFICIAL_DOMAIN}/index.html?ref=${userData.referralCode}`;
             }
         }
         
-        window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); };
+        window.toggleSidebar = function() { 
+            document.getElementById('sidebar').classList.toggle('open'); 
+            document.getElementById('overlay').classList.toggle('open'); 
+        };
+        
         window.navigateTo = function(page) { 
             if(page === 'dashboard') window.location.href = 'dashboard.html';
             else if(page === 'profile') window.location.href = 'profile.html';
@@ -143,10 +178,29 @@
             else if(page === 'tasks') window.location.href = 'social-tasks.html';
             else if(page === 'withdraw') window.location.href = 'withdraw.html';
         };
-        window.copyLink = function() { let inp=document.getElementById('referralLink'); inp.select(); document.execCommand('copy'); alert('Link copied!'); };
-        window.shareWhatsApp = function() { window.open(`https://wa.me/?text=Join RND Rewards: ${document.getElementById('referralLink').value}`,'_blank'); };
-        window.shareTelegram = function() { window.open(`https://t.me/share/url?url=${document.getElementById('referralLink').value}&text=Earn crypto with RND!`,'_blank'); };
-        window.logout = async function() { await signOut(auth); localStorage.clear(); window.location.href='index.html'; };
+        
+        window.copyLink = function() { 
+            let inp = document.getElementById('referralLink'); 
+            inp.select(); 
+            document.execCommand('copy'); 
+            alert('✅ Referral link copied!'); 
+        };
+        
+        // Open Official Facebook Page
+        window.openFacebook = function() {
+            window.open(SOCIAL_PAGES.facebook, '_blank');
+        };
+        
+        // Open Official Twitter/X Page
+        window.openTwitter = function() {
+            window.open(SOCIAL_PAGES.twitter, '_blank');
+        };
+        
+        window.logout = async function() { 
+            await signOut(auth); 
+            localStorage.clear(); 
+            window.location.href = 'index.html'; 
+        };
     </script>
 </body>
 </html>
