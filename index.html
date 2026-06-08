@@ -3,177 +3,617 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards - Signup/Login</title>
+    <title>RND Rewards - Earn Crypto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; align-items: center; }
-        .card { background: rgba(255,255,255,0.96); border-radius: 30px; padding: 40px 30px; width: 100%; animation: slideUp 0.5s ease; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        @keyframes slideUp { from { opacity:0; transform:translateY(30px);} to { opacity:1; transform:translateY(0);} }
-        .logo { text-align: center; margin-bottom: 35px; }
-        .logo h1 { font-size: 32px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .form-group { margin-bottom: 20px; position: relative; }
-        .form-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
-        .form-group input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 15px; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
-        .form-group input:disabled { background: #f3f4f6; color: #6b7280; }
-        .referral-info { background: linear-gradient(135deg, #667eea20, #764ba220); border-radius: 12px; padding: 12px; margin-bottom: 20px; text-align: center; font-size: 13px; color: #4338ca; border-left: 4px solid #667eea; }
-        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
-        .btn:hover { transform: translateY(-2px); }
-        .message { margin-top: 20px; padding: 12px; border-radius: 12px; text-align: center; font-size: 14px; }
-        .error { background: #fee2e2; color: #dc2626; }
-        .success { background: #d1fae5; color: #059669; }
-        .link-text { text-align: center; margin-top: 25px; }
-        .link-text a { color: #667eea; font-weight: 600; cursor: pointer; text-decoration: none; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 15px 14px 45px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            margin-top: 10px;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: #059669;
+            border-left: 4px solid #059669;
+        }
+
+        .info {
+            background: #dbeafe;
+            color: #2563eb;
+            border-left: 4px solid #2563eb;
+        }
+
+        .link-text {
+            text-align: center;
+            margin-top: 25px;
+            color: #6b7280;
+        }
+
+        .link-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .floating {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .otp-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .otp-group input {
+            flex: 1;
+        }
+
+        .otp-group button {
+            width: auto;
+            padding: 14px 20px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 30px 20px; }
+            .logo h1 { font-size: 28px; }
+            .otp-group { flex-direction: column; }
+            .otp-group button { width: 100%; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Signup Card -->
         <div class="card" id="signupCard">
-            <div class="logo"><i class="fas fa-coins" style="font-size:50px; background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; -webkit-text-fill-color:transparent;"></i><h1>RND Rewards</h1><p>Earn Crypto by Referring Friends</p></div>
-            <div id="referralInfoBox" class="referral-info" style="display:none;"><i class="fas fa-gift"></i> You were referred by <strong id="referrerName">someone</strong>! <br><small>Get <strong>5 RND</strong> bonus on signup!</small></div>
+            <div class="logo">
+                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h1>RND Rewards</h1>
+                <p>Verify Email to Create Account</p>
+            </div>
+
             <form id="signupForm">
-                <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required></div>
-                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required></div>
-                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password (min 6 characters)" required></div>
-                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code" readonly style="background:#f3f4f6;"></div>
-                <button type="submit" class="btn"><i class="fas fa-rocket"></i> Create Account</button>
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="name" placeholder="Full Name" required>
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Email Address" required>
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-gift"></i>
+                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)">
+                </div>
+
+                <div class="form-group otp-group">
+                    <i class="fas fa-key"></i>
+                    <input type="text" id="signupOtp" placeholder="Enter OTP">
+                    <button type="button" class="btn-secondary" id="sendSignupOtpBtn" style="margin:0;">Send OTP</button>
+                </div>
+
+                <button type="submit" class="btn" id="signupSubmitBtn" disabled>
+                    <i class="fas fa-rocket"></i> Verify & Create Account
+                </button>
             </form>
+
             <div id="message" class="message"></div>
-            <div class="link-text">Already have an account? <a onclick="showLogin()">Login Here</a></div>
+
+            <div class="link-text">
+                Already have an account? <a onclick="showLogin()">Login Here</a>
+            </div>
         </div>
+
+        <!-- Login Card (Email & Password only - No OTP) -->
         <div class="card" id="loginCard" style="display:none;">
-            <div class="logo"><h1>Welcome Back</h1><p>Login to your account</p></div>
+            <div class="logo">
+                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h1>Welcome Back</h1>
+                <p>Login with Email & Password</p>
+            </div>
+
             <form id="loginForm">
-                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email" required></div>
-                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div>
-                <button type="submit" class="btn"><i class="fas fa-arrow-right"></i> Login</button>
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Email Address" required>
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+
+                <button type="submit" class="btn">
+                    <i class="fas fa-arrow-right"></i> Login
+                </button>
             </form>
+
             <div id="loginMessage" class="message"></div>
-            <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
+
+            <div class="link-text">
+                <a onclick="showForgotPassword()">Forgot Password?</a>
+            </div>
+
+            <div class="link-text">
+                New user? <a onclick="showSignup()">Create Account</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Card -->
+        <div class="card" id="forgotCard" style="display:none;">
+            <div class="logo">
+                <i class="fas fa-key" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                <h1>Reset Password</h1>
+                <p>Enter your email to reset password</p>
+            </div>
+
+            <form id="forgotForm">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="forgotEmail" placeholder="Email Address" required>
+                </div>
+
+                <button type="submit" class="btn">
+                    <i class="fas fa-paper-plane"></i> Send Reset Link
+                </button>
+            </form>
+
+            <div id="forgotMessage" class="message"></div>
+
+            <div class="link-text">
+                <a onclick="showLogin()">Back to Login</a>
+            </div>
         </div>
     </div>
+
+    <div class="floating">
+        <i class="fas fa-shield-alt"></i> Secure Platform
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        
-        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
+            authDomain: "randigital-e7715.firebaseapp.com",
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "randigital-e7715",
+            storageBucket: "randigital-e7715.firebasestorage.app",
+            messagingSenderId: "218883279353",
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        
-        function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
-        
-        let autoFilledReferralCode = null;
-        
-        async function fetchReferrerName(referralCode) {
-            const usersSnap = await get(ref(db, 'users'));
-            const users = usersSnap.val();
-            if (users) {
-                for (let uid in users) {
-                    if (users[uid].referralCode === referralCode.toUpperCase()) return users[uid].name || 'a friend';
-                }
+
+        // Store OTPs temporarily
+        let otpStorage = {};
+
+        // Generate random OTP
+        function generateOTP() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Send email with OTP (Demo mode - shows alert)
+        async function sendOTPEmail(email, otp) {
+            // For demo - show OTP in alert
+            // In production, integrate EmailJS or any email service
+            alert(`Your OTP for signup is: ${otp}\n\n(For production, this will be sent to your email)`);
+            console.log(`OTP for ${email}: ${otp}`);
+            return true;
+        }
+
+        // Send OTP for signup
+        document.getElementById('sendSignupOtpBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const messageDiv = document.getElementById('message');
+            
+            if (!email) {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Please enter email first!</div>';
+                return;
             }
-            return 'a friend';
+            
+            // Check if email already exists
+            try {
+                const methods = await fetchSignInMethodsForEmail(auth, email);
+                if (methods.length > 0) {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-envelope"></i> Email already registered! Please login.</div>';
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking email:", error);
+            }
+            
+            const otp = generateOTP();
+            otpStorage[`signup_${email}`] = { otp, timestamp: Date.now() };
+            
+            const sent = await sendOTPEmail(email, otp);
+            if (sent) {
+                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check"></i> OTP sent to your email! Valid for 5 minutes.</div>';
+                document.getElementById('signupSubmitBtn').disabled = false;
+                setTimeout(() => messageDiv.innerHTML = '', 3000);
+            } else {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Failed to send OTP. Try again.</div>';
+            }
+        });
+
+        // Generate referral code from User ID
+        function generateReferralCode(userId) {
+            return userId.substring(0, 8).toUpperCase();
+        }
+
+        window.showLogin = function() {
+            document.getElementById('signupCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('forgotCard').style.display = 'none';
+            document.getElementById('signupSubmitBtn').disabled = true;
+            document.getElementById('signupOtp').value = '';
+            document.getElementById('email').value = '';
+        }
+
+        window.showSignup = function() {
+            document.getElementById('signupCard').style.display = 'block';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('forgotCard').style.display = 'none';
+            document.getElementById('signupSubmitBtn').disabled = true;
+            document.getElementById('signupOtp').value = '';
         }
         
-        (async function initReferralCode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const refCode = urlParams.get('ref');
-            if (refCode && refCode.trim() !== '') {
-                autoFilledReferralCode = refCode.toUpperCase();
-                const referralInput = document.getElementById('referralCode');
-                referralInput.value = autoFilledReferralCode;
-                const referrerName = await fetchReferrerName(autoFilledReferralCode);
-                document.getElementById('referrerName').innerText = referrerName;
-                document.getElementById('referralInfoBox').style.display = 'block';
-            }
-        })();
-        
-        window.showLogin = function() { document.getElementById('signupCard').style.display = 'none'; document.getElementById('loginCard').style.display = 'block'; };
-        window.showSignup = function() { document.getElementById('signupCard').style.display = 'block'; document.getElementById('loginCard').style.display = 'none'; };
-        
+        window.showForgotPassword = function() {
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('forgotCard').style.display = 'block';
+        }
+
+        // Signup Handler with OTP
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value, email = document.getElementById('email').value, password = document.getElementById('password').value;
-            let referralCode = autoFilledReferralCode || document.getElementById('referralCode').value;
-            const msgDiv = document.getElementById('message');
-            if (password.length < 6) { msgDiv.innerHTML = '<div class="error">Password minimum 6 characters!</div>'; return; }
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const referralCode = document.getElementById('referralCode').value;
+            const otp = document.getElementById('signupOtp').value;
+            const messageDiv = document.getElementById('message');
+
+            if (password.length < 6) {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-circle"></i> Password must be at least 6 characters!</div>';
+                return;
+            }
+
+            // Verify OTP
+            const storedOTP = otpStorage[`signup_${email}`];
+            if (!storedOTP) {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Please request OTP first!</div>';
+                return;
+            }
+            
+            if (Date.now() - storedOTP.timestamp > 5 * 60 * 1000) {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-clock"></i> OTP expired! Request new OTP.</div>';
+                delete otpStorage[`signup_${email}`];
+                return;
+            }
+            
+            if (storedOTP.otp !== otp) {
+                messageDiv.innerHTML = '<div class="error"><i class="fas fa-times-circle"></i> Invalid OTP! Try again.</div>';
+                return;
+            }
+
             try {
-                const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCred.user;
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
                 const userReferralCode = generateReferralCode(user.uid);
-                let referredBy = null, level1Referrer = null, level2Referrer = null;
+                
+                // Find referrer
+                let referredBy = null;
+                let level1Referrer = null;
+                let level2Referrer = null;
+                
                 if (referralCode) {
-                    const usersSnap = await get(ref(db, 'users'));
-                    const users = usersSnap.val();
-                    if(users){
-                        for(let uid in users){
-                            if(users[uid].referralCode === referralCode.toUpperCase()){
+                    const usersRef = ref(db, 'users');
+                    const snapshot = await get(usersRef);
+                    const users = snapshot.val();
+                    
+                    if (users) {
+                        for (let uid in users) {
+                            if (users[uid].referralCode === referralCode.toUpperCase()) {
                                 referredBy = uid;
-                                if(users[uid].referredBy) level1Referrer = users[uid].referredBy;
-                                if(level1Referrer && users[level1Referrer]?.referredBy) level2Referrer = users[level1Referrer].referredBy;
+                                if (users[uid].referredBy) {
+                                    level1Referrer = users[uid].referredBy;
+                                    if (users[level1Referrer] && users[level1Referrer].referredBy) {
+                                        level2Referrer = users[level1Referrer].referredBy;
+                                    }
+                                }
                                 break;
                             }
                         }
                     }
                 }
-                const userData = { name, email, userId: user.uid, referralCode: userReferralCode, referredBy: referredBy || null, referralWallet: referredBy ? 5 : 0, spinWallet: 0, totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0, status: 'active', createdAt: new Date().toISOString(), socialTasks: { facebook: false, twitter: false, instagram: false, telegram: false } };
+                
+                const userData = {
+                    name: name,
+                    email: email,
+                    userId: user.uid,
+                    referralCode: userReferralCode,
+                    referredBy: referredBy || null,
+                    referralWallet: referredBy ? 5 : 0,
+                    spinWallet: 0,
+                    totalEarned: referredBy ? 5 : 0,
+                    totalWithdrawn: 0,
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    socialTasks: {}
+                };
+                
                 await set(ref(db, 'users/' + user.uid), userData);
                 await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
-                if(referredBy){
+                
+                if (referredBy) {
                     const referrerRef = ref(db, 'users/' + referredBy);
-                    const refSnap = await get(referrerRef);
-                    if(refSnap.exists()){
-                        const referrer = refSnap.val();
-                        await update(ref(db, 'users/' + referredBy), { referralWallet: (referrer.referralWallet || 0) + 2, totalEarned: (referrer.totalEarned || 0) + 2 });
-                        let level1List = (await get(ref(db, 'referrals/' + referredBy + '/level1'))).val() || [];
+                    const referrerSnap = await get(referrerRef);
+                    if (referrerSnap.exists()) {
+                        const referrer = referrerSnap.val();
+                        await update(ref(db, 'users/' + referredBy), {
+                            referralWallet: (referrer.referralWallet || 0) + 2,
+                            totalEarned: (referrer.totalEarned || 0) + 2
+                        });
+                        
+                        const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
+                        const level1Data = await get(level1Ref);
+                        let level1List = level1Data.val() || [];
                         level1List.push(user.uid);
-                        await set(ref(db, 'referrals/' + referredBy + '/level1'), level1List);
+                        await set(level1Ref, level1List);
                     }
-                    if(level1Referrer){
-                        const l2Snap = await get(ref(db, 'users/' + level1Referrer));
-                        if(l2Snap.exists()){
-                            const l2User = l2Snap.val();
-                            await update(ref(db, 'users/' + level1Referrer), { referralWallet: (l2User.referralWallet || 0) + 1, totalEarned: (l2User.totalEarned || 0) + 1 });
-                            let level2List = (await get(ref(db, 'referrals/' + level1Referrer + '/level2'))).val() || [];
+                    
+                    if (level1Referrer) {
+                        const level2UserRef = ref(db, 'users/' + level1Referrer);
+                        const level2Snap = await get(level2UserRef);
+                        if (level2Snap.exists()) {
+                            const level2User = level2Snap.val();
+                            await update(ref(db, 'users/' + level1Referrer), {
+                                referralWallet: (level2User.referralWallet || 0) + 1,
+                                totalEarned: (level2User.totalEarned || 0) + 1
+                            });
+                            
+                            const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
+                            const level2ListData = await get(level2ListRef);
+                            let level2List = level2ListData.val() || [];
                             level2List.push(user.uid);
-                            await set(ref(db, 'referrals/' + level1Referrer + '/level2'), level2List);
+                            await set(level2ListRef, level2List);
                         }
                     }
                 }
-                msgDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>'+userReferralCode+'</strong><br>Redirecting...</div>';
+                
+                delete otpStorage[`signup_${email}`];
+                
+                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                
                 localStorage.setItem('userReferralCode', userReferralCode);
                 localStorage.setItem('userName', name);
                 localStorage.setItem('userId', user.uid);
-                setTimeout(() => window.location.href = 'dashboard.html', 2000);
-            } catch(error){
-                if(error.code === 'auth/email-already-in-use') msgDiv.innerHTML = '<div class="error">Email already registered!</div>';
-                else msgDiv.innerHTML = '<div class="error">'+error.message+'</div>';
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2500);
+                
+            } catch (error) {
+                console.error(error);
+                if (error.code === 'auth/email-already-in-use') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-envelope"></i> Email already registered! Please login.</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                }
             }
         });
         
+        // Login Handler (Email & Password only - No OTP)
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value, password = document.getElementById('loginPassword').value;
-            const msgDiv = document.getElementById('loginMessage');
-            try{
-                const cred = await signInWithEmailAndPassword(auth, email, password);
-                const userSnap = await get(ref(db, 'users/' + cred.user.uid));
-                const userData = userSnap.val();
-                if(userData && userData.status === 'active'){
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('loginMessage');
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Get user data from database
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                const userData = snapshot.val();
+                
+                if (userData && userData.status === 'active') {
                     localStorage.setItem('userReferralCode', userData.referralCode);
                     localStorage.setItem('userName', userData.name);
-                    localStorage.setItem('userId', cred.user.uid);
-                    msgDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                    setTimeout(() => window.location.href = 'dashboard.html', 1000);
-                } else { msgDiv.innerHTML = '<div class="error">Account blocked.</div>'; }
-            } catch(error){
-                if(error.code === 'auth/user-not-found') msgDiv.innerHTML = '<div class="error">No account found.</div>';
-                else if(error.code === 'auth/wrong-password') msgDiv.innerHTML = '<div class="error">Wrong password.</div>';
-                else msgDiv.innerHTML = '<div class="error">'+error.message+'</div>';
+                    localStorage.setItem('userId', user.uid);
+                    
+                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Login successful! Redirecting...</div>';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-ban"></i> Account is blocked. Contact support.</div>';
+                }
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found. Please sign up.</div>';
+                } else if (error.code === 'auth/wrong-password') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Wrong password. Try again.</div>';
+                } else if (error.code === 'auth/invalid-credential') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-key"></i> Invalid email or password.</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                }
+            }
+        });
+        
+        // Forgot Password Handler
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('forgotEmail').value;
+            const messageDiv = document.getElementById('forgotMessage');
+            
+            try {
+                await sendPasswordResetEmail(auth, email);
+                messageDiv.innerHTML = '<div class="success"><i class="fas fa-check-circle"></i> Password reset email sent! Check your inbox.</div>';
+                
+                setTimeout(() => {
+                    showLogin();
+                }, 3000);
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-user-slash"></i> No account found with this email!</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> ' + error.message + '</div>';
+                }
             }
         });
     </script>
