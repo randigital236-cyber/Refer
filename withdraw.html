@@ -24,19 +24,42 @@
         .message { margin-top: 15px; padding: 12px; border-radius: 12px; text-align: center; }
         .error { background: #fee2e2; color: #dc2626; }
         .success { background: #d1fae5; color: #059669; }
+        .lock-message { background: #fef3c7; color: #b45309; }
+        .address-hint { font-size: 12px; color: #6b7280; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header"><h2 style="color:white;"><i class="fas fa-hand-holding-usd"></i> Withdraw</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
+        <div class="header">
+            <h2 style="color:white;"><i class="fas fa-hand-holding-usd"></i> Withdraw</h2>
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+        </div>
         <div class="withdraw-card">
-            <div class="balance-show"><i class="fas fa-wallet"></i> <span id="walletLabel">Referral Wallet</span><h3 id="walletBalance">0</h3></div>
-            <div id="taskWarning" class="task-warning" style="display:none;"><i class="fas fa-exclamation-triangle"></i> <span id="warningText">Complete all social tasks first!</span></div>
+            <div class="balance-show">
+                <i class="fas fa-wallet"></i> <span id="walletLabel">Referral Wallet</span>
+                <h3 id="walletBalance">0</h3>
+            </div>
+            <div id="taskWarning" class="task-warning" style="display:none;">
+                <i class="fas fa-exclamation-triangle"></i> <span id="warningText">Complete all social tasks first!</span>
+            </div>
             <form id="withdrawForm">
-                <div class="form-group"><label><i class="fas fa-credit-card"></i> Select Wallet</label><select id="walletType"><option value="referralWallet">Referral Wallet</option><option value="spinWallet">Spin Wallet</option></select></div>
-                <div class="form-group"><label><i class="fas fa-coins"></i> Amount (Min 50 RND)</label><input type="number" id="amount" placeholder="Enter amount" min="50"></div>
-                <div class="form-group"><label><i class="fas fa-link"></i> BEP20 Wallet Address</label><input type="text" id="address" placeholder="0x... or BEP20 address"></div>
-                <button type="submit" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal</button>
+                <div class="form-group">
+                    <label><i class="fas fa-credit-card"></i> Select Wallet</label>
+                    <select id="walletType">
+                        <option value="referralWallet">Referral Wallet</option>
+                        <option value="spinWallet">Spin Wallet</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-coins"></i> Amount (Only 1 RND allowed)</label>
+                    <input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> RND BEP20 Wallet Address</label>
+                    <input type="text" id="address" placeholder="0x... (RND BEP20 address)">
+                    <div class="address-hint"><i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address</div>
+                </div>
+                <button type="submit" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)</button>
             </form>
             <div class="info-text"><i class="fas fa-clock"></i> Withdrawals processed within 24-48 hours</div>
             <div id="message" class="message"></div>
@@ -46,35 +69,60 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
+            authDomain: "randigital-e7715.firebaseapp.com",
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "randigital-e7715",
+            storageBucket: "randigital-e7715.firebasestorage.app",
+            messagingSenderId: "218883279353",
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
         let currentUser = null, userData = null;
-        
-        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } currentUser = user; await loadUserData(); });
-        
-        async function loadUserData() { const snap = await get(ref(db, 'users/' + currentUser.uid)); userData = snap.val(); updateBalanceDisplay(); checkTasks(); }
-        
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            currentUser = user;
+            await loadUserData();
+        });
+
+        async function loadUserData() {
+            const snap = await get(ref(db, 'users/' + currentUser.uid));
+            userData = snap.val();
+            if (!userData) userData = {};
+            updateBalanceDisplay();
+            checkTasks();
+        }
+
         function updateBalanceDisplay() {
             const walletType = document.getElementById('walletType').value;
-            let balance = walletType === 'referralWallet' ? (userData.referralWallet||0) : (userData.spinWallet||0);
+            let balance = walletType === 'referralWallet' ? (userData.referralWallet || 0) : (userData.spinWallet || 0);
             document.getElementById('walletBalance').innerText = balance;
             document.getElementById('walletLabel').innerText = walletType === 'referralWallet' ? 'Referral Wallet' : 'Spin Wallet';
         }
-        
+
         function checkTasks() {
             const tasks = userData?.socialTasks || {};
             const allDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
             const warningDiv = document.getElementById('taskWarning');
-            if(!allDone){
+            if (!allDone) {
                 warningDiv.style.display = 'flex';
                 document.getElementById('warningText').innerHTML = '⚠️ You must complete Facebook, Twitter, Instagram & Telegram tasks before withdrawing!';
-            } else { warningDiv.style.display = 'none'; }
+            } else {
+                warningDiv.style.display = 'none';
+            }
         }
-        
+
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
-        
+
         document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const walletType = document.getElementById('walletType').value;
@@ -83,22 +131,83 @@
             const msgDiv = document.getElementById('message');
             const tasks = userData?.socialTasks || {};
             const allTasksDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
-            
-            if(!allTasksDone){ msgDiv.innerHTML = '<div class="error">❌ Complete all social tasks first!</div>'; return; }
-            if(amount < 50){ msgDiv.innerHTML = '<div class="error">Minimum withdrawal is 50 RND!</div>'; return; }
-            if(!address){ msgDiv.innerHTML = '<div class="error">Please enter BEP20 address!</div>'; return; }
-            
+
+            msgDiv.innerHTML = '';
+
+            if (!allTasksDone) {
+                msgDiv.innerHTML = '<div class="error">❌ Complete all social tasks first!</div>';
+                return;
+            }
+
+            // 🔒 CHECK: Only 1 RND allowed
+            if (amount !== 1) {
+                msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time. Please enter exactly 1 RND.</div>';
+                return;
+            }
+
+            if (!address) {
+                msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>';
+                return;
+            }
+
+            // Basic BEP20 address validation (starts with 0x and length 42)
+            if (!address.startsWith('0x') || address.length !== 42) {
+                msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP20 wallet address (0x... 42 characters).</div>';
+                return;
+            }
+
             const currentBal = userData[walletType] || 0;
-            if(currentBal < amount){ msgDiv.innerHTML = '<div class="error">Insufficient balance!</div>'; return; }
-            
+            if (currentBal < amount) {
+                msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>';
+                return;
+            }
+
+            // 🔒 CHECK IF USER HAS ALREADY REQUESTED WITHDRAWAL ONCE
+            const withdrawSnap = await get(ref(db, 'withdrawals'));
+            let userWithdrawals = [];
+            withdrawSnap.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.uid === currentUser.uid) {
+                    userWithdrawals.push(data);
+                }
+            });
+
+            if (userWithdrawals.length >= 1) {
+                msgDiv.innerHTML = `<div class="error lock-message">
+                    <i class="fas fa-lock"></i> ⚠️ Withdrawal is locked until the official listing.  
+                    You have already withdrawn 1 RND. Next withdrawal will be available after the listing announcement.  
+                    Keep referring, spinning, and earning until then.
+                </div>`;
+                return;
+            }
+
+            // Deduct balance
+            const updatedBal = currentBal - amount;
+            await update(ref(db, 'users/' + currentUser.uid), {
+                [walletType]: updatedBal
+            });
+
             const withdrawRef = push(ref(db, 'withdrawals'));
-            await set(withdrawRef, { uid: currentUser.uid, walletType, amount, walletAddress: address, status: 'pending', date: new Date().toISOString() });
-            msgDiv.innerHTML = '<div class="success">✅ Withdrawal request submitted! Admin will process soon.</div>';
-            document.getElementById('amount').value = '';
+            await set(withdrawRef, {
+                uid: currentUser.uid,
+                walletType,
+                amount,
+                walletAddress: address,
+                status: 'pending',
+                date: new Date().toISOString()
+            });
+
+            msgDiv.innerHTML = '<div class="success">✅ Withdrawal request submitted successfully! You will receive 1 RND in your BEP20 wallet after listing.</div>';
+            document.getElementById('amount').value = '1';
             document.getElementById('address').value = '';
+
+            // Refresh balance
+            await loadUserData();
         });
-        
-        window.goBack = function() { window.location.href = 'dashboard.html'; };
+
+        window.goBack = function() {
+            window.location.href = 'dashboard.html';
+        };
     </script>
 </body>
 </html>
