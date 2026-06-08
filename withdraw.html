@@ -106,7 +106,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -165,43 +165,74 @@
             }
         }
 
-        // Toast functions
-        function showToast(title, message, type = 'warning') {
-            // Remove existing toast
+        // Remove existing toast
+        function removeExistingToast() {
             const existingToast = document.querySelector('.toast-message');
             if (existingToast) existingToast.remove();
+        }
+
+        // Show Success Toast
+        function showSuccessToast() {
+            removeExistingToast();
             
             const toast = document.createElement('div');
-            toast.className = `toast-message toast-${type}`;
-            const icon = type === 'success' ? '✅' : '⚠️';
+            toast.className = 'toast-message toast-success';
             toast.innerHTML = `
                 <span class="toast-close" onclick="this.parentElement.remove();">&times;</span>
                 <div>
-                    <div class="toast-title">${icon} ${title}</div>
-                    <div class="toast-desc">${message}</div>
+                    <div class="toast-title">✅ Withdrawal Request Successful!</div>
+                    <div class="toast-desc">
+                        आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है।<br>
+                        2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।
+                    </div>
                 </div>
             `;
             document.body.appendChild(toast);
             
-            // Auto remove after 8 seconds
             setTimeout(() => {
                 if (toast) toast.remove();
             }, 8000);
         }
 
-        async function checkIfUserHasWithdrawn() {
-            const withdrawalsRef = ref(db, 'withdrawals');
-            const userWithdrawalsQuery = query(withdrawalsRef, orderByChild('uid'), equalTo(currentUser.uid));
-            const snapshot = await get(userWithdrawalsQuery);
+        // Show Warning Toast for second withdrawal
+        function showWarningToast() {
+            removeExistingToast();
             
-            let hasWithdrawn = false;
+            const toast = document.createElement('div');
+            toast.className = 'toast-message toast-warning';
+            toast.innerHTML = `
+                <span class="toast-close" onclick="this.parentElement.remove();">&times;</span>
+                <div>
+                    <div class="toast-title">⚠️ अभी Withdrawal उपलब्ध नहीं है</div>
+                    <div class="toast-desc">
+                        RND Coin को जल्द ही बड़े Official Exchange पर List किया जाएगा।<br><br>
+                        Listing के बाद आप अपना पूरा Withdrawal आसानी से कर सकेंगे।<br><br>
+                        तब तक <strong>Refer</strong> करके कमाई करें, <strong>Spin</strong> करके RND Coins अर्जित करें और अपनी Income को बढ़ाएँ।<br><br>
+                        आपके सहयोग के लिए धन्यवाद।
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast) toast.remove();
+            }, 10000);
+        }
+
+        // Check if user has already withdrawn
+        async function hasUserWithdrawnBefore() {
+            const withdrawalsRef = ref(db, 'withdrawals');
+            const snapshot = await get(withdrawalsRef);
+            let withdrawn = false;
+            
             snapshot.forEach((childSnap) => {
                 const data = childSnap.val();
-                if (data.status !== 'cancelled') {
-                    hasWithdrawn = true;
+                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
+                    withdrawn = true;
                 }
             });
-            return hasWithdrawn;
+            
+            return withdrawn;
         }
 
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
@@ -217,6 +248,7 @@
             const tasks = userData?.socialTasks || {};
             const allTasksDone = tasks.facebook === true && tasks.twitter === true;
 
+            // Clear previous message
             msgDiv.innerHTML = '';
 
             // Social tasks check
@@ -249,18 +281,13 @@
                 return;
             }
 
-            // Check if user has already withdrawn before
-            const hasWithdrawn = await checkIfUserHasWithdrawn();
-
-            // If already withdrawn, show warning toast and DON'T save to database
-            if (hasWithdrawn) {
-                showToast(
-                    'अभी Withdrawal उपलब्ध नहीं है',
-                    'RND Coin को जल्द ही बड़े Official Exchange पर List किया जाएगा। Listing के बाद आप अपना पूरा Withdrawal आसानी से कर सकेंगे। तब तक Refer करके कमाई करें, Spin करके RND Coins अर्जित करें और अपनी Income को बढ़ाएँ। आपके सहयोग के लिए धन्यवाद।',
-                    'warning'
-                );
-                msgDiv.innerHTML = ''; // Clear any previous message
-                return;
+            // CHECK IF USER HAS ALREADY WITHDRAWN BEFORE
+            const alreadyWithdrawn = await hasUserWithdrawnBefore();
+            
+            // If already withdrawn, show warning toast and STOP - Do NOT save to database
+            if (alreadyWithdrawn) {
+                showWarningToast();
+                return; // IMPORTANT: Exit here, don't save anything
             }
 
             // FIRST TIME WITHDRAWAL - Process and save to database
@@ -275,8 +302,8 @@
                 const withdrawRef = push(ref(db, 'withdrawals'));
                 await set(withdrawRef, {
                     uid: currentUser.uid,
-                    walletType,
-                    amount,
+                    walletType: walletType,
+                    amount: amount,
                     walletAddress: address,
                     status: 'pending',
                     date: new Date().toISOString()
@@ -286,16 +313,12 @@
                 userData[walletType] = updatedBal;
                 updateBalanceDisplay();
 
-                // Clear address field
+                // Clear address field only
                 document.getElementById('address').value = '';
                 msgDiv.innerHTML = '';
 
                 // Show success toast
-                showToast(
-                    'Withdrawal Request Successful!',
-                    'आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है। 2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।',
-                    'success'
-                );
+                showSuccessToast();
 
             } catch (error) {
                 console.error("Error:", error);
