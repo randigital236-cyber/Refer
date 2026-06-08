@@ -21,6 +21,7 @@
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 16px; }
         .info-text { font-size: 12px; color: #6b7280; text-align: center; margin-top: 20px; }
         .task-warning { background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+        .task-success { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .message { margin-top: 15px; padding: 12px; border-radius: 12px; text-align: center; }
         .error { background: #fee2e2; color: #dc2626; }
         .success { background: #d1fae5; color: #059669; }
@@ -41,6 +42,9 @@
             </div>
             <div id="taskWarning" class="task-warning" style="display:none;">
                 <i class="fas fa-exclamation-triangle"></i> <span id="warningText">Complete all social tasks first!</span>
+            </div>
+            <div id="taskSuccess" class="task-success" style="display:none;">
+                <i class="fas fa-check-circle"></i> <span>✅ Social tasks completed! You are eligible for withdrawal.</span>
             </div>
             <form id="withdrawForm">
                 <div class="form-group">
@@ -97,7 +101,8 @@
         async function loadUserData() {
             const snap = await get(ref(db, 'users/' + currentUser.uid));
             userData = snap.val();
-            if (!userData) userData = {};
+            if (!userData) userData = { spinWallet: 0, referralWallet: 0, socialTasks: {} };
+            if (!userData.socialTasks) userData.socialTasks = {};
             updateBalanceDisplay();
             checkTasks();
         }
@@ -110,14 +115,20 @@
         }
 
         function checkTasks() {
+            // Only check Facebook and Twitter (NOT Instagram & Telegram)
             const tasks = userData?.socialTasks || {};
-            const allDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
+            const allDone = tasks.facebook === true && tasks.twitter === true;
+            
             const warningDiv = document.getElementById('taskWarning');
+            const successDiv = document.getElementById('taskSuccess');
+            
             if (!allDone) {
                 warningDiv.style.display = 'flex';
-                document.getElementById('warningText').innerHTML = '⚠️ You must complete Facebook, Twitter, Instagram & Telegram tasks before withdrawing!';
+                successDiv.style.display = 'none';
+                document.getElementById('warningText').innerHTML = '⚠️ You must complete Facebook & Twitter tasks before withdrawing! Each task gives +3 RND.';
             } else {
                 warningDiv.style.display = 'none';
+                successDiv.style.display = 'flex';
             }
         }
 
@@ -129,17 +140,18 @@
             const amount = parseInt(document.getElementById('amount').value);
             const address = document.getElementById('address').value;
             const msgDiv = document.getElementById('message');
+            
+            // Only check Facebook and Twitter
             const tasks = userData?.socialTasks || {};
-            const allTasksDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
+            const allTasksDone = tasks.facebook === true && tasks.twitter === true;
 
             msgDiv.innerHTML = '';
 
             if (!allTasksDone) {
-                msgDiv.innerHTML = '<div class="error">❌ Complete all social tasks first!</div>';
+                msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +3 RND.</div>';
                 return;
             }
 
-            // 🔒 CHECK: Only 1 RND allowed
             if (amount !== 1) {
                 msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time. Please enter exactly 1 RND.</div>';
                 return;
@@ -150,7 +162,6 @@
                 return;
             }
 
-            // Basic BEP20 address validation (starts with 0x and length 42)
             if (!address.startsWith('0x') || address.length !== 42) {
                 msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP20 wallet address (0x... 42 characters).</div>';
                 return;
@@ -162,7 +173,7 @@
                 return;
             }
 
-            // 🔒 CHECK IF USER HAS ALREADY REQUESTED WITHDRAWAL ONCE
+            // Check if user has already withdrawn once
             const withdrawSnap = await get(ref(db, 'withdrawals'));
             let userWithdrawals = [];
             withdrawSnap.forEach((childSnap) => {
@@ -201,7 +212,6 @@
             document.getElementById('amount').value = '1';
             document.getElementById('address').value = '';
 
-            // Refresh balance
             await loadUserData();
         });
 
