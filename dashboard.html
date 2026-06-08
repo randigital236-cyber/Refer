@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dashboard - RND Rewards</title>
+    <title>RND Rewards - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -14,129 +14,137 @@
 
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            padding-bottom: 80px;
+            background: #f5f7fa;
+            overflow-x: hidden;
         }
 
         /* Header */
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        .user-info {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 15px;
-            border-radius: 50px;
-            color: white;
-            font-size: 14px;
+        .header-top h2 {
+            font-size: 24px;
+        }
+
+        .header-top h2 i {
+            margin-right: 10px;
         }
 
         .logout-btn {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 50px;
             cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
         }
 
-        /* Balance Cards */
-        .balance-grid {
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .welcome-text h3 {
+            font-size: 20px;
+            margin-top: 5px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .balance-card {
-            background: white;
-            border-radius: 25px;
             padding: 20px;
-            text-align: center;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            margin-top: -20px;
         }
 
-        .balance-card i {
-            font-size: 30px;
-            margin-bottom: 10px;
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
         }
 
-        .balance-card .label {
-            font-size: 12px;
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon i {
+            font-size: 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card h4 {
+            font-size: 13px;
             color: #6b7280;
+            margin-bottom: 8px;
         }
 
-        .balance-card .amount {
-            font-size: 24px;
+        .stat-card .value {
+            font-size: 28px;
             font-weight: bold;
             color: #1f2937;
         }
 
-        /* Menu Grid */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .menu-item {
+        /* Sections */
+        .section {
             background: white;
+            margin: 20px;
+            padding: 25px;
             border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-            text-decoration: none;
-            display: block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }
 
-        .menu-item:active {
-            transform: scale(0.95);
-        }
-
-        .menu-item i {
-            font-size: 35px;
-            margin-bottom: 10px;
-        }
-
-        .menu-item .menu-title {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .menu-item .menu-desc {
-            font-size: 11px;
-            color: #6b7280;
-        }
-
-        /* Referral Section */
-        .referral-section {
-            background: white;
-            border-radius: 25px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .referral-section h3 {
-            margin-bottom: 15px;
+        .section-title {
             font-size: 18px;
+            margin-bottom: 20px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
+        .section-title i {
+            color: #667eea;
+        }
+
+        /* Referral Link Box */
         .referral-link-box {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .referral-link-box input {
@@ -145,186 +153,376 @@
             border: 2px solid #e5e7eb;
             border-radius: 12px;
             font-size: 12px;
-            background: #f9fafb;
+            font-family: monospace;
         }
 
-        .referral-link-box button {
-            padding: 12px 20px;
+        .copy-btn {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
+            padding: 0 20px;
             border-radius: 12px;
             cursor: pointer;
+            font-weight: 600;
         }
 
-        .stats {
+        .share-buttons {
             display: flex;
-            justify-content: space-around;
-            text-align: center;
+            gap: 10px;
         }
 
-        .stat-item .stat-value {
-            font-size: 20px;
+        .share-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .whatsapp { background: #25D366; color: white; }
+        .telegram { background: #0088cc; color: white; }
+        .facebook { background: #1877f2; color: white; }
+
+        /* Referral Stats */
+        .ref-stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .ref-stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .ref-stat-item .number {
+            font-size: 28px;
             font-weight: bold;
             color: #667eea;
         }
 
-        .stat-item .stat-label {
-            font-size: 11px;
+        .ref-stat-item .label {
+            font-size: 12px;
             color: #6b7280;
+            margin-top: 5px;
         }
 
-        /* Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 500px;
-            margin: 0 auto;
+        /* Action Buttons */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 15px;
             background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 20px;
-            border-radius: 30px 30px 0 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-        }
-
-        .nav-item {
-            text-align: center;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
             cursor: pointer;
-            color: #9ca3af;
-            transition: color 0.2s;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .nav-item.active {
-            color: #667eea;
+        .action-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
         }
 
-        .nav-item i {
-            font-size: 22px;
+        /* Task List */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .nav-item span {
-            font-size: 10px;
-            display: block;
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
         }
 
-        /* Footer */
-        .footer {
+        .task-btn {
+            padding: 8px 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .task-btn.completed {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+
+        /* Withdraw Form */
+        .withdraw-form input, .withdraw-form select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 20% auto;
+            padding: 30px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
-            color: rgba(255,255,255,0.7);
-            font-size: 11px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .wheel {
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .spin-wheel-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
             margin-top: 20px;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 15px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .section {
+                margin: 15px;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="user-info">
-                <i class="fas fa-user-circle"></i> <span id="userName">User</span>
-            </div>
-            <button class="logout-btn" onclick="logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+    <div class="header">
+        <div class="header-top">
+            <h2><i class="fas fa-coins"></i> RND Rewards</h2>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
-
-        <!-- Balance Cards -->
-        <div class="balance-grid">
-            <div class="balance-card">
-                <i class="fas fa-wallet" style="color: #667eea;"></i>
-                <div class="label">Referral Wallet</div>
-                <div class="amount" id="referralBalance">0</div>
-                <div class="label">RND</div>
-            </div>
-            <div class="balance-card">
-                <i class="fas fa-gamepad" style="color: #764ba2;"></i>
-                <div class="label">Spin Wallet</div>
-                <div class="amount" id="spinBalance">0</div>
-                <div class="label">RND</div>
-            </div>
-        </div>
-
-        <!-- Menu Grid -->
-        <div class="menu-grid">
-            <div class="menu-item" onclick="goTo('spin.html')">
-                <i class="fas fa-sync-alt" style="color: #f59e0b;"></i>
-                <div class="menu-title">Spin Wheel</div>
-                <div class="menu-desc">Earn up to 10 RND</div>
-            </div>
-            <div class="menu-item" onclick="goTo('social-tasks.html')">
-                <i class="fab fa-facebook" style="color: #1877f2;"></i>
-                <div class="menu-title">Social Tasks</div>
-                <div class="menu-desc">Complete & Earn +3 RND</div>
-            </div>
-            <div class="menu-item" onclick="goTo('withdraw.html')">
-                <i class="fas fa-hand-holding-usd" style="color: #10b981;"></i>
-                <div class="menu-title">Withdraw</div>
-                <div class="menu-desc">Withdraw your RND</div>
-            </div>
-            <div class="menu-item" onclick="showReferralModal()">
-                <i class="fas fa-users" style="color: #8b5cf6;"></i>
-                <div class="menu-title">Referral</div>
-                <div class="menu-desc">Invite Friends & Earn</div>
-            </div>
-        </div>
-
-        <!-- Referral Section -->
-        <div class="referral-section">
-            <h3><i class="fas fa-link"></i> Your Referral Link</h3>
-            <div class="referral-link-box">
-                <input type="text" id="referralLink" readonly>
-                <button onclick="copyReferralLink()">
-                    <i class="fas fa-copy"></i> Copy
-                </button>
-            </div>
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="level1Count">0</div>
-                    <div class="stat-label">Direct Referrals</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="level2Count">0</div>
-                    <div class="stat-label">Indirect Referrals</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value" id="totalEarned">0</div>
-                    <div class="stat-label">Total Earned</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <i class="fas fa-shield-alt"></i> Secure Platform | RND Rewards
+        <div class="welcome-text">
+            <p>Welcome back,</p>
+            <h3 id="userName">User</h3>
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="goTo('dashboard.html')">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+            <h4>Total Balance</h4>
+            <div class="value" id="totalBalance">0</div>
         </div>
-        <div class="nav-item" onclick="goTo('withdraw.html')">
-            <i class="fas fa-wallet"></i>
-            <span>Withdraw</span>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <h4>Referral Wallet</h4>
+            <div class="value" id="referralWallet">0</div>
         </div>
-        <div class="nav-item" onclick="goTo('spin.html')">
-            <i class="fas fa-gamepad"></i>
-            <span>Spin</span>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-sync-alt"></i></div>
+            <h4>Spin Wallet</h4>
+            <div class="value" id="spinWallet">0</div>
         </div>
-        <div class="nav-item" onclick="showReferralModal()">
-            <i class="fas fa-users"></i>
-            <span>Refer</span>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <h4>Total Earned</h4>
+            <div class="value" id="totalEarned">0</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <i class="fas fa-link"></i>
+            <span>Your Referral Link</span>
+        </div>
+        <div class="referral-link-box">
+            <input type="text" id="referralLink" readonly>
+            <button class="copy-btn" onclick="copyLink()"><i class="fas fa-copy"></i> Copy</button>
+        </div>
+        <div class="share-buttons">
+            <button class="share-btn whatsapp" onclick="shareWhatsApp()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button class="share-btn telegram" onclick="shareTelegram()"><i class="fab fa-telegram"></i> Telegram</button>
+            <button class="share-btn facebook" onclick="shareFacebook()"><i class="fab fa-facebook"></i> Facebook</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <i class="fas fa-tree"></i>
+            <span>Your Referral Team</span>
+        </div>
+        <div class="ref-stats">
+            <div class="ref-stat-item">
+                <div class="number" id="level1Count">0</div>
+                <div class="label">Level 1 Team</div>
+            </div>
+            <div class="ref-stat-item">
+                <div class="number" id="level2Count">0</div>
+                <div class="label">Level 2 Team</div>
+            </div>
+            <div class="ref-stat-item">
+                <div class="number" id="totalReferrals">0</div>
+                <div class="label">Total Referrals</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">
+            <i class="fas fa-bolt"></i>
+            <span>Quick Actions</span>
+        </div>
+        <div class="action-grid">
+            <button class="action-btn" onclick="scrollToTasks()"><i class="fas fa-tasks"></i> Tasks</button>
+            <button class="action-btn" onclick="scrollToWithdraw()"><i class="fas fa-money-bill-wave"></i> Withdraw</button>
+            <button class="action-btn" onclick="showSpinModal()"><i class="fas fa-gamepad"></i> Spin Wheel</button>
+            <button class="action-btn" onclick="viewHistory()"><i class="fas fa-history"></i> History</button>
+        </div>
+    </div>
+
+    <div class="section" id="tasksSection">
+        <div class="section-title">
+            <i class="fas fa-check-circle"></i>
+            <span>Complete Social Tasks</span>
+        </div>
+        <div class="task-list">
+            <div class="task-item">
+                <span><i class="fab fa-facebook"></i> Follow on Facebook</span>
+                <button id="facebookTask" class="task-btn" onclick="completeTask('facebook')">Complete</button>
+            </div>
+            <div class="task-item">
+                <span><i class="fab fa-twitter"></i> Follow on Twitter</span>
+                <button id="twitterTask" class="task-btn" onclick="completeTask('twitter')">Complete</button>
+            </div>
+            <div class="task-item">
+                <span><i class="fab fa-instagram"></i> Follow on Instagram</span>
+                <button id="instagramTask" class="task-btn" onclick="completeTask('instagram')">Complete</button>
+            </div>
+            <div class="task-item">
+                <span><i class="fab fa-telegram"></i> Join Telegram</span>
+                <button id="telegramTask" class="task-btn" onclick="completeTask('telegram')">Complete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="withdrawSection">
+        <div class="section-title">
+            <i class="fas fa-hand-holding-usd"></i>
+            <span>Withdraw Coins</span>
+        </div>
+        <div class="withdraw-form">
+            <select id="walletType">
+                <option value="referralWallet">Referral Wallet</option>
+                <option value="spinWallet">Spin Wallet</option>
+            </select>
+            <input type="number" id="withdrawAmount" placeholder="Amount (Min 50 RND)">
+            <input type="text" id="bep20Address" placeholder="BEP20 Wallet Address">
+            <button class="action-btn" style="background: #667eea; color: white; border: none;" onclick="requestWithdrawal()">Request Withdrawal</button>
+        </div>
+        <div id="withdrawMessage" class="message"></div>
+    </div>
+
+    <!-- Spin Modal -->
+    <div id="spinModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSpinModal()">&times;</span>
+            <h3><i class="fas fa-gift"></i> Spin & Win!</h3>
+            <div class="wheel">
+                <canvas id="wheelCanvas" width="250" height="250"></canvas>
+            </div>
+            <button class="spin-wheel-btn" onclick="spinWheel()">SPIN NOW</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, get, update, set, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -339,11 +537,11 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        
+
         let currentUser = null;
         let userData = null;
-        
-        // OFFICIAL DOMAIN - Change this to your actual domain
+
+        // OFFICIAL DOMAIN
         const OFFICIAL_DOMAIN = "http://app.randigital.in";
 
         onAuthStateChanged(auth, async (user) => {
@@ -352,8 +550,9 @@
                 return;
             }
             currentUser = user;
-            document.getElementById('userName').innerText = localStorage.getItem('userName') || user.email.split('@')[0];
             await loadUserData();
+            await loadReferralStats();
+            await loadTaskStatus();
         });
 
         async function loadUserData() {
@@ -362,64 +561,234 @@
             userData = snapshot.val();
             
             if (userData) {
-                document.getElementById('referralBalance').innerText = userData.referralWallet || 0;
-                document.getElementById('spinBalance').innerText = userData.spinWallet || 0;
+                document.getElementById('userName').innerText = userData.name;
+                const total = (userData.referralWallet || 0) + (userData.spinWallet || 0);
+                document.getElementById('totalBalance').innerText = total;
+                document.getElementById('referralWallet').innerText = userData.referralWallet || 0;
+                document.getElementById('spinWallet').innerText = userData.spinWallet || 0;
                 document.getElementById('totalEarned').innerText = userData.totalEarned || 0;
                 
-                // Set referral link with official domain
+                // Updated Referral Link with Official Domain
                 const referralLink = `${OFFICIAL_DOMAIN}/index.html?ref=${userData.referralCode}`;
                 document.getElementById('referralLink').value = referralLink;
-                
-                await loadReferralCounts();
             }
         }
 
-        async function loadReferralCounts() {
+        async function loadReferralStats() {
             const referralsRef = ref(db, 'referrals/' + currentUser.uid);
             const snapshot = await get(referralsRef);
-            const referrals = snapshot.val();
+            const referrals = snapshot.val() || { level1: [], level2: [] };
             
-            if (referrals) {
-                document.getElementById('level1Count').innerText = (referrals.level1 || []).length;
-                document.getElementById('level2Count').innerText = (referrals.level2 || []).length;
+            document.getElementById('level1Count').innerText = referrals.level1.length;
+            document.getElementById('level2Count').innerText = referrals.level2.length;
+            document.getElementById('totalReferrals').innerText = referrals.level1.length + referrals.level2.length;
+        }
+
+        async function loadTaskStatus() {
+            const tasksRef = ref(db, 'taskCompletion/' + currentUser.uid);
+            const snapshot = await get(tasksRef);
+            const tasks = snapshot.val() || {};
+            
+            const platforms = ['facebook', 'twitter', 'instagram', 'telegram'];
+            platforms.forEach(platform => {
+                const btn = document.getElementById(`${platform}Task`);
+                if (btn && tasks[platform] === true) {
+                    btn.innerText = 'Completed ✓';
+                    btn.classList.add('completed');
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        window.completeTask = async function(platform) {
+            const taskRef = ref(db, 'taskCompletion/' + currentUser.uid);
+            await update(taskRef, { [platform]: true });
+            
+            const btn = document.getElementById(`${platform}Task`);
+            btn.innerText = 'Completed ✓';
+            btn.classList.add('completed');
+            btn.disabled = true;
+            
+            alert(`✅ ${platform} task completed!`);
+        }
+
+        window.copyLink = function() {
+            const link = document.getElementById('referralLink');
+            link.select();
+            document.execCommand('copy');
+            alert('Referral link copied!');
+        }
+
+        window.shareWhatsApp = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://wa.me/?text=Join RND Rewards and earn crypto! Use my link: ${link}`, '_blank');
+        }
+
+        window.shareTelegram = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://t.me/share/url?url=${link}&text=Join RND Rewards and earn crypto!`, '_blank');
+        }
+
+        window.shareFacebook = function() {
+            const link = document.getElementById('referralLink').value;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${link}`, '_blank');
+        }
+
+        window.scrollToTasks = function() {
+            document.getElementById('tasksSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.scrollToWithdraw = function() {
+            document.getElementById('withdrawSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Spin Wheel
+        let spinning = false;
+        let canvas = null;
+        let ctx = null;
+        
+        const segments = [
+            { label: '1 RND', value: 1, color: '#FF6B6B' },
+            { label: '2 RND', value: 2, color: '#4ECDC4' },
+            { label: '5 RND', value: 5, color: '#45B7D1' },
+            { label: '10 RND', value: 10, color: '#96CEB4' },
+            { label: 'Better Luck', value: 0, color: '#FFEAA7' },
+            { label: '2 RND', value: 2, color: '#DDA0DD' }
+        ];
+
+        function drawWheel() {
+            if (!canvas) {
+                canvas = document.getElementById('wheelCanvas');
+                if (!canvas) return;
+                ctx = canvas.getContext('2d');
+            }
+            
+            const centerX = 125;
+            const centerY = 125;
+            const radius = 120;
+            const anglePerSegment = (Math.PI * 2) / segments.length;
+            
+            for (let i = 0; i < segments.length; i++) {
+                const startAngle = i * anglePerSegment;
+                const endAngle = startAngle + anglePerSegment;
+                
+                ctx.beginPath();
+                ctx.fillStyle = segments[i].color;
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.fill();
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.fillStyle = '#1f2937';
+                ctx.font = 'bold 12px Poppins';
+                ctx.fillText(segments[i].label, 70, 5);
+                ctx.restore();
             }
         }
 
-        window.copyReferralLink = function() {
-            const linkInput = document.getElementById('referralLink');
-            linkInput.select();
-            document.execCommand('copy');
-            
-            // Show toast message
-            const toast = document.createElement('div');
-            toast.innerHTML = '<i class="fas fa-check-circle"></i> Referral link copied!';
-            toast.style.position = 'fixed';
-            toast.style.bottom = '100px';
-            toast.style.left = '50%';
-            toast.style.transform = 'translateX(-50%)';
-            toast.style.background = '#10b981';
-            toast.style.color = 'white';
-            toast.style.padding = '12px 20px';
-            toast.style.borderRadius = '50px';
-            toast.style.zIndex = '1000';
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.remove(), 2000);
+        window.showSpinModal = function() {
+            const modal = document.getElementById('spinModal');
+            modal.style.display = 'block';
+            setTimeout(() => drawWheel(), 100);
         }
 
-        window.showReferralModal = function() {
-            const link = document.getElementById('referralLink').value;
-            alert(`Your Referral Link:\n${link}\n\nShare this link with friends. When they sign up, you will earn rewards!`);
+        window.closeSpinModal = function() {
+            document.getElementById('spinModal').style.display = 'none';
         }
 
-        window.goTo = function(page) {
-            window.location.href = page;
+        window.spinWheel = async function() {
+            if (spinning) return;
+            spinning = true;
+            
+            const randomIndex = Math.floor(Math.random() * segments.length);
+            const reward = segments[randomIndex];
+            
+            let rotation = 0;
+            const targetRotation = (Math.random() * 360) + 720;
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            if (reward.value > 0) {
+                const newSpinWallet = (userData.spinWallet || 0) + reward.value;
+                await update(ref(db, 'users/' + currentUser.uid), {
+                    spinWallet: newSpinWallet,
+                    totalEarned: (userData.totalEarned || 0) + reward.value
+                });
+                userData.spinWallet = newSpinWallet;
+                alert(`🎉 Congratulations! You won ${reward.value} RND!`);
+                await loadUserData();
+            } else {
+                alert('😢 Better luck next time!');
+            }
+            
+            spinning = false;
+            closeSpinModal();
+        }
+
+        window.requestWithdrawal = async function() {
+            const walletType = document.getElementById('walletType').value;
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const address = document.getElementById('bep20Address').value;
+            const messageDiv = document.getElementById('withdrawMessage');
+            
+            if (amount < 50) {
+                messageDiv.innerHTML = '<div class="error-message">Minimum withdrawal is 50 RND!</div>';
+                return;
+            }
+            
+            if (!address) {
+                messageDiv.innerHTML = '<div class="error-message">Please enter BEP20 address!</div>';
+                return;
+            }
+            
+            const tasksRef = ref(db, 'taskCompletion/' + currentUser.uid);
+            const tasksSnap = await get(tasksRef);
+            const tasks = tasksSnap.val() || {};
+            
+            const allTasksDone = tasks.facebook && tasks.twitter && tasks.instagram && tasks.telegram;
+            if (!allTasksDone) {
+                messageDiv.innerHTML = '<div class="error-message">Please complete all social tasks first!</div>';
+                return;
+            }
+            
+            const currentBalance = userData[walletType] || 0;
+            if (currentBalance < amount) {
+                messageDiv.innerHTML = '<div class="error-message">Insufficient balance!</div>';
+                return;
+            }
+            
+            const withdrawalRef = push(ref(db, 'withdrawals'));
+            await set(withdrawalRef, {
+                uid: currentUser.uid,
+                walletType: walletType,
+                amount: amount,
+                walletAddress: address,
+                status: 'pending',
+                date: new Date().toISOString()
+            });
+            
+            messageDiv.innerHTML = '<div class="success-message">✅ Withdrawal request submitted! Admin will approve soon.</div>';
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('bep20Address').value = '';
+        }
+
+        window.viewHistory = function() {
+            alert('📜 Transaction history feature coming soon!');
         }
 
         window.logout = async function() {
             await signOut(auth);
             localStorage.clear();
             window.location.href = 'index.html';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('spinModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
         }
     </script>
 </body>
