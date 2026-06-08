@@ -15,7 +15,7 @@
         .balance-badge { background: linear-gradient(135deg, #667eea20, #764ba220); padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 20px; font-weight: 500; }
         .timer-badge { background: #fef3c7; padding: 10px 20px; border-radius: 50px; display: inline-block; margin-bottom: 15px; color: #92400e; font-size: 14px; }
         .wheel-container { margin: 30px 0; display: flex; justify-content: center; }
-        .wheel { width: 280px; height: 280px; max-width: 100%; }
+        .wheel { width: 280px; height: 280px; max-width: 100%; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .spin-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 18px 50px; border-radius: 50px; font-size: 20px; font-weight: bold; cursor: pointer; transition: transform 0.2s; margin-top: 20px; }
         .spin-btn:active { transform: scale(0.95); }
         .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
@@ -84,103 +84,86 @@
         
         let currentUser = null;
         let userData = null;
-        let spinning = false;
-        let countdownInterval = null;
-        let animationFrameId = null;
+        let isSpinning = false;
+        let timerInterval = null;
         
-        // Wheel segments - 6 equal segments
-        const segments = [
-            { label: '1 RND', value: 1, color: '#FF6B6B' },
-            { label: '2 RND', value: 2, color: '#4ECDC4' },
-            { label: '0 RND', value: 0, color: '#FFEAA7' },
-            { label: '5 RND', value: 5, color: '#45B7D1' },
-            { label: '2 RND', value: 2, color: '#96CEB4' },
-            { label: '10 RND', value: 10, color: '#DDA0DD' }
+        // Prize segments
+        const SEGMENTS = [
+            { name: "1 RND", value: 1, color: "#FF6B6B" },
+            { name: "2 RND", value: 2, color: "#4ECDC4" },
+            { name: "0 RND", value: 0, color: "#FFEAA7" },
+            { name: "5 RND", value: 5, color: "#45B7D1" },
+            { name: "2 RND", value: 2, color: "#96CEB4" },
+            { name: "10 RND", value: 10, color: "#DDA0DD" }
         ];
         
-        const canvas = document.getElementById('wheelCanvas');
-        let ctx = null;
+        const PI = Math.PI;
+        const TAU = 2 * PI;
+        const segmentAngle = TAU / SEGMENTS.length;
         
-        // Initialize canvas context
-        function initCanvas() {
-            if (!canvas) return false;
-            ctx = canvas.getContext('2d');
-            if (!ctx) return false;
-            return true;
-        }
+        let canvas = document.getElementById("wheelCanvas");
+        let ctx = canvas.getContext("2d");
+        let currentAngle = 0;
         
-        // Draw wheel with rotation
-        function drawWheel(rotationAngle = 0) {
-            if (!ctx || !canvas) return;
+        // Draw wheel function
+        function drawWheel() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width / 2 - 5;
             
-            const w = canvas.width;
-            const h = canvas.height;
-            const centerX = w / 2;
-            const centerY = h / 2;
-            const radius = w / 2 - 10;
+            ctx.clearRect(0, 0, width, height);
             
-            ctx.clearRect(0, 0, w, h);
-            
-            const angleStep = (Math.PI * 2) / segments.length;
-            
-            for (let i = 0; i < segments.length; i++) {
-                const start = i * angleStep + rotationAngle;
-                const end = start + angleStep;
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                const start = i * segmentAngle + currentAngle;
+                const end = start + segmentAngle;
                 
                 // Draw segment
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, start, end);
-                ctx.closePath();
-                ctx.fillStyle = segments[i].color;
+                ctx.fillStyle = SEGMENTS[i].color;
                 ctx.fill();
-                
-                // Draw border
-                ctx.strokeStyle = '#ffffff';
+                ctx.strokeStyle = "white";
                 ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, start, end);
-                ctx.closePath();
                 ctx.stroke();
                 
                 // Draw text
                 ctx.save();
                 ctx.translate(centerX, centerY);
-                ctx.rotate(start + angleStep / 2);
-                ctx.fillStyle = '#1f2937';
-                ctx.font = 'bold 14px Poppins';
+                ctx.rotate(start + segmentAngle / 2);
+                ctx.fillStyle = "#1f2937";
+                ctx.font = "bold 14px Poppins";
                 ctx.shadowBlur = 0;
-                ctx.fillText(segments[i].label, radius - 35, 8);
+                ctx.fillText(SEGMENTS[i].name, radius - 40, 8);
                 ctx.restore();
             }
             
             // Draw center circle
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 20, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
+            ctx.arc(centerX, centerY, 20, 0, TAU);
+            ctx.fillStyle = "white";
             ctx.fill();
-            ctx.strokeStyle = '#667eea';
+            ctx.strokeStyle = "#667eea";
             ctx.lineWidth = 3;
             ctx.stroke();
             
             // Draw pointer
             ctx.beginPath();
-            ctx.moveTo(centerX - 8, 15);
-            ctx.lineTo(centerX, 5);
-            ctx.lineTo(centerX + 8, 15);
-            ctx.fillStyle = '#dc2626';
+            ctx.moveTo(centerX - 10, 12);
+            ctx.lineTo(centerX, 2);
+            ctx.lineTo(centerX + 10, 12);
+            ctx.fillStyle = "#dc2626";
             ctx.fill();
         }
         
         // Initial draw
-        if (initCanvas()) {
-            drawWheel(0);
-        }
+        drawWheel();
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                window.location.href = 'index.html';
+                window.location.href = "index.html";
                 return;
             }
             currentUser = user;
@@ -188,56 +171,47 @@
         });
         
         async function loadUserData() {
-            try {
-                const userRef = ref(db, 'users/' + currentUser.uid);
-                const snap = await get(userRef);
-                userData = snap.val();
-                if (!userData) {
-                    userData = { spinWallet: 0, totalEarned: 0, lastSpinTime: 0 };
-                }
-                if (userData.lastSpinTime === undefined) {
-                    userData.lastSpinTime = 0;
-                }
-                document.getElementById('spinWallet').innerText = userData.spinWallet || 0;
-                checkAndUpdateTimer();
-            } catch (error) {
-                console.error("Error loading user data:", error);
+            const userRef = ref(db, "users/" + currentUser.uid);
+            const snapshot = await get(userRef);
+            userData = snapshot.val();
+            if (!userData) {
+                userData = { spinWallet: 0, totalEarned: 0, lastSpinTime: 0 };
             }
+            if (userData.lastSpinTime === undefined) {
+                userData.lastSpinTime = 0;
+            }
+            document.getElementById("spinWallet").innerText = userData.spinWallet || 0;
+            checkTimer();
         }
         
-        function checkAndUpdateTimer() {
-            const lastSpinTime = userData.lastSpinTime || 0;
-            const currentTime = Date.now();
-            const cooldownMs = 8 * 60 * 60 * 1000; // 8 hours
+        function checkTimer() {
+            const lastSpin = userData.lastSpinTime || 0;
+            const now = Date.now();
+            const diff = now - lastSpin;
+            const cooldown = 8 * 60 * 60 * 1000; // 8 hours
             
-            if (lastSpinTime > 0 && (currentTime - lastSpinTime) < cooldownMs) {
-                const remainingMs = cooldownMs - (currentTime - lastSpinTime);
-                startCountdownTimer(remainingMs);
-                document.getElementById('spinBtn').disabled = true;
-                document.getElementById('timerBadge').style.display = 'inline-block';
+            if (lastSpin > 0 && diff < cooldown) {
+                const remaining = cooldown - diff;
+                startTimer(remaining);
+                document.getElementById("spinBtn").disabled = true;
+                document.getElementById("timerBadge").style.display = "inline-block";
             } else {
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                }
-                document.getElementById('spinBtn').disabled = false;
-                document.getElementById('timerBadge').style.display = 'none';
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById("spinBtn").disabled = false;
+                document.getElementById("timerBadge").style.display = "none";
             }
         }
         
-        function startCountdownTimer(remainingMs) {
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
+        function startTimer(remainingMs) {
+            if (timerInterval) clearInterval(timerInterval);
             
             let remaining = remainingMs;
             
-            function updateDisplay() {
+            function updateTimer() {
                 if (remaining <= 0) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                    document.getElementById('spinBtn').disabled = false;
-                    document.getElementById('timerBadge').style.display = 'none';
+                    clearInterval(timerInterval);
+                    document.getElementById("spinBtn").disabled = false;
+                    document.getElementById("timerBadge").style.display = "none";
                     return;
                 }
                 
@@ -245,124 +219,118 @@
                 const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
                 const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
                 
-                const timerElement = document.getElementById('countdownTimer');
-                if (timerElement) {
-                    timerElement.innerHTML = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                }
+                document.getElementById("countdownTimer").innerHTML = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
                 remaining -= 1000;
             }
             
-            updateDisplay();
-            countdownInterval = setInterval(updateDisplay, 1000);
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
         }
         
-        async function updateLastSpinTime() {
-            const currentTime = Date.now();
-            await update(ref(db, 'users/' + currentUser.uid), {
-                lastSpinTime: currentTime
-            });
-            userData.lastSpinTime = currentTime;
-        }
-        
-        function showResult(message, isWin) {
-            const resultDiv = document.getElementById('resultMsg');
-            resultDiv.style.display = 'block';
-            resultDiv.className = isWin ? 'result win' : 'result lose';
-            resultDiv.innerHTML = message;
-            
+        function showMessage(msg, isWin) {
+            const resultDiv = document.getElementById("resultMsg");
+            resultDiv.innerHTML = msg;
+            resultDiv.className = isWin ? "result win" : "result lose";
+            resultDiv.style.display = "block";
             setTimeout(() => {
-                resultDiv.style.display = 'none';
+                resultDiv.style.display = "none";
             }, 3000);
         }
         
-        async function startSpin() {
-            if (spinning) return;
+        async function updateLastSpinTime() {
+            await update(ref(db, "users/" + currentUser.uid), {
+                lastSpinTime: Date.now()
+            });
+            userData.lastSpinTime = Date.now();
+        }
+        
+        async function spinWheel() {
+            if (isSpinning) return;
             
             // Check cooldown
-            const lastSpinTime = userData.lastSpinTime || 0;
-            const currentTime = Date.now();
-            const cooldownMs = 8 * 60 * 60 * 1000;
+            const lastSpin = userData.lastSpinTime || 0;
+            const now = Date.now();
+            const cooldown = 8 * 60 * 60 * 1000;
             
-            if (lastSpinTime > 0 && (currentTime - lastSpinTime) < cooldownMs) {
-                const remainingMs = cooldownMs - (currentTime - lastSpinTime);
-                const hours = Math.floor(remainingMs / (60 * 60 * 1000));
-                const minutes = Math.floor((remainingMs % (60 * 60 * 1000)) / (60 * 1000));
-                const seconds = Math.floor((remainingMs % (60 * 1000)) / 1000);
-                showResult(`⏰ आप ${hours} घंटे ${minutes} मिनट ${seconds} सेकंड बाद ही दोबारा Spin कर सकते हैं!`, false);
+            if (lastSpin > 0 && (now - lastSpin) < cooldown) {
+                const remaining = cooldown - (now - lastSpin);
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+                showMessage(`⏰ आप ${hours} घंटे ${minutes} मिनट ${seconds} सेकंड बाद ही दोबारा Spin कर सकते हैं!`, false);
                 return;
             }
             
-            spinning = true;
-            const spinBtn = document.getElementById('spinBtn');
+            isSpinning = true;
+            const spinBtn = document.getElementById("spinBtn");
             spinBtn.disabled = true;
             spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
             
             // Random prize
-            const randomIndex = Math.floor(Math.random() * segments.length);
-            const prize = segments[randomIndex];
+            const randomIndex = Math.floor(Math.random() * SEGMENTS.length);
+            const prize = SEGMENTS[randomIndex];
             
-            const spinDuration = 2500;
+            // Calculate target angle
+            const targetIndex = randomIndex;
+            const targetAngle = (targetIndex * segmentAngle) + (segmentAngle / 2);
+            
+            // Animation
+            const spinDuration = 2000;
             const startTime = Date.now();
-            const startRotation = 0;
-            const totalSpins = 10; // Full rotations
+            const startAngle = currentAngle;
+            const fullRotations = 8 * TAU;
+            const targetRotation = startAngle + fullRotations + targetAngle;
             
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(1, elapsed / spinDuration);
-                
-                // Easing function
                 const easeOut = 1 - Math.pow(1 - progress, 3);
                 
-                // Calculate rotation
-                const targetRotation = (totalSpins * Math.PI * 2) + (randomIndex * (Math.PI * 2 / segments.length));
-                const currentRotation = startRotation + (targetRotation * easeOut);
-                
-                drawWheel(currentRotation % (Math.PI * 2));
+                currentAngle = startAngle + (targetRotation - startAngle) * easeOut;
+                drawWheel();
                 
                 if (progress < 1) {
-                    animationFrameId = requestAnimationFrame(animate);
+                    requestAnimationFrame(animate);
                 } else {
-                    // Spin finished
-                    drawWheel(randomIndex * (Math.PI * 2 / segments.length));
+                    // Spin complete
+                    currentAngle = targetRotation % TAU;
+                    drawWheel();
                     
-                    // Update user balance
+                    // Update balance
                     if (prize.value > 0) {
                         const newBalance = (userData.spinWallet || 0) + prize.value;
                         const newTotal = (userData.totalEarned || 0) + prize.value;
                         
-                        try {
-                            await update(ref(db, 'users/' + currentUser.uid), {
-                                spinWallet: newBalance,
-                                totalEarned: newTotal
-                            });
-                            
-                            await updateLastSpinTime();
-                            
+                        update(ref(db, "users/" + currentUser.uid), {
+                            spinWallet: newBalance,
+                            totalEarned: newTotal
+                        }).then(async () => {
                             userData.spinWallet = newBalance;
                             userData.totalEarned = newTotal;
-                            
-                            document.getElementById('spinWallet').innerText = newBalance;
-                            showResult(`🎉 Congratulations! You won ${prize.value} RND! 🎉`, true);
-                            
-                            checkAndUpdateTimer();
-                        } catch (error) {
-                            console.error("Error updating balance:", error);
-                            showResult(`❌ Error! Please try again.`, false);
-                        }
+                            document.getElementById("spinWallet").innerText = newBalance;
+                            await updateLastSpinTime();
+                            showMessage(`🎉 Congratulations! You won ${prize.value} RND! 🎉`, true);
+                            checkTimer();
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        }).catch(err => {
+                            console.error(err);
+                            showMessage("❌ Error! Please try again.", false);
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        });
                     } else {
-                        await updateLastSpinTime();
-                        showResult(`😢 Better luck next time! You got 0 RND.`, false);
-                        checkAndUpdateTimer();
-                    }
-                    
-                    spinBtn.disabled = false;
-                    spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN AGAIN';
-                    spinning = false;
-                    
-                    if (animationFrameId) {
-                        cancelAnimationFrame(animationFrameId);
-                        animationFrameId = null;
+                        updateLastSpinTime().then(() => {
+                            showMessage("😢 Better luck next time! You got 0 RND.", false);
+                            checkTimer();
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        });
                     }
                 }
             }
@@ -370,20 +338,12 @@
             animate();
         }
         
-        // Attach event listener
-        const spinBtn = document.getElementById('spinBtn');
-        spinBtn.addEventListener('click', startSpin);
+        // Event listener
+        document.getElementById("spinBtn").addEventListener("click", spinWheel);
         
         window.goBack = function() {
-            window.location.href = 'dashboard.html';
+            window.location.href = "dashboard.html";
         };
-        
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            if (ctx) {
-                drawWheel(0);
-            }
-        });
     </script>
 </body>
 </html>
