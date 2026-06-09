@@ -19,7 +19,6 @@
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: #667eea; }
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 16px; }
-        .withdraw-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .info-text { font-size: 12px; color: #6b7280; text-align: center; margin-top: 20px; }
         .task-warning { background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .task-success { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
@@ -168,7 +167,7 @@
             <div class="info-text"><i class="fas fa-clock"></i> Withdrawal will be processed within 2-3 working days</div>
             <div id="message" class="message"></div>
             
-            <!-- Withdrawal Status Section -->
+            <!-- Withdrawal Status Section - NEW -->
             <div class="withdrawal-status" id="withdrawalStatusSection">
                 <h4><i class="fas fa-history"></i> Your Withdrawal Status</h4>
                 <div id="withdrawalStatusList">
@@ -219,7 +218,7 @@
             checkTasks();
         }
 
-        // Load user's withdrawal requests
+        // Load user's withdrawal requests - NEW
         async function loadUserWithdrawals() {
             try {
                 const withdrawalsRef = ref(db, 'withdrawals');
@@ -234,7 +233,6 @@
                     });
                 });
                 
-                // Sort by date (newest first)
                 withdrawals.sort((a, b) => new Date(b.date) - new Date(a.date));
                 displayWithdrawalStatus(withdrawals);
             } catch (error) {
@@ -253,12 +251,19 @@
             
             container.innerHTML = '';
             withdrawals.forEach((wd) => {
-                const statusClass = wd.status === 'pending' ? 'status-pending-badge' : 
-                                   (wd.status === 'completed' ? 'status-completed-badge' : 'status-rejected-badge');
-                const statusText = wd.status === 'pending' ? '⏳ Pending' : 
-                                  (wd.status === 'completed' ? '✅ Completed' : '❌ Rejected');
-                const statusIcon = wd.status === 'pending' ? 'fa-clock' : 
-                                  (wd.status === 'completed' ? 'fa-check-circle' : 'fa-times-circle');
+                let statusClass = 'status-pending-badge';
+                let statusText = '⏳ Pending';
+                let statusIcon = 'fa-clock';
+                
+                if (wd.status === 'completed') {
+                    statusClass = 'status-completed-badge';
+                    statusText = '✅ Completed';
+                    statusIcon = 'fa-check-circle';
+                } else if (wd.status === 'rejected') {
+                    statusClass = 'status-rejected-badge';
+                    statusText = '❌ Rejected';
+                    statusIcon = 'fa-times-circle';
+                }
                 
                 const div = document.createElement('div');
                 div.className = 'status-item';
