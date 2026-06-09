@@ -19,12 +19,79 @@
         .form-group input, .form-group select { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; }
         .form-group input:focus { outline: none; border-color: #667eea; }
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-weight: 600; cursor: pointer; font-size: 16px; }
+        .withdraw-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .info-text { font-size: 12px; color: #6b7280; text-align: center; margin-top: 20px; }
         .task-warning { background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .task-success { background: #d1fae5; color: #065f46; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; }
         .message { margin-top: 15px; padding: 12px; border-radius: 12px; text-align: center; }
         .error { background: #fee2e2; color: #dc2626; }
         .address-hint { font-size: 12px; color: #6b7280; margin-top: 5px; }
+        
+        /* Withdrawal Status Section */
+        .withdrawal-status {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+        }
+        .withdrawal-status h4 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+        .status-item .amount {
+            font-weight: bold;
+            color: #059669;
+        }
+        .status-pending-badge {
+            background: #fef3c7;
+            color: #d97706;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-completed-badge {
+            background: #d1fae5;
+            color: #059669;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-rejected-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-date {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        .no-withdrawal {
+            text-align: center;
+            padding: 20px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
         
         /* Toast Message Style */
         .toast-message {
@@ -100,13 +167,23 @@
             </form>
             <div class="info-text"><i class="fas fa-clock"></i> Withdrawal will be processed within 2-3 working days</div>
             <div id="message" class="message"></div>
+            
+            <!-- Withdrawal Status Section -->
+            <div class="withdrawal-status" id="withdrawalStatusSection">
+                <h4><i class="fas fa-history"></i> Your Withdrawal Status</h4>
+                <div id="withdrawalStatusList">
+                    <div class="no-withdrawal">
+                        <i class="fas fa-clock"></i> No withdrawal requests yet
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -130,6 +207,7 @@
             }
             currentUser = user;
             await loadUserData();
+            await loadUserWithdrawals();
         });
 
         async function loadUserData() {
@@ -139,6 +217,62 @@
             if (!userData.socialTasks) userData.socialTasks = {};
             updateBalanceDisplay();
             checkTasks();
+        }
+
+        // Load user's withdrawal requests
+        async function loadUserWithdrawals() {
+            try {
+                const withdrawalsRef = ref(db, 'withdrawals');
+                const userWithdrawalsQuery = query(withdrawalsRef, orderByChild('uid'), equalTo(currentUser.uid));
+                const snapshot = await get(userWithdrawalsQuery);
+                const withdrawals = [];
+                
+                snapshot.forEach((childSnap) => {
+                    withdrawals.push({
+                        id: childSnap.key,
+                        ...childSnap.val()
+                    });
+                });
+                
+                // Sort by date (newest first)
+                withdrawals.sort((a, b) => new Date(b.date) - new Date(a.date));
+                displayWithdrawalStatus(withdrawals);
+            } catch (error) {
+                console.error("Error loading withdrawals:", error);
+            }
+        }
+
+        function displayWithdrawalStatus(withdrawals) {
+            const container = document.getElementById('withdrawalStatusList');
+            if (!container) return;
+            
+            if (withdrawals.length === 0) {
+                container.innerHTML = '<div class="no-withdrawal"><i class="fas fa-clock"></i> No withdrawal requests yet</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            withdrawals.forEach((wd) => {
+                const statusClass = wd.status === 'pending' ? 'status-pending-badge' : 
+                                   (wd.status === 'completed' ? 'status-completed-badge' : 'status-rejected-badge');
+                const statusText = wd.status === 'pending' ? '⏳ Pending' : 
+                                  (wd.status === 'completed' ? '✅ Completed' : '❌ Rejected');
+                const statusIcon = wd.status === 'pending' ? 'fa-clock' : 
+                                  (wd.status === 'completed' ? 'fa-check-circle' : 'fa-times-circle');
+                
+                const div = document.createElement('div');
+                div.className = 'status-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="amount">${wd.amount} RND</div>
+                        <div class="status-date"><i class="far fa-calendar-alt"></i> ${new Date(wd.date).toLocaleString('hi-IN')}</div>
+                    </div>
+                    <div>
+                        <span class="${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         function updateBalanceDisplay() {
@@ -165,13 +299,11 @@
             }
         }
 
-        // Remove existing toast
         function removeExistingToast() {
             const existingToast = document.querySelector('.toast-message');
             if (existingToast) existingToast.remove();
         }
 
-        // Show Success Toast
         function showSuccessToast() {
             removeExistingToast();
             
@@ -194,7 +326,6 @@
             }, 8000);
         }
 
-        // Show Warning Toast for second withdrawal
         function showWarningToast() {
             removeExistingToast();
             
@@ -219,15 +350,15 @@
             }, 10000);
         }
 
-        // Check if user has already withdrawn
         async function hasUserWithdrawnBefore() {
             const withdrawalsRef = ref(db, 'withdrawals');
-            const snapshot = await get(withdrawalsRef);
+            const userWithdrawalsQuery = query(withdrawalsRef, orderByChild('uid'), equalTo(currentUser.uid));
+            const snapshot = await get(userWithdrawalsQuery);
             let withdrawn = false;
             
             snapshot.forEach((childSnap) => {
                 const data = childSnap.val();
-                if (data.uid === currentUser.uid && data.status !== 'cancelled') {
+                if (data.status !== 'cancelled' && data.status !== 'rejected') {
                     withdrawn = true;
                 }
             });
@@ -248,22 +379,18 @@
             const tasks = userData?.socialTasks || {};
             const allTasksDone = tasks.facebook === true && tasks.twitter === true;
 
-            // Clear previous message
             msgDiv.innerHTML = '';
 
-            // Social tasks check
             if (!allTasksDone) {
                 msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +3 RND.</div>';
                 return;
             }
 
-            // Amount validation
             if (amount !== 1) {
                 msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time.</div>';
                 return;
             }
 
-            // Address validation
             if (!address) {
                 msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>';
                 return;
@@ -274,31 +401,25 @@
                 return;
             }
 
-            // Balance check
             const currentBal = userData[walletType] || 0;
             if (currentBal < amount) {
                 msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>';
                 return;
             }
 
-            // CHECK IF USER HAS ALREADY WITHDRAWN BEFORE
             const alreadyWithdrawn = await hasUserWithdrawnBefore();
             
-            // If already withdrawn, show warning toast and STOP - Do NOT save to database
             if (alreadyWithdrawn) {
                 showWarningToast();
-                return; // IMPORTANT: Exit here, don't save anything
+                return;
             }
 
-            // FIRST TIME WITHDRAWAL - Process and save to database
             try {
-                // Deduct balance
                 const updatedBal = currentBal - amount;
                 await update(ref(db, 'users/' + currentUser.uid), {
                     [walletType]: updatedBal
                 });
 
-                // Save withdrawal request
                 const withdrawRef = push(ref(db, 'withdrawals'));
                 await set(withdrawRef, {
                     uid: currentUser.uid,
@@ -309,16 +430,16 @@
                     date: new Date().toISOString()
                 });
 
-                // Update local userData
                 userData[walletType] = updatedBal;
                 updateBalanceDisplay();
 
-                // Clear address field only
                 document.getElementById('address').value = '';
                 msgDiv.innerHTML = '';
 
-                // Show success toast
                 showSuccessToast();
+                
+                // Reload withdrawals to show new status
+                await loadUserWithdrawals();
 
             } catch (error) {
                 console.error("Error:", error);
