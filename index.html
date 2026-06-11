@@ -6,214 +6,26 @@
     <title>RND Rewards - Earn Crypto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 40px 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 100%;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .logo h1 {
-            font-size: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-
-        .logo p {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            font-size: 15px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-google {
-            background: white;
-            color: #333;
-            border: 1px solid #ddd;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-google i {
-            color: #db4437;
-            font-size: 18px;
-            position: static;
-            transform: none;
-        }
-
-        .btn-google:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e5e7eb;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            border-left: 4px solid #dc2626;
-        }
-
-        .success {
-            background: #d1fae5;
-            color: #059669;
-            border-left: 4px solid #059669;
-        }
-
-        .link-text {
-            text-align: center;
-            margin-top: 25px;
-            color: #6b7280;
-        }
-
-        .link-text a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .floating {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 30px 20px; }
-            .logo h1 { font-size: 28px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; align-items: center; }
+        .card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 30px; padding: 40px 30px; width: 100%; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .logo { text-align: center; margin-bottom: 35px; }
+        .logo h1 { font-size: 32px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: #6b7280; font-size: 14px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .form-group input { width: 100%; padding: 14px 15px 14px 45px; border: 2px solid #e5e7eb; border-radius: 15px; font-size: 15px; }
+        .form-group input:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .message { margin-top: 20px; padding: 12px; border-radius: 12px; text-align: center; font-size: 14px; }
+        .error { background: #fee2e2; color: #dc2626; border-left: 4px solid #dc2626; }
+        .success { background: #d1fae5; color: #059669; border-left: 4px solid #059669; }
+        .info { background: #dbeafe; color: #2563eb; border-left: 4px solid #2563eb; }
+        .link-text { text-align: center; margin-top: 25px; color: #6b7280; }
+        .link-text a { color: #667eea; text-decoration: none; font-weight: 600; cursor: pointer; }
+        @media (max-width: 480px) { .card { padding: 30px 20px; } .logo h1 { font-size: 28px; } }
     </style>
 </head>
 <body>
@@ -225,46 +37,15 @@
                 <h1>RND Rewards</h1>
                 <p>Create Account & Start Earning</p>
             </div>
-
             <form id="signupForm">
-                <div class="form-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="name" placeholder="Full Name" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" placeholder="Email Address" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-gift"></i>
-                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off">
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-rocket"></i> Create Account
-                </button>
+                <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required></div>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required></div>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password (min 6 characters)" required></div>
+                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off"></div>
+                <button type="submit" class="btn"><i class="fas fa-rocket"></i> Create Account</button>
             </form>
-
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button id="googleSignupBtn" class="btn btn-google">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-
             <div id="message" class="message"></div>
-
-            <div class="link-text">
-                Already have an account? <a onclick="showLogin()">Login Here</a>
-            </div>
+            <div class="link-text">Already have an account? <a onclick="showLogin()">Login Here</a></div>
         </div>
 
         <!-- Login Card -->
@@ -274,76 +55,31 @@
                 <h1>Welcome Back</h1>
                 <p>Login to your account</p>
             </div>
-
             <form id="loginForm">
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email Address" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-arrow-right"></i> Login
-                </button>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email Address" required></div>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div>
+                <button type="submit" class="btn"><i class="fas fa-arrow-right"></i> Login</button>
             </form>
-
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button id="googleLoginBtn" class="btn btn-google">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-
             <div id="loginMessage" class="message"></div>
-
-            <div class="link-text">
-                <a onclick="showForgotPassword()">Forgot Password?</a>
-            </div>
-
-            <div class="link-text">
-                New user? <a onclick="showSignup()">Create Account</a>
-            </div>
+            <div class="link-text"><a onclick="showForgotPassword()">Forgot Password?</a></div>
+            <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
         </div>
 
         <!-- Forgot Password Card -->
         <div class="card" id="forgotCard" style="display:none;">
-            <div class="logo">
-                <i class="fas fa-key" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>Reset Password</h1>
-                <p>Enter your email to reset password</p>
-            </div>
-
+            <div class="logo"><i class="fas fa-key" style="font-size: 50px;"></i><h1>Reset Password</h1><p>Enter your email to reset password</p></div>
             <form id="forgotForm">
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="forgotEmail" placeholder="Email Address" required>
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-paper-plane"></i> Send Reset Link
-                </button>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="forgotEmail" placeholder="Email Address" required></div>
+                <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             </form>
-
             <div id="forgotMessage" class="message"></div>
-
-            <div class="link-text">
-                <a onclick="showLogin()">Back to Login</a>
-            </div>
+            <div class="link-text"><a onclick="showLogin()">Back to Login</a></div>
         </div>
-    </div>
-
-    <div class="floating">
-        <i class="fas fa-shield-alt"></i> Secure Platform
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, signOut, applyActionCode, checkActionCode, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -359,60 +95,122 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        const googleProvider = new GoogleAuthProvider();
 
-        // OFFICIAL DOMAIN - Referral link yahi domain use karega
-        const OFFICIAL_DOMAIN = "http://app.randigital.in";
+        // 🔐 Handle Email Verification Link - Auto Login after verification
+        async function handleEmailVerification() {
+            try {
+                // Check if there's a verification link in the URL
+                if (window.location.href.includes('mode=verifyEmail')) {
+                    // Get the action code from URL
+                    const actionCode = new URLSearchParams(window.location.search).get('oobCode');
+                    
+                    if (actionCode) {
+                        // Show loading message
+                        document.body.innerHTML = `
+                            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea, #764ba2); color: white; flex-direction: column;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 50px; margin-bottom: 20px;"></i>
+                                <h2>Verifying your email...</h2>
+                                <p>Please wait, we are verifying your account.</p>
+                            </div>
+                        `;
+                        
+                        // Verify the email
+                        await applyActionCode(auth, actionCode);
+                        
+                        // Get the user info from the action code
+                        const actionCodeInfo = await checkActionCode(actionCode);
+                        const email = actionCodeInfo.data.email;
+                        
+                        // Now sign in the user
+                        const user = auth.currentUser;
+                        if (user) {
+                            // Reload user to get updated emailVerified status
+                            await user.reload();
+                            
+                            if (user.emailVerified) {
+                                // Update database emailVerified status
+                                await update(ref(db, 'users/' + user.uid), { 
+                                    emailVerified: true 
+                                });
+                                
+                                // Store user data
+                                const userSnapshot = await get(ref(db, 'users/' + user.uid));
+                                const userData = userSnapshot.val();
+                                
+                                if (userData) {
+                                    localStorage.setItem('userReferralCode', userData.referralCode);
+                                    localStorage.setItem('userName', userData.name);
+                                    localStorage.setItem('userId', user.uid);
+                                    
+                                    // Redirect to dashboard
+                                    window.location.href = 'dashboard.html';
+                                } else {
+                                    window.location.href = 'dashboard.html';
+                                }
+                            } else {
+                                window.location.href = 'index.html';
+                            }
+                        } else {
+                            // Try to sign in with the email (user might need to login)
+                            window.location.href = 'index.html?verified=true&email=' + encodeURIComponent(email);
+                        }
+                    }
+                } else if (window.location.search.includes('verified=true')) {
+                    // Show success message on index page
+                    const email = new URLSearchParams(window.location.search).get('email');
+                    const loginMessage = document.getElementById('loginMessage');
+                    if (loginMessage) {
+                        loginMessage.innerHTML = '<div class="success">✅ Email verified successfully! Please login with your credentials.</div>';
+                    }
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } catch (error) {
+                console.error("Verification error:", error);
+                document.body.innerHTML = `
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea, #764ba2); color: white; flex-direction: column;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 50px; margin-bottom: 20px;"></i>
+                        <h2>Verification Failed</h2>
+                        <p>${error.message}</p>
+                        <button onclick="window.location.href='index.html'" style="margin-top: 20px; padding: 10px 30px; border-radius: 50px; border: none; cursor: pointer;">Go to Login</button>
+                    </div>
+                `;
+            }
+        }
 
-        // Get URL parameter for referral code
         function getReferralCodeFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('ref');
         }
 
-        // Set referral code in input field if present in URL
         function setReferralCodeFromURL() {
             const refCode = getReferralCodeFromURL();
             if (refCode) {
                 const referralInput = document.getElementById('referralCode');
-                if (referralInput) {
-                    referralInput.value = refCode.toUpperCase();
-                    // Show message that referral code applied
-                    const messageDiv = document.getElementById('message');
-                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-gift"></i> Referral code applied! You will get +5 RND on signup.</div>';
-                    setTimeout(() => messageDiv.innerHTML = '', 4000);
-                }
+                if (referralInput) referralInput.value = refCode.toUpperCase();
             }
         }
 
-        // Generate referral code from User ID
         function generateReferralCode(userId) {
             return userId.substring(0, 8).toUpperCase();
         }
 
-        // Save user data to database
-        async function saveUserToDatabase(user, name, referralCodeFromInput) {
+        async function saveUserToDatabase(user, name, referralCodeFromInput, isEmailVerified = false) {
             const userReferralCode = generateReferralCode(user.uid);
-            
-            // Find referrer
-            let referredBy = null;
-            let level1Referrer = null;
-            let level2Referrer = null;
+            let referredBy = null, level1Referrer = null, level2Referrer = null;
             
             if (referralCodeFromInput) {
                 const usersRef = ref(db, 'users');
                 const snapshot = await get(usersRef);
                 const users = snapshot.val();
-                
                 if (users) {
                     for (let uid in users) {
                         if (users[uid].referralCode === referralCodeFromInput.toUpperCase()) {
                             referredBy = uid;
                             if (users[uid].referredBy) {
                                 level1Referrer = users[uid].referredBy;
-                                if (users[level1Referrer] && users[level1Referrer].referredBy) {
+                                if (users[level1Referrer] && users[level1Referrer].referredBy)
                                     level2Referrer = users[level1Referrer].referredBy;
-                                }
                             }
                             break;
                         }
@@ -420,28 +218,19 @@
                 }
             }
             
-            // Save user data
             const userData = {
-                name: name,
-                email: user.email,
-                userId: user.uid,
-                referralCode: userReferralCode,
-                referredBy: referredBy || null,
-                referralWallet: referredBy ? 5 : 0,
-                spinWallet: 0,
-                totalEarned: referredBy ? 5 : 0,
-                totalWithdrawn: 0,
-                status: 'active',
-                createdAt: new Date().toISOString(),
-                socialTasks: {}
+                name: name, email: user.email, userId: user.uid,
+                referralCode: userReferralCode, referredBy: referredBy || null,
+                referralWallet: referredBy ? 5 : 0, spinWallet: 0,
+                totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0,
+                status: 'active', emailVerified: isEmailVerified,
+                createdAt: new Date().toISOString(), socialTasks: {}
             };
             
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
             
-            // Give rewards to referrers
             if (referredBy) {
-                // Level 1 reward (2 RND)
                 const referrerRef = ref(db, 'users/' + referredBy);
                 const referrerSnap = await get(referrerRef);
                 if (referrerSnap.exists()) {
@@ -450,17 +239,11 @@
                         referralWallet: (referrer.referralWallet || 0) + 2,
                         totalEarned: (referrer.totalEarned || 0) + 2
                     });
-                    
                     const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
                     const level1Data = await get(level1Ref);
                     let level1List = level1Data.val() || [];
-                    if (!level1List.includes(user.uid)) {
-                        level1List.push(user.uid);
-                        await set(level1Ref, level1List);
-                    }
+                    if (!level1List.includes(user.uid)) { level1List.push(user.uid); await set(level1Ref, level1List); }
                 }
-                
-                // Level 2 reward (1 RND)
                 if (level1Referrer) {
                     const level2UserRef = ref(db, 'users/' + level1Referrer);
                     const level2Snap = await get(level2UserRef);
@@ -470,18 +253,13 @@
                             referralWallet: (level2User.referralWallet || 0) + 1,
                             totalEarned: (level2User.totalEarned || 0) + 1
                         });
-                        
                         const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
                         const level2ListData = await get(level2ListRef);
                         let level2List = level2ListData.val() || [];
-                        if (!level2List.includes(user.uid)) {
-                            level2List.push(user.uid);
-                            await set(level2ListRef, level2List);
-                        }
+                        if (!level2List.includes(user.uid)) { level2List.push(user.uid); await set(level2ListRef, level2List); }
                     }
                 }
             }
-            
             return userReferralCode;
         }
 
@@ -490,25 +268,21 @@
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
         }
-
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
             setReferralCodeFromURL();
         }
-        
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
         }
-
         setReferralCodeFromURL();
 
-        // Email/Password Signup
+        // SIGNUP with Email Verification
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -523,17 +297,20 @@
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                const userReferralCode = await saveUserToDatabase(user, name, referralCode);
                 
-                messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
+                // Send verification email
+                await sendEmailVerification(user);
                 
-                localStorage.setItem('userReferralCode', userReferralCode);
-                localStorage.setItem('userName', name);
-                localStorage.setItem('userId', user.uid);
+                // Save user data with emailVerified: false
+                const userReferralCode = await saveUserToDatabase(user, name, referralCode, false);
                 
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2500);
+                // Get the current domain for the verification link
+                const actionCodeSettings = {
+                    url: window.location.origin + window.location.pathname,
+                    handleCodeInApp: true
+                };
+                
+                messageDiv.innerHTML = `<div class="info"><i class="fas fa-envelope"></i> ✅ Verification email sent to ${email}!<br><br>Please check your inbox and click the verification link.<br>After verification, you will be automatically logged in.<br><br><strong>Your Referral Code: ${userReferralCode}</strong></div>`;
                 
             } catch (error) {
                 if (error.code === 'auth/email-already-in-use') {
@@ -544,10 +321,9 @@
             }
         });
         
-        // Email/Password Login
+        // LOGIN with Email Verification Check
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const messageDiv = document.getElementById('loginMessage');
@@ -555,6 +331,13 @@
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
+                
+                // Check if email is verified
+                if (!user.emailVerified) {
+                    await sendEmailVerification(user);
+                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link has been sent to your email. Please check and verify.</div>';
+                    return;
+                }
                 
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
@@ -566,9 +349,7 @@
                     localStorage.setItem('userId', user.uid);
                     
                     messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
                 } else {
                     messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>';
                 }
@@ -583,95 +364,26 @@
             }
         });
         
-        // Google Signup
-        document.getElementById('googleSignupBtn').addEventListener('click', async () => {
-            const messageDiv = document.getElementById('message');
-            const referralCode = document.getElementById('referralCode').value;
-            
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
-                const name = user.displayName || user.email.split('@')[0];
-                
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.status === 'active') {
-                        localStorage.setItem('userReferralCode', userData.referralCode);
-                        localStorage.setItem('userName', userData.name);
-                        localStorage.setItem('userId', user.uid);
-                        
-                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 1500);
-                    }
-                } else {
-                    const userReferralCode = await saveUserToDatabase(user, name, referralCode);
-                    messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
-                    
-                    localStorage.setItem('userReferralCode', userReferralCode);
-                    localStorage.setItem('userName', name);
-                    localStorage.setItem('userId', user.uid);
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 2500);
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
-            }
-        });
-        
-        // Google Login
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            const messageDiv = document.getElementById('loginMessage');
-            
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
-                
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.status === 'active') {
-                        localStorage.setItem('userReferralCode', userData.referralCode);
-                        localStorage.setItem('userName', userData.name);
-                        localStorage.setItem('userId', user.uid);
-                        
-                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 1500);
-                    }
-                } else {
-                    messageDiv.innerHTML = '<div class="error">No account found. Please sign up first.</div>';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
-            }
-        });
-        
         // Forgot Password
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const email = document.getElementById('forgotEmail').value;
             const messageDiv = document.getElementById('forgotMessage');
-            
             try {
                 await sendPasswordResetEmail(auth, email);
                 messageDiv.innerHTML = '<div class="success">Password reset email sent! Check your inbox.</div>';
-                setTimeout(() => {
-                    showLogin();
-                }, 3000);
+                setTimeout(() => { showLogin(); }, 3000);
             } catch (error) {
                 messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
+        });
+        
+        // Handle email verification on page load
+        handleEmailVerification();
+        
+        // Auto sign out when tab closes (optional)
+        window.addEventListener('beforeunload', async () => {
+            // Optional: Keep user logged in
         });
     </script>
 </body>
