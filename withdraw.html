@@ -49,9 +49,6 @@
             border-radius: 12px;
             padding: 12px;
             margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             border-left: 4px solid #667eea;
         }
         .status-item .amount {
@@ -65,6 +62,7 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
+            display: inline-block;
         }
         .status-completed-badge {
             background: #d1fae5;
@@ -73,11 +71,29 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
+            display: inline-block;
+        }
+        .status-rejected-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
         }
         .status-date {
             font-size: 10px;
             color: #9ca3af;
             margin-top: 5px;
+        }
+        .reject-reason {
+            font-size: 11px;
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 6px 10px;
+            border-radius: 10px;
+            margin-top: 6px;
         }
         .no-withdrawal {
             text-align: center;
@@ -250,22 +266,37 @@
                     statusText = '✅ Completed';
                     statusIcon = 'fa-check-circle';
                 } else if (wd.status === 'rejected') {
-                    statusClass = 'status-pending-badge';
+                    statusClass = 'status-rejected-badge';
                     statusText = '❌ Rejected';
                     statusIcon = 'fa-times-circle';
                 }
                 
+                // Create status item div
                 const div = document.createElement('div');
                 div.className = 'status-item';
-                div.innerHTML = `
-                    <div>
-                        <div class="amount">${wd.amount} RND</div>
-                        <div class="status-date"><i class="far fa-calendar-alt"></i> ${new Date(wd.date).toLocaleString('hi-IN')}</div>
-                    </div>
-                    <div>
-                        <span class="${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span>
+                
+                let innerHtml = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div class="amount">${wd.amount} RND</div>
+                            <div class="status-date"><i class="far fa-calendar-alt"></i> ${new Date(wd.date).toLocaleString('hi-IN')}</div>
+                        </div>
+                        <div>
+                            <span class="${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span>
+                        </div>
                     </div>
                 `;
+                
+                // Show reject reason if rejected
+                if (wd.status === 'rejected' && wd.rejectReason) {
+                    innerHtml += `
+                        <div class="reject-reason">
+                            <i class="fas fa-info-circle"></i> <strong>Reason:</strong> ${escapeHtml(wd.rejectReason)}
+                        </div>
+                    `;
+                }
+                
+                div.innerHTML = innerHtml;
                 container.appendChild(div);
             });
         }
@@ -304,7 +335,7 @@
                 <span class="toast-close" onclick="this.parentElement.remove();">&times;</span>
                 <div>
                     <div class="toast-title">${isSuccess ? '✅ Success!' : '⚠️ Notice'}</div>
-                    <div class="toast-desc">${message}</div>
+                    <div class="toast-desc">${escapeHtml(message)}</div>
                 </div>
             `;
             document.body.appendChild(toast);
@@ -321,12 +352,19 @@
             
             snapshot.forEach((childSnap) => {
                 const data = childSnap.val();
-                if (data.uid === currentUser.uid && data.status !== 'rejected') {
+                if (data.uid === currentUser.uid && data.status !== 'rejected' && data.status !== 'cancelled') {
                     hasWithdrawn = true;
                 }
             });
             
             return hasWithdrawn;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
@@ -400,6 +438,7 @@
                     amount: amount,
                     walletAddress: address,
                     status: 'pending',
+                    rejectReason: null,
                     date: new Date().toISOString()
                 });
 
