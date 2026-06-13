@@ -9,11 +9,13 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0a0a0f; overflow-x: hidden; }
+        
         .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%); }
         .bg-glow { position: fixed; top: 20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, rgba(102,126,234,0) 70%); z-index: -1; animation: floatGlow 10s ease-in-out infinite; }
         .bg-glow-2 { position: fixed; bottom: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0) 70%); z-index: -1; animation: floatGlow 8s ease-in-out infinite reverse; }
         @keyframes floatGlow { 0%,100% { transform: translate(0,0); opacity: 0.5; } 50% { transform: translate(30px,-20px); opacity: 0.8; } }
         
+        /* Sidebar */
         .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: rgba(15,15,25,0.98); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.15); z-index: 1000; transition: 0.3s; padding: 25px 0; overflow-y: auto; }
         .sidebar.open { left: 0; }
         .sidebar-header { text-align: center; padding: 0 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
@@ -24,9 +26,11 @@
         .nav-item i { width: 24px; font-size: 18px; }
         .logout-item { margin-top: 40px; background: rgba(220,38,38,0.1); color: #f87171; }
         .logout-item:hover { background: rgba(220,38,38,0.2); color: #ff6b6b; }
+        
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: none; }
         .overlay.open { display: block; }
         
+        /* Header */
         .header { padding: 20px 20px 40px 20px; background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.05) 100%); border-bottom: 1px solid rgba(255,255,255,0.1); }
         .menu-btn { font-size: 24px; background: rgba(102,126,234,0.1); border: 1px solid rgba(255,255,255,0.15); color: #a78bfa; cursor: pointer; width: 45px; height: 45px; border-radius: 15px; backdrop-filter: blur(10px); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -34,28 +38,40 @@
         .page-title h3 { font-size: 24px; background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .page-title p { opacity: 0.7; font-size: 13px; color: #9ca3af; margin-top: 5px; }
         
+        /* Spin Card */
         .spin-card { background: rgba(20,20,30,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-radius: 28px; margin: 20px; padding: 30px; text-align: center; }
         .balance-badge { display: inline-block; background: rgba(102,126,234,0.2); color: #a78bfa; padding: 8px 20px; border-radius: 40px; font-size: 14px; margin-bottom: 20px; }
+        .balance-badge i { margin-right: 8px; }
+        
         .timer-badge { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fbbf24; padding: 10px 20px; border-radius: 40px; display: inline-flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 14px; }
+        
         .wheel-container { display: flex; justify-content: center; margin: 20px 0; }
         canvas { width: 280px; height: 280px; max-width: 100%; border-radius: 50%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
         .spin-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 16px 50px; border-radius: 50px; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s; margin-top: 20px; }
         .spin-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
         .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
         .prize-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 25px; }
         .prize-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 6px 15px; border-radius: 30px; font-size: 12px; color: #9ca3af; }
+        
         .result { margin-top: 20px; padding: 15px; border-radius: 20px; font-weight: 600; animation: fadeIn 0.5s; }
         .result.win { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
         .result.lose { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; background: rgba(15,15,25,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 12px 20px; border-radius: 30px 30px 0 0; }
         .nav-item-bottom { text-align: center; cursor: pointer; color: #6b7280; transition: color 0.2s; }
         .nav-item-bottom.active { color: #667eea; }
         .nav-item-bottom i { font-size: 22px; }
         .nav-item-bottom span { font-size: 10px; display: block; margin-top: 4px; }
         
-        @media (max-width: 480px) { .spin-card { margin: 15px; padding: 20px; } canvas { width: 250px; height: 250px; } .spin-btn { padding: 14px 40px; font-size: 16px; } }
+        @media (max-width: 480px) {
+            .spin-card { margin: 15px; padding: 20px; }
+            canvas { width: 250px; height: 250px; }
+            .spin-btn { padding: 14px 40px; font-size: 16px; }
+        }
     </style>
 </head>
 <body>
@@ -63,8 +79,13 @@
     <div class="bg-glow"></div>
     <div class="bg-glow-2"></div>
     
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-header"><i class="fas fa-coins"></i><h3>RND Rewards</h3><p style="font-size:12px;opacity:0.6;">The Yield Layer</p></div>
+        <div class="sidebar-header">
+            <i class="fas fa-coins"></i>
+            <h3>RND Rewards</h3>
+            <p style="font-size: 12px; opacity: 0.6; margin-top: 5px;">The Yield Layer</p>
+        </div>
         <div class="nav-item" onclick="navigateTo('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
         <div class="nav-item" onclick="navigateTo('profile')"><i class="fas fa-user-friends"></i> My Referrals</div>
         <div class="nav-item active" onclick="navigateTo('spin')"><i class="fas fa-gamepad"></i> Spin Wheel</div>
@@ -74,22 +95,48 @@
     </div>
     <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
+    <!-- Header -->
     <div class="header">
-        <div class="header-top"><button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><div class="logo-area"><h2><i class="fas fa-coins"></i> RND</h2></div><div style="width:40px;"></div></div>
-        <div class="page-title"><h3><i class="fas fa-gamepad"></i> Spin & Earn</h3><p>Spin the wheel and win up to 10 RND | One spin every 8 hours</p></div>
+        <div class="header-top">
+            <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="logo-area"><h2><i class="fas fa-coins"></i> RND</h2></div>
+            <div style="width: 40px;"></div>
+        </div>
+        <div class="page-title">
+            <h3><i class="fas fa-gamepad"></i> Spin & Earn</h3>
+            <p>Spin the wheel and win up to 0.70 RND | One spin every 8 hours</p>
+        </div>
     </div>
 
+    <!-- Spin Card -->
     <div class="spin-card">
         <div class="balance-badge"><i class="fas fa-coins"></i> Spin Wallet: <strong id="spinWallet">0</strong> RND</div>
-        <div id="timerBadge" class="timer-badge" style="display:none;"><i class="fas fa-hourglass-half"></i> Next spin available in: <span id="countdownTimer">--:--:--</span></div>
-        <div class="wheel-container"><canvas id="wheelCanvas" width="280" height="280"></canvas></div>
+        
+        <div id="timerBadge" class="timer-badge" style="display:none;">
+            <i class="fas fa-hourglass-half"></i> Next spin available in: <span id="countdownTimer">--:--:--</span>
+        </div>
+        
+        <div class="wheel-container">
+            <canvas id="wheelCanvas" width="280" height="280"></canvas>
+        </div>
+        
         <button id="spinBtn" class="spin-btn" onclick="startSpin()"><i class="fas fa-sync-alt"></i> SPIN NOW</button>
-        <div class="prize-list"><span class="prize-item">🎁 0 RND</span><span class="prize-item">🎁 1 RND</span><span class="prize-item">🎁 2 RND</span><span class="prize-item">🎁 5 RND</span><span class="prize-item">🎁 10 RND</span></div>
+        
+        <div class="prize-list">
+            <span class="prize-item">🎁 0.70 RND</span>
+            <span class="prize-item">🎁 0.30 RND</span>
+            <span class="prize-item">🎁 0.12 RND</span>
+            <span class="prize-item">🎁 0.70 RND</span>
+            <span class="prize-item">🎁 0.30 RND</span>
+            <span class="prize-item">🎁 0.12 RND</span>
+        </div>
+        
         <div id="resultMsg" class="result" style="display:none;"></div>
     </div>
 
-    <div style="height:80px;"></div>
+    <div style="height: 80px;"></div>
 
+    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item-bottom" onclick="navigateTo('dashboard')"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item-bottom" onclick="navigateTo('withdraw')"><i class="fas fa-wallet"></i><span>Withdraw</span></div>
@@ -121,102 +168,239 @@
         let isSpinning = false;
         let timerInterval = null;
         
+        // UPDATED: Wheel Segments - 0.70, 0.30, 0.12 RND
         const SEGMENTS = [
-            { name: "1 RND", value: 1, color: "#FF6B6B" }, { name: "2 RND", value: 2, color: "#4ECDC4" },
-            { name: "0 RND", value: 0, color: "#FFEAA7" }, { name: "5 RND", value: 5, color: "#45B7D1" },
-            { name: "2 RND", value: 2, color: "#96CEB4" }, { name: "10 RND", value: 10, color: "#DDA0DD" }
+            { name: "0.70 RND", value: 0.70, color: "#FF6B6B" },
+            { name: "0.30 RND", value: 0.30, color: "#4ECDC4" },
+            { name: "0.12 RND", value: 0.12, color: "#FFEAA7" },
+            { name: "0.70 RND", value: 0.70, color: "#45B7D1" },
+            { name: "0.30 RND", value: 0.30, color: "#96CEB4" },
+            { name: "0.12 RND", value: 0.12, color: "#DDA0DD" }
         ];
         
-        const PI = Math.PI, TAU = 2 * PI;
+        const PI = Math.PI;
+        const TAU = 2 * PI;
         const segmentAngle = TAU / SEGMENTS.length;
+        
         let canvas = document.getElementById("wheelCanvas");
         let ctx = canvas.getContext("2d");
         let currentAngle = 0;
         
         function drawWheel() {
-            const width = canvas.width, height = canvas.height, centerX = width/2, centerY = height/2, radius = width/2 - 10;
-            ctx.clearRect(0,0,width,height);
-            for (let i=0; i<SEGMENTS.length; i++) {
-                const start = i*segmentAngle + currentAngle, end = start + segmentAngle;
-                ctx.beginPath(); ctx.moveTo(centerX,centerY); ctx.arc(centerX,centerY,radius,start,end);
-                ctx.fillStyle = SEGMENTS[i].color; ctx.fill();
-                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2; ctx.stroke();
-                ctx.save(); ctx.translate(centerX,centerY); ctx.rotate(start + segmentAngle/2);
-                ctx.fillStyle = "#1f2937"; ctx.font = "bold 13px Inter"; ctx.fillText(SEGMENTS[i].name, radius-40, 8);
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width / 2 - 10;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < SEGMENTS.length; i++) {
+                const start = i * segmentAngle + currentAngle;
+                const end = start + segmentAngle;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.fillStyle = SEGMENTS[i].color;
+                ctx.fill();
+                ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(start + segmentAngle / 2);
+                ctx.fillStyle = "#1f2937";
+                ctx.font = "bold 13px Inter";
+                ctx.shadowBlur = 0;
+                ctx.fillText(SEGMENTS[i].name, radius - 50, 8);
                 ctx.restore();
             }
-            ctx.beginPath(); ctx.arc(centerX,centerY,18,0,TAU); ctx.fillStyle = "white"; ctx.fill();
-            ctx.strokeStyle = "#667eea"; ctx.lineWidth = 3; ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(centerX-10,12); ctx.lineTo(centerX,2); ctx.lineTo(centerX+10,12); ctx.fillStyle = "#dc2626"; ctx.fill();
+            
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 18, 0, TAU);
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.strokeStyle = "#667eea";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Pointer
+            ctx.beginPath();
+            ctx.moveTo(centerX - 10, 12);
+            ctx.lineTo(centerX, 2);
+            ctx.lineTo(centerX + 10, 12);
+            ctx.fillStyle = "#dc2626";
+            ctx.fill();
         }
+        
         drawWheel();
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
             currentUser = user;
+            await loadUserData();
+            checkCooldown();
+        });
+        
+        async function loadUserData() {
             const snap = await get(ref(db, 'users/' + currentUser.uid));
             userData = snap.val();
             if (!userData) userData = { spinWallet: 0, totalEarned: 0, lastSpinTime: 0 };
             if (!userData.lastSpinTime) userData.lastSpinTime = 0;
             document.getElementById('spinWallet').innerText = userData.spinWallet || 0;
-            checkCooldown();
-        });
+        }
         
         function checkCooldown() {
-            const lastSpin = userData.lastSpinTime || 0, now = Date.now(), cooldownMs = 8*60*60*1000;
-            if (lastSpin > 0 && (now - lastSpin) < cooldownMs) { startTimer(cooldownMs - (now - lastSpin)); document.getElementById('spinBtn').disabled = true; document.getElementById('timerBadge').style.display = 'flex'; }
-            else { if (timerInterval) clearInterval(timerInterval); document.getElementById('spinBtn').disabled = false; document.getElementById('timerBadge').style.display = 'none'; }
+            const lastSpin = userData.lastSpinTime || 0;
+            const now = Date.now();
+            const cooldownMs = 8 * 60 * 60 * 1000; // 8 hours
+            
+            if (lastSpin > 0 && (now - lastSpin) < cooldownMs) {
+                const remaining = cooldownMs - (now - lastSpin);
+                startTimer(remaining);
+                document.getElementById('spinBtn').disabled = true;
+                document.getElementById('timerBadge').style.display = 'flex';
+            } else {
+                if (timerInterval) clearInterval(timerInterval);
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('timerBadge').style.display = 'none';
+            }
         }
         
         function startTimer(remainingMs) {
             if (timerInterval) clearInterval(timerInterval);
             let remaining = remainingMs;
+            
             function updateTimer() {
-                if (remaining <= 0) { clearInterval(timerInterval); document.getElementById('spinBtn').disabled = false; document.getElementById('timerBadge').style.display = 'none'; return; }
-                const hours = Math.floor(remaining/(60*60*1000)), minutes = Math.floor((remaining%(60*60*1000))/(60*1000)), seconds = Math.floor((remaining%(60*1000))/1000);
-                document.getElementById('countdownTimer').innerHTML = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('timerBadge').style.display = 'none';
+                    return;
+                }
+                
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+                
+                document.getElementById('countdownTimer').innerHTML = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
                 remaining -= 1000;
             }
-            updateTimer(); timerInterval = setInterval(updateTimer, 1000);
+            
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
         }
         
-        async function updateLastSpinTime() { await update(ref(db, 'users/' + currentUser.uid), { lastSpinTime: Date.now() }); userData.lastSpinTime = Date.now(); }
-        function showResult(message, isWin) { const resultDiv = document.getElementById('resultMsg'); resultDiv.innerHTML = message; resultDiv.className = isWin ? 'result win' : 'result lose'; resultDiv.style.display = 'block'; setTimeout(() => resultDiv.style.display = 'none', 3000); }
+        async function updateLastSpinTime() {
+            await update(ref(db, 'users/' + currentUser.uid), { lastSpinTime: Date.now() });
+            userData.lastSpinTime = Date.now();
+        }
+        
+        function showResult(message, isWin) {
+            const resultDiv = document.getElementById('resultMsg');
+            resultDiv.innerHTML = message;
+            resultDiv.className = isWin ? 'result win' : 'result lose';
+            resultDiv.style.display = 'block';
+            setTimeout(() => { resultDiv.style.display = 'none'; }, 3000);
+        }
         
         window.startSpin = async function() {
             if (isSpinning) return;
-            const lastSpin = userData.lastSpinTime || 0, now = Date.now(), cooldownMs = 8*60*60*1000;
+            
+            // Check cooldown
+            const lastSpin = userData.lastSpinTime || 0;
+            const now = Date.now();
+            const cooldownMs = 8 * 60 * 60 * 1000;
+            
             if (lastSpin > 0 && (now - lastSpin) < cooldownMs) {
                 const remaining = cooldownMs - (now - lastSpin);
-                const hours = Math.floor(remaining/(60*60*1000)), minutes = Math.floor((remaining%(60*60*1000))/(60*1000)), seconds = Math.floor((remaining%(60*1000))/1000);
+                const hours = Math.floor(remaining / (60 * 60 * 1000));
+                const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
                 showResult(`⏰ आप ${hours} घंटे ${minutes} मिनट ${seconds} सेकंड बाद ही दोबारा Spin कर सकते हैं!`, false);
                 return;
             }
-            isSpinning = true; const spinBtn = document.getElementById('spinBtn'); spinBtn.disabled = true; spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
-            const randomIndex = Math.floor(Math.random() * SEGMENTS.length), prize = SEGMENTS[randomIndex];
-            const spinDuration = 2500, startTime = Date.now(), startAngle = currentAngle, fullRotations = 10*TAU, targetAngle = (randomIndex * segmentAngle) + (segmentAngle/2), targetRotation = startAngle + fullRotations + targetAngle;
+            
+            isSpinning = true;
+            const spinBtn = document.getElementById('spinBtn');
+            spinBtn.disabled = true;
+            spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
+            
+            // Random prize
+            const randomIndex = Math.floor(Math.random() * SEGMENTS.length);
+            const prize = SEGMENTS[randomIndex];
+            
+            // Animation
+            const spinDuration = 2500;
+            const startTime = Date.now();
+            const startAngle = currentAngle;
+            const fullRotations = 10 * TAU;
+            const targetAngle = (randomIndex * segmentAngle) + (segmentAngle / 2);
+            const targetRotation = startAngle + fullRotations + targetAngle;
+            
             function animate() {
-                const elapsed = Date.now() - startTime, progress = Math.min(1, elapsed/spinDuration), easeOut = 1 - Math.pow(1-progress, 3);
-                currentAngle = startAngle + (targetRotation - startAngle) * easeOut; drawWheel();
-                if (progress < 1) requestAnimationFrame(animate);
-                else {
-                    currentAngle = targetRotation % TAU; drawWheel();
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(1, elapsed / spinDuration);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                currentAngle = startAngle + (targetRotation - startAngle) * easeOut;
+                drawWheel();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentAngle = targetRotation % TAU;
+                    drawWheel();
+                    
                     if (prize.value > 0) {
-                        const newBalance = (userData.spinWallet || 0) + prize.value, newTotal = (userData.totalEarned || 0) + prize.value;
-                        update(ref(db, 'users/' + currentUser.uid), { spinWallet: newBalance, totalEarned: newTotal }).then(async () => {
-                            userData.spinWallet = newBalance; userData.totalEarned = newTotal; document.getElementById('spinWallet').innerText = newBalance;
-                            await updateLastSpinTime(); showResult(`🎉 Congratulations! You won ${prize.value} RND! 🎉`, true);
-                            checkCooldown(); spinBtn.disabled = false; spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW'; isSpinning = false;
-                        }).catch(err => { showResult("❌ Error! Please try again.", false); spinBtn.disabled = false; spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW'; isSpinning = false; });
+                        const newBalance = (userData.spinWallet || 0) + prize.value;
+                        const newTotal = (userData.totalEarned || 0) + prize.value;
+                        
+                        update(ref(db, 'users/' + currentUser.uid), {
+                            spinWallet: newBalance,
+                            totalEarned: newTotal
+                        }).then(async () => {
+                            userData.spinWallet = newBalance;
+                            userData.totalEarned = newTotal;
+                            document.getElementById('spinWallet').innerText = newBalance.toFixed(2);
+                            await updateLastSpinTime();
+                            showResult(`🎉 Congratulations! You won ${prize.value.toFixed(2)} RND! 🎉`, true);
+                            checkCooldown();
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        }).catch(err => {
+                            console.error(err);
+                            showResult("❌ Error! Please try again.", false);
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        });
                     } else {
-                        updateLastSpinTime().then(() => { showResult("😢 Better luck next time! You got 0 RND.", false); checkCooldown(); spinBtn.disabled = false; spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW'; isSpinning = false; });
+                        updateLastSpinTime().then(() => {
+                            showResult("😢 Better luck next time! You got 0 RND.", false);
+                            checkCooldown();
+                            spinBtn.disabled = false;
+                            spinBtn.innerHTML = '<i class="fas fa-sync-alt"></i> SPIN NOW';
+                            isSpinning = false;
+                        });
                     }
                 }
             }
+            
             animate();
         };
         
-        window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); };
+        window.toggleSidebar = function() { 
+            document.getElementById('sidebar').classList.toggle('open'); 
+            document.getElementById('overlay').classList.toggle('open'); 
+        };
+        
         window.navigateTo = function(page) { 
             if(page === 'dashboard') window.location.href = 'dashboard.html';
             else if(page === 'profile') window.location.href = 'profile.html';
@@ -224,7 +408,12 @@
             else if(page === 'tasks') window.location.href = 'social-tasks.html';
             else if(page === 'withdraw') window.location.href = 'withdraw.html';
         };
-        window.logout = async function() { await signOut(auth); localStorage.clear(); window.location.href = 'index.html'; };
+        
+        window.logout = async function() { 
+            await signOut(auth); 
+            localStorage.clear(); 
+            window.location.href = 'index.html'; 
+        };
     </script>
 </body>
 </html>
