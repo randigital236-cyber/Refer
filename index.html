@@ -180,15 +180,19 @@
                     }
                 }
             }
+            
+            // UPDATED: New user gets 1 RND (was 5 RND)
             const userData = {
                 name, email: user.email, userId: user.uid, referralCode: userReferralCode,
-                referredBy: referredBy || null, referralWallet: referredBy ? 5 : 0, spinWallet: 0,
-                totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0, status: 'active',
+                referredBy: referredBy || null, referralWallet: referredBy ? 1 : 0, spinWallet: 0,
+                totalEarned: referredBy ? 1 : 0, totalWithdrawn: 0, status: 'active',
                 emailVerified: isEmailVerified, createdAt: new Date().toISOString(), socialTasks: {}
             };
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
+            
             if (referredBy) {
+                // Level 1 referrer gets 2 RND
                 const referrerRef = ref(db, 'users/' + referredBy);
                 const referrerSnap = await get(referrerRef);
                 if (referrerSnap.exists()) {
@@ -199,6 +203,7 @@
                     let level1List = level1Data.val() || [];
                     if (!level1List.includes(user.uid)) { level1List.push(user.uid); await set(level1Ref, level1List); }
                 }
+                // Level 2 referrer gets 1 RND
                 if (level1Referrer) {
                     const level2UserRef = ref(db, 'users/' + level1Referrer);
                     const level2Snap = await get(level2UserRef);
