@@ -5,79 +5,232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>My Referrals - RND Rewards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: #f0f2f5; }
-        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 0 0 30px 30px; }
-        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 18px; border-radius: 50px; cursor: pointer; font-size: 14px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0f; overflow-x: hidden; }
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%); }
+        .bg-glow { position: fixed; top: 20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, rgba(102,126,234,0) 70%); z-index: -1; animation: floatGlow 10s ease-in-out infinite; }
+        .bg-glow-2 { position: fixed; bottom: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0) 70%); z-index: -1; animation: floatGlow 8s ease-in-out infinite reverse; }
+        @keyframes floatGlow { 0%,100% { transform: translate(0,0); opacity: 0.5; } 50% { transform: translate(30px,-20px); opacity: 0.8; } }
+        
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: rgba(15,15,25,0.98); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.15); z-index: 1000; transition: 0.3s; padding: 25px 0; overflow-y: auto; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { text-align: center; padding: 0 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .sidebar-header i { font-size: 45px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-header h3 { font-size: 24px; margin-top: 10px; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-item { display: flex; align-items: center; gap: 15px; padding: 12px 25px; color: #aaa; cursor: pointer; transition: 0.3s; margin: 5px 15px; border-radius: 12px; }
+        .nav-item:hover, .nav-item.active { background: rgba(102,126,234,0.15); color: white; }
+        .nav-item i { width: 24px; font-size: 18px; }
+        .logout-item { margin-top: 40px; background: rgba(220,38,38,0.1); color: #f87171; }
+        .logout-item:hover { background: rgba(220,38,38,0.2); color: #ff6b6b; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: none; }
+        .overlay.open { display: block; }
+        
+        .header { padding: 20px 20px 40px 20px; background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.05) 100%); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .menu-btn { font-size: 24px; background: rgba(102,126,234,0.1); border: 1px solid rgba(255,255,255,0.15); color: #a78bfa; cursor: pointer; width: 45px; height: 45px; border-radius: 15px; backdrop-filter: blur(10px); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .stats-cards { display: flex; gap: 15px; padding: 20px; margin-top: -20px; }
-        .stat-card { background: white; border-radius: 20px; padding: 20px; flex: 1; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-        .stat-card .number { font-size: 36px; font-weight: bold; color: #667eea; }
-        .section { background: white; margin: 20px; padding: 25px; border-radius: 20px; }
-        .section-title { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .referral-list { list-style: none; }
-        .referral-item { padding: 15px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 12px; }
-        .referral-item i { font-size: 20px; color: #667eea; }
-        .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
-        @media (max-width: 480px) { .stats-cards { flex-direction: column; } }
+        .logo-area h2 { font-size: 24px; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-title h3 { font-size: 24px; background: linear-gradient(135deg, #fff, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .page-title p { opacity: 0.7; font-size: 13px; color: #9ca3af; margin-top: 5px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; padding: 0 20px; margin-top: -20px; }
+        .stat-card { background: rgba(20,20,30,0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 20px; text-align: center; }
+        .stat-card .number { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-card .label { color: #9ca3af; font-size: 12px; margin-top: 5px; }
+        .stat-card i { font-size: 28px; color: #667eea; margin-bottom: 10px; display: block; }
+        
+        .section { background: rgba(20,20,30,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-radius: 28px; margin: 20px; padding: 24px; }
+        .section-title { font-size: 18px; margin-bottom: 20px; color: white; display: flex; align-items: center; gap: 10px; border-left: 3px solid #667eea; padding-left: 15px; }
+        .section-title i { color: #667eea; }
+        
+        .level-box { background: rgba(10,10,20,0.6); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 20px; margin-bottom: 20px; width: 100%; }
+        .level-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .level-header h4 { color: white; font-size: 16px; }
+        .level-badge { background: rgba(102,126,234,0.2); color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .referral-list { display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+        .referral-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; transition: all 0.2s; }
+        .referral-item:hover { background: rgba(255,255,255,0.1); }
+        .referral-info { display: flex; align-items: center; gap: 12px; }
+        .referral-avatar { width: 35px; height: 35px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .referral-avatar i { color: white; font-size: 16px; }
+        .referral-name { color: white; font-weight: 500; font-size: 14px; }
+        .referral-date { color: #9ca3af; font-size: 10px; margin-top: 2px; }
+        .referral-code { font-family: monospace; font-size: 11px; color: #a78bfa; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px; }
+        .empty-state { text-align: center; padding: 30px; color: #6b7280; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; opacity: 0.5; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; background: rgba(15,15,25,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 12px 20px; border-radius: 30px 30px 0 0; }
+        .nav-item-bottom { text-align: center; cursor: pointer; color: #6b7280; transition: color 0.2s; }
+        .nav-item-bottom.active { color: #667eea; }
+        .nav-item-bottom i { font-size: 22px; }
+        .nav-item-bottom span { font-size: 10px; display: block; margin-top: 4px; }
+        
+        @media (max-width: 480px) {
+            .stats-grid { gap: 12px; }
+            .stat-card .number { font-size: 24px; }
+            .section { margin: 15px; padding: 20px; }
+            .referral-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .referral-code { font-size: 10px; }
+        }
     </style>
 </head>
 <body>
+    <div class="bg-gradient"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header"><i class="fas fa-coins"></i><h3>RND Rewards</h3><p style="font-size:12px;opacity:0.6;">The Yield Layer</p></div>
+        <div class="nav-item" onclick="navigateTo('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</div>
+        <div class="nav-item active" onclick="navigateTo('profile')"><i class="fas fa-user-friends"></i> My Referrals</div>
+        <div class="nav-item" onclick="navigateTo('spin')"><i class="fas fa-gamepad"></i> Spin Wheel</div>
+        <div class="nav-item" onclick="navigateTo('tasks')"><i class="fab fa-facebook"></i> Social Tasks</div>
+        <div class="nav-item" onclick="navigateTo('withdraw')"><i class="fas fa-money-bill-wave"></i> Withdraw</div>
+        <div class="nav-item logout-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
+    </div>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
     <div class="header">
-        <div class="header-top"><h2><i class="fas fa-user-friends"></i> My Referrals</h2><button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button></div>
-        <p>Track your referral team and earnings</p>
+        <div class="header-top">
+            <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="logo-area"><h2><i class="fas fa-coins"></i> RND</h2></div>
+            <div style="width:40px;"></div>
+        </div>
+        <div class="page-title"><h3><i class="fas fa-user-friends"></i> My Referrals</h3><p>Your team members who joined using your link</p></div>
     </div>
-    <div class="stats-cards">
-        <div class="stat-card"><div class="number" id="level1Count">0</div><p>Level 1 Team</p><small>+2 RND each</small></div>
-        <div class="stat-card"><div class="number" id="level2Count">0</div><p>Level 2 Team</p><small>+1 RND each</small></div>
-        <div class="stat-card"><div class="number" id="totalEarnedFromRef">0</div><p>RND from Referrals</p></div>
+
+    <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-user-plus"></i><div class="number" id="level1Count">0</div><div class="label">Level 1 (Direct)</div></div>
+        <div class="stat-card"><i class="fas fa-users"></i><div class="number" id="level2Count">0</div><div class="label">Level 2 (Indirect)</div></div>
     </div>
+
     <div class="section">
-        <div class="section-title"><i class="fas fa-list"></i><span>Your Referral Tree</span></div>
-        <div id="referralList"><div class="empty-state"><i class="fas fa-users" style="font-size: 48px; opacity: 0.3;"></i><p>No referrals yet. Share your link!</p></div></div>
+        <div class="section-title"><i class="fas fa-star"></i><span>Level 1 - Direct Referrals</span></div>
+        <div class="level-box">
+            <div class="level-header"><h4><i class="fas fa-user-check"></i> Your Direct Team</h4><span class="level-badge" id="level1Badge">0 Members</span></div>
+            <div id="level1List" class="referral-list"><div class="empty-state"><i class="fas fa-user-plus"></i><p>No direct referrals yet</p><small>Share your referral link to invite friends!</small></div></div>
+        </div>
     </div>
+
+    <div class="section">
+        <div class="section-title"><i class="fas fa-code-branch"></i><span>Level 2 - Indirect Referrals</span></div>
+        <div class="level-box">
+            <div class="level-header"><h4><i class="fas fa-users"></i> Your Indirect Team</h4><span class="level-badge" id="level2Badge">0 Members</span></div>
+            <div id="level2List" class="referral-list"><div class="empty-state"><i class="fas fa-users-slash"></i><p>No indirect referrals yet</p><small>When your direct referrals invite others, they'll appear here!</small></div></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title"><i class="fas fa-info-circle"></i><span>How Referral Rewards Work</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(102,126,234,0.1);border-radius:16px;">
+                <div style="width:40px;height:40px;background:rgba(102,126,234,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-gift" style="color:#a78bfa;"></i></div>
+                <div><strong style="color:white;">Direct Referral (Level 1)</strong><br><span style="color:#d4af37;font-size:13px;">+5 RND to new user + 2 RND to you</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(102,126,234,0.1);border-radius:16px;">
+                <div style="width:40px;height:40px;background:rgba(102,126,234,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-tree" style="color:#a78bfa;"></i></div>
+                <div><strong style="color:white;">Indirect Referral (Level 2)</strong><br><span style="color:#d4af37;font-size:13px;">+1 RND to you when they join</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(102,126,234,0.1);border-radius:16px;">
+                <div style="width:40px;height:40px;background:rgba(102,126,234,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-chart-line" style="color:#a78bfa;"></i></div>
+                <div><strong style="color:white;">Unlimited Earning</strong><br><span style="color:#d4af37;font-size:13px;">No limit on how many referrals you can invite!</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height:80px;"></div>
+
+    <div class="bottom-nav">
+        <div class="nav-item-bottom" onclick="navigateTo('dashboard')"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item-bottom" onclick="navigateTo('withdraw')"><i class="fas fa-wallet"></i><span>Withdraw</span></div>
+        <div class="nav-item-bottom" onclick="navigateTo('spin')"><i class="fas fa-gamepad"></i><span>Spin</span></div>
+        <div class="nav-item-bottom active" onclick="navigateTo('profile')"><i class="fas fa-users"></i><span>Refer</span></div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-        const firebaseConfig = { apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ", authDomain: "randigital-e7715.firebaseapp.com", databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "randigital-e7715", storageBucket: "randigital-e7715.firebasestorage.app", messagingSenderId: "218883279353", appId: "1:218883279353:web:cda990aa068f8fdf4d1528" };
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
+            authDomain: "randigital-e7715.firebaseapp.com",
+            databaseURL: "https://randigital-e7715-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "randigital-e7715",
+            storageBucket: "randigital-e7715.firebasestorage.app",
+            messagingSenderId: "218883279353",
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528",
+            measurementId: "G-1V0QQCQQNZ"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        let currentUser = null;
+        let allUsers = [];
         
-        onAuthStateChanged(auth, async (user) => { if(!user){ window.location.href='index.html'; return; } await loadReferralData(user.uid); });
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+            currentUser = user;
+            await loadAllUsers();
+            await loadReferrals();
+        });
         
-        async function loadReferralData(uid) {
-            const userSnap = await get(ref(db, 'users/' + uid));
-            const userData = userSnap.val();
-            const referralsSnap = await get(ref(db, 'referrals/' + uid));
-            const referrals = referralsSnap.val() || { level1: [], level2: [] };
-            
-            document.getElementById('level1Count').innerText = referrals.level1.length;
-            document.getElementById('level2Count').innerText = referrals.level2.length;
-            let totalEarned = (referrals.level1.length * 2) + (referrals.level2.length * 1);
-            document.getElementById('totalEarnedFromRef').innerText = totalEarned;
-            
-            const container = document.getElementById('referralList');
-            if(referrals.level1.length === 0 && referrals.level2.length === 0){
-                container.innerHTML = '<div class="empty-state"><i class="fas fa-users" style="font-size:48px;opacity:0.3;"></i><p>No referrals yet. Share your link!</p></div>';
+        async function loadAllUsers() {
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const users = snapshot.val();
+            allUsers = [];
+            if (users) {
+                for (let uid in users) {
+                    allUsers.push({ uid: uid, name: users[uid].name || 'N/A', email: users[uid].email || 'N/A', referralCode: users[uid].referralCode || 'N/A', createdAt: users[uid].createdAt || new Date().toISOString() });
+                }
+            }
+        }
+        
+        async function loadReferrals() {
+            const referralsRef = ref(db, 'referrals/' + currentUser.uid);
+            const snapshot = await get(referralsRef);
+            const referrals = snapshot.val() || { level1: [], level2: [] };
+            displayReferrals('level1', referrals.level1 || []);
+            displayReferrals('level2', referrals.level2 || []);
+            document.getElementById('level1Count').innerText = (referrals.level1 || []).length;
+            document.getElementById('level2Count').innerText = (referrals.level2 || []).length;
+            document.getElementById('level1Badge').innerHTML = (referrals.level1 || []).length + ' Members';
+            document.getElementById('level2Badge').innerHTML = (referrals.level2 || []).length + ' Members';
+        }
+        
+        function displayReferrals(level, referralIds) {
+            const container = document.getElementById(level + 'List');
+            if (!container) return;
+            if (!referralIds || referralIds.length === 0) {
+                if (level === 'level1') container.innerHTML = '<div class="empty-state"><i class="fas fa-user-plus"></i><p>No direct referrals yet</p><small>Share your referral link to invite friends!</small></div>';
+                else container.innerHTML = '<div class="empty-state"><i class="fas fa-users-slash"></i><p>No indirect referrals yet</p><small>When your direct referrals invite others, they\'ll appear here!</small></div>';
                 return;
             }
-            let html = '';
-            for(let refId of referrals.level1){
-                const refSnap = await get(ref(db, 'users/' + refId));
-                const refUser = refSnap.val();
-                if(refUser) html += `<div class="referral-item"><i class="fas fa-user-check"></i><div><strong>${refUser.name}</strong><br><small>Level 1 • Joined ${new Date(refUser.createdAt).toLocaleDateString()}</small></div></div>`;
-            }
-            for(let refId of referrals.level2){
-                const refSnap = await get(ref(db, 'users/' + refId));
-                const refUser = refSnap.val();
-                if(refUser) html += `<div class="referral-item"><i class="fas fa-user-plus"></i><div><strong>${refUser.name}</strong><br><small>Level 2 • Joined ${new Date(refUser.createdAt).toLocaleDateString()}</small></div></div>`;
-            }
-            container.innerHTML = html;
+            container.innerHTML = '';
+            referralIds.forEach((uid) => {
+                const user = allUsers.find(u => u.uid === uid);
+                if (user) {
+                    const div = document.createElement('div');
+                    div.className = 'referral-item';
+                    div.innerHTML = `<div class="referral-info"><div class="referral-avatar"><i class="fas fa-user"></i></div><div><div class="referral-name">${escapeHtml(user.name)}</div><div class="referral-date"><i class="far fa-calendar-alt"></i> ${new Date(user.createdAt).toLocaleDateString('hi-IN')}</div></div></div><div class="referral-code">${user.referralCode}</div>`;
+                    container.appendChild(div);
+                }
+            });
         }
-        window.goBack = function() { window.location.href = 'dashboard.html'; };
+        
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); };
+        window.navigateTo = function(page) { 
+            if(page === 'dashboard') window.location.href = 'dashboard.html';
+            else if(page === 'profile') window.location.href = 'profile.html';
+            else if(page === 'spin') window.location.href = 'spin.html';
+            else if(page === 'tasks') window.location.href = 'social-tasks.html';
+            else if(page === 'withdraw') window.location.href = 'withdraw.html';
+        };
+        window.logout = async function() { await signOut(auth); localStorage.clear(); window.location.href = 'index.html'; };
     </script>
 </body>
 </html>
