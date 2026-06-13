@@ -3,347 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards - Earn Crypto</title>
+    <title>RND Rewards - Earn Crypto | Professional Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 40px 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            width: 100%;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .logo h1 {
-            font-size: 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-
-        .logo p {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .form-group i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px 15px 14px 45px;
-            border: 2px solid #e5e7eb;
-            border-radius: 15px;
-            font-size: 15px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-google {
-            background: white;
-            color: #333;
-            border: 1px solid #ddd;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-google i {
-            color: #db4437;
-            font-size: 18px;
-            position: static;
-            transform: none;
-        }
-
-        .btn-google:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            position: relative;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: #e5e7eb;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 15px;
-            position: relative;
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        .message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 14px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            border-left: 4px solid #dc2626;
-        }
-
-        .success {
-            background: #d1fae5;
-            color: #059669;
-            border-left: 4px solid #059669;
-        }
-
-        .link-text {
-            text-align: center;
-            margin-top: 25px;
-            color: #6b7280;
-        }
-
-        .link-text a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .floating {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 30px 20px; }
-            .logo h1 { font-size: 28px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0a0a0f; min-height: 100vh; overflow-x: hidden; }
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%); }
+        .bg-glow { position: fixed; top: 20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, rgba(102,126,234,0) 70%); z-index: -1; animation: floatGlow 10s ease-in-out infinite; }
+        .bg-glow-2 { position: fixed; bottom: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0) 70%); z-index: -1; animation: floatGlow 8s ease-in-out infinite reverse; }
+        @keyframes floatGlow { 0%,100% { transform: translate(0,0); opacity: 0.5; } 50% { transform: translate(30px,-20px); opacity: 0.8; } }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { background: rgba(20,20,30,0.8); backdrop-filter: blur(20px); border-radius: 32px; padding: 48px 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(102,126,234,0.2); width: 100%; max-width: 500px; animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .logo { text-align: center; margin-bottom: 40px; }
+        .logo-icon { width: 70px; height: 70px; background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2)); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(102,126,234,0.3); }
+        .logo-icon i { font-size: 35px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo p { color: #9ca3af; font-size: 14px; margin-top: 8px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; }
+        .form-group input { width: 100%; padding: 14px 16px 14px 48px; background: rgba(10,10,20,0.8); border: 1px solid rgba(102,126,234,0.2); border-radius: 16px; font-size: 15px; color: white; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.3); }
+        .btn-google { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; }
+        .btn-google:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .btn-google i { color: #db4437; font-size: 18px; }
+        .divider { text-align: center; margin: 24px 0; position: relative; }
+        .divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(102,126,234,0.2); }
+        .divider span { background: rgba(20,20,30,0.8); padding: 0 15px; position: relative; color: #9ca3af; font-size: 12px; }
+        .message { margin-top: 20px; padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .error { background: rgba(220,38,38,0.15); color: #f87171; border-left: 3px solid #ef4444; }
+        .success { background: rgba(16,185,129,0.15); color: #34d399; border-left: 3px solid #10b981; }
+        .info { background: rgba(59,130,246,0.15); color: #60a5fa; border-left: 3px solid #3b82f6; }
+        .link-text { text-align: center; margin-top: 28px; color: #9ca3af; font-size: 14px; }
+        .link-text a { color: #a78bfa; text-decoration: none; font-weight: 500; cursor: pointer; transition: color 0.2s; }
+        .link-text a:hover { color: #c4b5fd; }
+        .footer-note { text-align: center; margin-top: 30px; font-size: 11px; color: #6b7280; }
+        .footer-note i { margin-right: 5px; }
+        .notification-popup { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 4px solid #3b82f6; border-radius: 16px; padding: 16px 24px; max-width: 90%; width: 400px; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: slideDown 0.4s ease-out; display: flex; align-items: center; gap: 15px; }
+        @keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
+        .notification-popup i { font-size: 28px; color: #3b82f6; }
+        .notification-content { flex: 1; }
+        .notification-title { font-weight: 700; color: white; margin-bottom: 5px; }
+        .notification-message { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+        .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
+        @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
     </style>
 </head>
 <body>
+    <div class="bg-gradient"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+    <div id="notificationContainer"></div>
+
     <div class="container">
-        <!-- Signup Card -->
         <div class="card" id="signupCard">
-            <div class="logo">
-                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>RND Rewards</h1>
-                <p>Create Account & Start Earning</p>
-            </div>
-
+            <div class="logo"><div class="logo-icon"><i class="fas fa-coins"></i></div><h1>RND Rewards</h1><p>Create Account & Start Earning</p></div>
             <form id="signupForm">
-                <div class="form-group">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="name" placeholder="Full Name" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" placeholder="Email Address" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="Password (min 6 characters)" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-gift"></i>
-                    <input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off">
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-rocket"></i> Create Account
-                </button>
+                <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required></div>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required></div>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password (min 6 characters)" required></div>
+                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off"></div>
+                <button type="submit" class="btn"><i class="fas fa-rocket"></i> Create Account</button>
             </form>
-
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button id="googleSignupBtn" class="btn btn-google">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-
+            <div class="divider"><span>OR CONTINUE WITH</span></div>
+            <button id="googleSignupBtn" class="btn btn-google"><i class="fab fa-google"></i> Google</button>
             <div id="message" class="message"></div>
-
-            <div class="link-text">
-                Already have an account? <a onclick="showLogin()">Login Here</a>
-            </div>
+            <div class="link-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
 
-        <!-- Login Card -->
         <div class="card" id="loginCard" style="display:none;">
-            <div class="logo">
-                <i class="fas fa-coins" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>Welcome Back</h1>
-                <p>Login to your account</p>
-            </div>
-
+            <div class="logo"><div class="logo-icon"><i class="fas fa-coins"></i></div><h1>Welcome Back</h1><p>Login to your account</p></div>
             <form id="loginForm">
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="loginEmail" placeholder="Email Address" required>
-                </div>
-
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-arrow-right"></i> Login
-                </button>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email Address" required></div>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div>
+                <button type="submit" class="btn"><i class="fas fa-arrow-right"></i> Sign In</button>
             </form>
-
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <button id="googleLoginBtn" class="btn btn-google">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-
+            <div class="divider"><span>OR CONTINUE WITH</span></div>
+            <button id="googleLoginBtn" class="btn btn-google"><i class="fab fa-google"></i> Google</button>
             <div id="loginMessage" class="message"></div>
-
-            <div class="link-text">
-                <a onclick="showForgotPassword()">Forgot Password?</a>
-            </div>
-
-            <div class="link-text">
-                New user? <a onclick="showSignup()">Create Account</a>
-            </div>
+            <div class="link-text"><a onclick="showForgotPassword()">Forgot Password?</a></div>
+            <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
 
-        <!-- Forgot Password Card -->
         <div class="card" id="forgotCard" style="display:none;">
-            <div class="logo">
-                <i class="fas fa-key" style="font-size: 50px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                <h1>Reset Password</h1>
-                <p>Enter your email to reset password</p>
-            </div>
-
+            <div class="logo"><div class="logo-icon"><i class="fas fa-key"></i></div><h1>Reset Password</h1><p>Enter your email to reset password</p></div>
             <form id="forgotForm">
-                <div class="form-group">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="forgotEmail" placeholder="Email Address" required>
-                </div>
-
-                <button type="submit" class="btn">
-                    <i class="fas fa-paper-plane"></i> Send Reset Link
-                </button>
+                <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="forgotEmail" placeholder="Email Address" required></div>
+                <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             </form>
-
             <div id="forgotMessage" class="message"></div>
-
-            <div class="link-text">
-                <a onclick="showLogin()">Back to Login</a>
-            </div>
+            <div class="link-text"><a onclick="showLogin()">Back to Sign In</a></div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
-    </div>
-
-    <div class="floating">
-        <i class="fas fa-shield-alt"></i> Secure Platform
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, applyActionCode, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -353,7 +115,8 @@
             projectId: "randigital-e7715",
             storageBucket: "randigital-e7715.firebasestorage.app",
             messagingSenderId: "218883279353",
-            appId: "1:218883279353:web:cda990aa068f8fdf4d1528"
+            appId: "1:218883279353:web:cda990aa068f8fdf4d1528",
+            measurementId: "G-1V0QQCQQNZ"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -361,318 +124,227 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // OFFICIAL DOMAIN - Referral link yahi domain use karega
-        const OFFICIAL_DOMAIN = "http://app.randigital.in";
+        const OFFICIAL_DOMAIN = "https://app.randigital.in";
+        const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // Get URL parameter for referral code
-        function getReferralCodeFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('ref');
-        }
-
-        // Set referral code in input field if present in URL
-        function setReferralCodeFromURL() {
-            const refCode = getReferralCodeFromURL();
-            if (refCode) {
-                const referralInput = document.getElementById('referralCode');
-                if (referralInput) {
-                    referralInput.value = refCode.toUpperCase();
-                    // Show message that referral code applied
-                    const messageDiv = document.getElementById('message');
-                    messageDiv.innerHTML = '<div class="success"><i class="fas fa-gift"></i> Referral code applied! You will get +5 RND on signup.</div>';
-                    setTimeout(() => messageDiv.innerHTML = '', 4000);
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                const userData = snapshot.val();
+                if (userData && userData.emailVerified === true) {
+                    localStorage.setItem('userReferralCode', userData.referralCode);
+                    localStorage.setItem('userName', userData.name);
+                    localStorage.setItem('userId', user.uid);
+                    window.location.href = 'dashboard.html';
+                } else if (user.emailVerified === true) {
+                    if (userData) await update(ref(db, 'users/' + user.uid), { emailVerified: true });
+                    localStorage.setItem('userReferralCode', userData.referralCode);
+                    localStorage.setItem('userName', userData.name);
+                    localStorage.setItem('userId', user.uid);
+                    window.location.href = 'dashboard.html';
                 }
             }
+        });
+
+        function showNotification(title, message) {
+            const container = document.getElementById('notificationContainer');
+            const popup = document.createElement('div');
+            popup.className = 'notification-popup';
+            popup.innerHTML = `<i class="fas fa-envelope"></i><div class="notification-content"><div class="notification-title">${title}</div><div class="notification-message">${message}</div></div><i class="fas fa-times notification-close" onclick="this.parentElement.remove()"></i>`;
+            container.appendChild(popup);
+            setTimeout(() => popup.remove(), 8000);
         }
 
-        // Generate referral code from User ID
-        function generateReferralCode(userId) {
-            return userId.substring(0, 8).toUpperCase();
-        }
+        function getReferralCodeFromURL() { return new URLSearchParams(window.location.search).get('ref'); }
+        function setReferralCodeFromURL() { const refCode = getReferralCodeFromURL(); if (refCode) document.getElementById('referralCode').value = refCode.toUpperCase(); }
+        function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
 
-        // Save user data to database
-        async function saveUserToDatabase(user, name, referralCodeFromInput) {
+        async function saveUserToDatabase(user, name, referralCodeFromInput, isEmailVerified = false) {
             const userReferralCode = generateReferralCode(user.uid);
-            
-            // Find referrer
-            let referredBy = null;
-            let level1Referrer = null;
-            let level2Referrer = null;
-            
+            let referredBy = null, level1Referrer = null, level2Referrer = null;
             if (referralCodeFromInput) {
                 const usersRef = ref(db, 'users');
                 const snapshot = await get(usersRef);
                 const users = snapshot.val();
-                
                 if (users) {
                     for (let uid in users) {
                         if (users[uid].referralCode === referralCodeFromInput.toUpperCase()) {
                             referredBy = uid;
                             if (users[uid].referredBy) {
                                 level1Referrer = users[uid].referredBy;
-                                if (users[level1Referrer] && users[level1Referrer].referredBy) {
-                                    level2Referrer = users[level1Referrer].referredBy;
-                                }
+                                if (users[level1Referrer] && users[level1Referrer].referredBy) level2Referrer = users[level1Referrer].referredBy;
                             }
                             break;
                         }
                     }
                 }
             }
-            
-            // Save user data
             const userData = {
-                name: name,
-                email: user.email,
-                userId: user.uid,
-                referralCode: userReferralCode,
-                referredBy: referredBy || null,
-                referralWallet: referredBy ? 5 : 0,
-                spinWallet: 0,
-                totalEarned: referredBy ? 5 : 0,
-                totalWithdrawn: 0,
-                status: 'active',
-                createdAt: new Date().toISOString(),
-                socialTasks: {}
+                name, email: user.email, userId: user.uid, referralCode: userReferralCode,
+                referredBy: referredBy || null, referralWallet: referredBy ? 5 : 0, spinWallet: 0,
+                totalEarned: referredBy ? 5 : 0, totalWithdrawn: 0, status: 'active',
+                emailVerified: isEmailVerified, createdAt: new Date().toISOString(), socialTasks: {}
             };
-            
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
-            
-            // Give rewards to referrers
             if (referredBy) {
-                // Level 1 reward (2 RND)
                 const referrerRef = ref(db, 'users/' + referredBy);
                 const referrerSnap = await get(referrerRef);
                 if (referrerSnap.exists()) {
                     const referrer = referrerSnap.val();
-                    await update(ref(db, 'users/' + referredBy), {
-                        referralWallet: (referrer.referralWallet || 0) + 2,
-                        totalEarned: (referrer.totalEarned || 0) + 2
-                    });
-                    
+                    await update(ref(db, 'users/' + referredBy), { referralWallet: (referrer.referralWallet || 0) + 2, totalEarned: (referrer.totalEarned || 0) + 2 });
                     const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
                     const level1Data = await get(level1Ref);
                     let level1List = level1Data.val() || [];
-                    if (!level1List.includes(user.uid)) {
-                        level1List.push(user.uid);
-                        await set(level1Ref, level1List);
-                    }
+                    if (!level1List.includes(user.uid)) { level1List.push(user.uid); await set(level1Ref, level1List); }
                 }
-                
-                // Level 2 reward (1 RND)
                 if (level1Referrer) {
                     const level2UserRef = ref(db, 'users/' + level1Referrer);
                     const level2Snap = await get(level2UserRef);
                     if (level2Snap.exists()) {
                         const level2User = level2Snap.val();
-                        await update(ref(db, 'users/' + level1Referrer), {
-                            referralWallet: (level2User.referralWallet || 0) + 1,
-                            totalEarned: (level2User.totalEarned || 0) + 1
-                        });
-                        
+                        await update(ref(db, 'users/' + level1Referrer), { referralWallet: (level2User.referralWallet || 0) + 1, totalEarned: (level2User.totalEarned || 0) + 1 });
                         const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
                         const level2ListData = await get(level2ListRef);
                         let level2List = level2ListData.val() || [];
-                        if (!level2List.includes(user.uid)) {
-                            level2List.push(user.uid);
-                            await set(level2ListRef, level2List);
-                        }
+                        if (!level2List.includes(user.uid)) { level2List.push(user.uid); await set(level2ListRef, level2List); }
                     }
                 }
             }
-            
             return userReferralCode;
+        }
+
+        async function handleEmailVerification() {
+            try {
+                if (window.location.href.includes('mode=verifyEmail')) {
+                    const actionCode = new URLSearchParams(window.location.search).get('oobCode');
+                    if (actionCode) {
+                        const user = auth.currentUser;
+                        if (user) {
+                            await applyActionCode(auth, actionCode);
+                            await user.reload();
+                            if (user.emailVerified) {
+                                await update(ref(db, 'users/' + user.uid), { emailVerified: true });
+                                window.location.href = 'dashboard.html';
+                            }
+                        } else { window.location.href = 'dashboard.html'; }
+                    }
+                }
+            } catch (error) { console.error("Verification error:", error); }
         }
 
         window.showLogin = function() {
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
-        }
-
+        };
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
             setReferralCodeFromURL();
-        }
-        
+        };
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
-        }
-
+        };
         setReferralCodeFromURL();
 
-        // Email/Password Signup
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const referralCode = document.getElementById('referralCode').value;
             const messageDiv = document.getElementById('message');
-
-            if (password.length < 6) {
-                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>';
-                return;
-            }
-
+            if (password.length < 6) { messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>'; return; }
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                const userReferralCode = await saveUserToDatabase(user, name, referralCode);
-                
-                messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
-                
-                localStorage.setItem('userReferralCode', userReferralCode);
-                localStorage.setItem('userName', name);
-                localStorage.setItem('userId', user.uid);
-                
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2500);
-                
+                await sendEmailVerification(user, actionCodeSettings);
+                await saveUserToDatabase(user, name, referralCode, false);
+                showNotification('📧 Verification Email Sent!', `✅ Verification email sent to ${email}!<br><br>📌 Please check your Inbox or Spam folder.<br>🔗 Click the verification link to directly access your dashboard.`);
+                messageDiv.innerHTML = `<div class="info"><i class="fas fa-envelope"></i> ✅ Verification email sent!<br><br><strong>📧 Check your email inbox or spam folder</strong><br><br>Click the link in email - Dashboard will open automatically!</div>`;
             } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
-                } else {
-                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
-                }
+                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
+                else messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
         });
-        
-        // Email/Password Login
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             const messageDiv = document.getElementById('loginMessage');
-            
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                
+                if (!user.emailVerified) {
+                    await sendEmailVerification(user, actionCodeSettings);
+                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link has been sent. Check your email.</div>';
+                    return;
+                }
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
                 const userData = snapshot.val();
-                
                 if (userData && userData.status === 'active') {
                     localStorage.setItem('userReferralCode', userData.referralCode);
                     localStorage.setItem('userName', userData.name);
                     localStorage.setItem('userId', user.uid);
-                    
                     messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1000);
-                } else {
-                    messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>';
-                }
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                } else { messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; }
             } catch (error) {
-                if (error.code === 'auth/user-not-found') {
-                    messageDiv.innerHTML = '<div class="error">No account found. Please sign up.</div>';
-                } else if (error.code === 'auth/wrong-password') {
-                    messageDiv.innerHTML = '<div class="error">Wrong password. Try again.</div>';
-                } else {
-                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
-                }
+                if (error.code === 'auth/user-not-found') messageDiv.innerHTML = '<div class="error">No account found. Please sign up.</div>';
+                else if (error.code === 'auth/wrong-password') messageDiv.innerHTML = '<div class="error">Wrong password. Try again.</div>';
+                else messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
         });
-        
-        // Google Signup
-        document.getElementById('googleSignupBtn').addEventListener('click', async () => {
-            const messageDiv = document.getElementById('message');
-            const referralCode = document.getElementById('referralCode').value;
-            
+
+        async function handleGoogleSignIn(isSignup = true) {
+            const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
+            const referralCode = isSignup ? document.getElementById('referralCode').value : null;
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
                 const name = user.displayName || user.email.split('@')[0];
-                
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
-                
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     if (userData.status === 'active') {
                         localStorage.setItem('userReferralCode', userData.referralCode);
                         localStorage.setItem('userName', userData.name);
                         localStorage.setItem('userId', user.uid);
-                        
                         messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 1500);
-                    }
-                } else {
-                    const userReferralCode = await saveUserToDatabase(user, name, referralCode);
-                    messageDiv.innerHTML = '<div class="success">Account created! Your Referral Code: <strong>' + userReferralCode + '</strong><br>Redirecting...</div>';
-                    
+                        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                    } else { messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; }
+                } else if (isSignup) {
+                    const userReferralCode = await saveUserToDatabase(user, name, referralCode, true);
+                    messageDiv.innerHTML = '<div class="success">Account created! Redirecting...</div>';
                     localStorage.setItem('userReferralCode', userReferralCode);
                     localStorage.setItem('userName', name);
                     localStorage.setItem('userId', user.uid);
-                    
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 2500);
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
-            }
-        });
-        
-        // Google Login
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            const messageDiv = document.getElementById('loginMessage');
-            
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
-                
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.status === 'active') {
-                        localStorage.setItem('userReferralCode', userData.referralCode);
-                        localStorage.setItem('userName', userData.name);
-                        localStorage.setItem('userId', user.uid);
-                        
-                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
-                        setTimeout(() => {
-                            window.location.href = 'dashboard.html';
-                        }, 1500);
-                    }
-                } else {
-                    messageDiv.innerHTML = '<div class="error">No account found. Please sign up first.</div>';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>';
-            }
-        });
-        
-        // Forgot Password
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2500);
+                } else { messageDiv.innerHTML = '<div class="error">No account found. Please sign up first.</div>'; }
+            } catch (error) { messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>'; }
+        }
+        document.getElementById('googleSignupBtn').addEventListener('click', () => handleGoogleSignIn(true));
+        document.getElementById('googleLoginBtn').addEventListener('click', () => handleGoogleSignIn(false));
+
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const email = document.getElementById('forgotEmail').value;
             const messageDiv = document.getElementById('forgotMessage');
-            
             try {
                 await sendPasswordResetEmail(auth, email);
                 messageDiv.innerHTML = '<div class="success">Password reset email sent! Check your inbox.</div>';
-                setTimeout(() => {
-                    showLogin();
-                }, 3000);
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
-            }
+                setTimeout(() => { showLogin(); }, 3000);
+            } catch (error) { messageDiv.innerHTML = '<div class="error">' + error.message + '</div>'; }
         });
+
+        handleEmailVerification();
     </script>
 </body>
 </html>
