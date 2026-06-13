@@ -9,6 +9,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #0a0a0f; overflow-x: hidden; }
+        
         .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%); }
         .bg-glow { position: fixed; top: 20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, rgba(102,126,234,0) 70%); z-index: -1; animation: floatGlow 10s ease-in-out infinite; }
         .bg-glow-2 { position: fixed; bottom: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0) 70%); z-index: -1; animation: floatGlow 8s ease-in-out infinite reverse; }
@@ -24,6 +25,7 @@
         .nav-item i { width: 24px; font-size: 18px; }
         .logout-item { margin-top: 40px; background: rgba(220,38,38,0.1); color: #f87171; }
         .logout-item:hover { background: rgba(220,38,38,0.2); color: #ff6b6b; }
+        
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: none; }
         .overlay.open { display: block; }
         
@@ -98,19 +100,19 @@
 
     <div class="header">
         <div class="header-top"><button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><div class="logo-area"><h2><i class="fas fa-coins"></i> RND</h2></div><div style="width:40px;"></div></div>
-        <div class="page-title"><h3><i class="fab fa-facebook"></i> Social Tasks</h3><p>Complete both tasks to enable withdrawal | Each task gives +3 RND</p></div>
+        <div class="page-title"><h3><i class="fab fa-facebook"></i> Social Tasks</h3><p>Complete both tasks to enable withdrawal | Each task gives +1 RND</p></div>
     </div>
 
     <!-- Facebook Task -->
     <div class="section">
         <div class="section-title"><i class="fab fa-facebook"></i><span>Facebook Task</span></div>
         <div class="task-card">
-            <div class="task-header"><div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div><div class="task-info"><h4>Follow & Like Facebook Page</h4><p>Earn +3 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +3 RND</span></div></div>
+            <div class="task-header"><div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div><div class="task-info"><h4>Follow & Like Facebook Page</h4><p>Earn +1 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +1 RND</span></div></div>
             <div class="task-steps"><div class="step"><div class="step-number">1</div><div class="step-text"><strong>Click</strong> "Open Facebook Page" button below</div></div><div class="step"><div class="step-number">2</div><div class="step-text"><strong>Follow</strong> our Facebook page</div></div><div class="step"><div class="step-number">3</div><div class="step-text"><strong>Like</strong> the latest post</div></div><div class="step"><div class="step-number">4</div><div class="step-text"><strong>Comment</strong> "RND" on the latest post</div></div><div class="step"><div class="step-number">5</div><div class="step-text"><strong>Take Screenshot</strong> showing follow, like & comment</div></div><div class="step"><div class="step-number">6</div><div class="step-text"><strong>Come back</strong> and upload screenshot for verification</div></div></div>
             <button class="open-page-btn" onclick="openFacebookPage('fb')"><i class="fab fa-facebook-f"></i> 🔗 Open Facebook Page (Click First)</button>
             <div id="fbInfoMsg" class="info-message" style="display:none;"><i class="fas fa-info-circle"></i> ✅ Facebook page opened! After completing steps, upload your screenshot below.</div>
-            <div id="fbUploadArea" class="upload-area"><label class="upload-label" for="fbFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="fbFile" class="file-input" accept="image/*"><div id="fbPreviewDiv" class="preview-area"></div><button id="fbVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify</button></div>
-            <div id="fbCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Facebook Task Completed! +3 RND Added</span></div>
+            <div id="fbUploadArea" class="upload-area"><label class="upload-label" for="fbFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="fbFile" class="file-input" accept="image/*"><div id="fbPreviewDiv" class="preview-area"></div><button id="fbVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)</button></div>
+            <div id="fbCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Facebook Task Completed! +1 RND Added</span></div>
         </div>
     </div>
 
@@ -118,12 +120,12 @@
     <div class="section">
         <div class="section-title"><i class="fab fa-twitter"></i><span>Twitter / X Task</span></div>
         <div class="task-card">
-            <div class="task-header"><div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div><div class="task-info"><h4>Follow & Engage on Twitter</h4><p>Earn +3 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +3 RND</span></div></div>
+            <div class="task-header"><div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div><div class="task-info"><h4>Follow & Engage on Twitter</h4><p>Earn +1 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +1 RND</span></div></div>
             <div class="task-steps"><div class="step"><div class="step-number">1</div><div class="step-text"><strong>Click</strong> "Open Twitter/X" button below</div></div><div class="step"><div class="step-number">2</div><div class="step-text"><strong>Follow</strong> @RanDigitalRND on Twitter/X</div></div><div class="step"><div class="step-number">3</div><div class="step-text"><strong>Like</strong> the pinned post</div></div><div class="step"><div class="step-number">4</div><div class="step-text"><strong>Comment</strong> "RND" on the pinned post</div></div><div class="step"><div class="step-number">5</div><div class="step-text"><strong>Take Screenshot</strong> showing follow, like & comment</div></div><div class="step"><div class="step-number">6</div><div class="step-text"><strong>Come back</strong> and upload screenshot for verification</div></div></div>
             <button class="open-page-btn" onclick="openTwitterPage('tw')"><i class="fab fa-twitter"></i> 🔗 Open Twitter/X (Click First)</button>
             <div id="twInfoMsg" class="info-message" style="display:none;"><i class="fas fa-info-circle"></i> ✅ Twitter/X page opened! After completing steps, upload your screenshot below.</div>
-            <div id="twUploadArea" class="upload-area"><label class="upload-label" for="twFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="twFile" class="file-input" accept="image/*"><div id="twPreviewDiv" class="preview-area"></div><button id="twVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify</button></div>
-            <div id="twCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Twitter Task Completed! +3 RND Added</span></div>
+            <div id="twUploadArea" class="upload-area"><label class="upload-label" for="twFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="twFile" class="file-input" accept="image/*"><div id="twPreviewDiv" class="preview-area"></div><button id="twVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)</button></div>
+            <div id="twCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Twitter Task Completed! +1 RND Added</span></div>
         </div>
     </div>
 
@@ -167,7 +169,10 @@
         let currentUser = null;
         let userData = null;
         
-        const SOCIAL_LINKS = { facebook: "https://www.facebook.com/profile.php?id=61590396932149", twitter: "https://x.com/RanDigitalRND" };
+        const SOCIAL_LINKS = {
+            facebook: "https://www.facebook.com/profile.php?id=61590396932149",
+            twitter: "https://x.com/RanDigitalRND"
+        };
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
@@ -185,52 +190,102 @@
             if (tasks.twitter === true) { document.getElementById('twUploadArea').style.display = 'none'; document.getElementById('twCompleted').style.display = 'block'; document.getElementById('twInfoMsg').style.display = 'none'; }
         }
         
-        window.openFacebookPage = function() { window.open(SOCIAL_LINKS.facebook, '_blank'); document.getElementById('fbInfoMsg').style.display = 'flex'; document.getElementById('fbUploadArea').style.display = 'block'; };
-        window.openTwitterPage = function() { window.open(SOCIAL_LINKS.twitter, '_blank'); document.getElementById('twInfoMsg').style.display = 'flex'; document.getElementById('twUploadArea').style.display = 'block'; };
+        window.openFacebookPage = function() { 
+            window.open(SOCIAL_LINKS.facebook, '_blank'); 
+            document.getElementById('fbInfoMsg').style.display = 'flex'; 
+            document.getElementById('fbUploadArea').style.display = 'block'; 
+        };
         
-        const fbFile = document.getElementById('fbFile'); const fbPreviewDiv = document.getElementById('fbPreviewDiv'); const fbVerifyBtn = document.getElementById('fbVerifyBtn'); let fbImageData = null;
+        window.openTwitterPage = function() { 
+            window.open(SOCIAL_LINKS.twitter, '_blank'); 
+            document.getElementById('twInfoMsg').style.display = 'flex'; 
+            document.getElementById('twUploadArea').style.display = 'block'; 
+        };
+        
+        // ========== FACEBOOK UPLOAD (Reward: +1 RND) ==========
+        const fbFile = document.getElementById('fbFile');
+        const fbPreviewDiv = document.getElementById('fbPreviewDiv');
+        const fbVerifyBtn = document.getElementById('fbVerifyBtn');
+        let fbImageData = null;
+        
         fbFile.addEventListener('change', function(e) {
-            const file = e.target.files[0]; if (!file) return;
-            if (file.size > 5*1024*1024) { alert('❌ File too large! Max 5MB'); fbFile.value = ''; return; }
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { alert('❌ File too large! Max 5MB'); fbFile.value = ''; return; }
             const reader = new FileReader();
-            reader.onload = function(ev) { fbImageData = ev.target.result; fbPreviewDiv.innerHTML = `<img src="${fbImageData}" class="preview-img" alt="Preview">`; fbVerifyBtn.disabled = false; };
+            reader.onload = function(ev) { 
+                fbImageData = ev.target.result; 
+                fbPreviewDiv.innerHTML = `<img src="${fbImageData}" class="preview-img" alt="Preview">`; 
+                fbVerifyBtn.disabled = false; 
+            };
             reader.readAsDataURL(file);
         });
+        
         fbVerifyBtn.addEventListener('click', async function() {
             if (!fbImageData) { alert('❌ Please select a screenshot first!'); return; }
-            fbVerifyBtn.disabled = true; fbVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            fbVerifyBtn.disabled = true;
+            fbVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             try {
                 const currentSpin = userData.spinWallet || 0;
-                const updates = { 'socialTasks/facebook': true, spinWallet: currentSpin + 3, totalEarned: (userData.totalEarned || 0) + 3 };
+                // UPDATED: +1 RND instead of +3 RND
+                const updates = { 'socialTasks/facebook': true, spinWallet: currentSpin + 1, totalEarned: (userData.totalEarned || 0) + 1 };
                 await update(ref(db, 'users/' + currentUser.uid), updates);
-                userData.spinWallet = currentSpin + 3; userData.socialTasks.facebook = true;
-                document.getElementById('fbUploadArea').style.display = 'none'; document.getElementById('fbCompleted').style.display = 'block'; document.getElementById('fbInfoMsg').style.display = 'none';
-                alert('✅ Facebook Task Verified! +3 RND added to your Spin Wallet!');
-            } catch (error) { alert('❌ Verification failed: ' + error.message); fbVerifyBtn.disabled = false; fbVerifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit & Verify'; }
+                userData.spinWallet = currentSpin + 1;
+                userData.socialTasks.facebook = true;
+                document.getElementById('fbUploadArea').style.display = 'none';
+                document.getElementById('fbCompleted').style.display = 'block';
+                document.getElementById('fbInfoMsg').style.display = 'none';
+                alert('✅ Facebook Task Verified! +1 RND added to your Spin Wallet!');
+            } catch (error) {
+                alert('❌ Verification failed: ' + error.message);
+                fbVerifyBtn.disabled = false;
+                fbVerifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)';
+            }
         });
         
-        const twFile = document.getElementById('twFile'); const twPreviewDiv = document.getElementById('twPreviewDiv'); const twVerifyBtn = document.getElementById('twVerifyBtn'); let twImageData = null;
+        // ========== TWITTER UPLOAD (Reward: +1 RND) ==========
+        const twFile = document.getElementById('twFile');
+        const twPreviewDiv = document.getElementById('twPreviewDiv');
+        const twVerifyBtn = document.getElementById('twVerifyBtn');
+        let twImageData = null;
+        
         twFile.addEventListener('change', function(e) {
-            const file = e.target.files[0]; if (!file) return;
-            if (file.size > 5*1024*1024) { alert('❌ File too large! Max 5MB'); twFile.value = ''; return; }
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { alert('❌ File too large! Max 5MB'); twFile.value = ''; return; }
             const reader = new FileReader();
-            reader.onload = function(ev) { twImageData = ev.target.result; twPreviewDiv.innerHTML = `<img src="${twImageData}" class="preview-img" alt="Preview">`; twVerifyBtn.disabled = false; };
+            reader.onload = function(ev) { 
+                twImageData = ev.target.result; 
+                twPreviewDiv.innerHTML = `<img src="${twImageData}" class="preview-img" alt="Preview">`; 
+                twVerifyBtn.disabled = false; 
+            };
             reader.readAsDataURL(file);
         });
+        
         twVerifyBtn.addEventListener('click', async function() {
             if (!twImageData) { alert('❌ Please select a screenshot first!'); return; }
-            twVerifyBtn.disabled = true; twVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            twVerifyBtn.disabled = true;
+            twVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             try {
                 const currentSpin = userData.spinWallet || 0;
-                const updates = { 'socialTasks/twitter': true, spinWallet: currentSpin + 3, totalEarned: (userData.totalEarned || 0) + 3 };
+                // UPDATED: +1 RND instead of +3 RND
+                const updates = { 'socialTasks/twitter': true, spinWallet: currentSpin + 1, totalEarned: (userData.totalEarned || 0) + 1 };
                 await update(ref(db, 'users/' + currentUser.uid), updates);
-                userData.spinWallet = currentSpin + 3; userData.socialTasks.twitter = true;
-                document.getElementById('twUploadArea').style.display = 'none'; document.getElementById('twCompleted').style.display = 'block'; document.getElementById('twInfoMsg').style.display = 'none';
-                alert('✅ Twitter Task Verified! +3 RND added to your Spin Wallet!');
-            } catch (error) { alert('❌ Verification failed: ' + error.message); twVerifyBtn.disabled = false; twVerifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit & Verify'; }
+                userData.spinWallet = currentSpin + 1;
+                userData.socialTasks.twitter = true;
+                document.getElementById('twUploadArea').style.display = 'none';
+                document.getElementById('twCompleted').style.display = 'block';
+                document.getElementById('twInfoMsg').style.display = 'none';
+                alert('✅ Twitter Task Verified! +1 RND added to your Spin Wallet!');
+            } catch (error) {
+                alert('❌ Verification failed: ' + error.message);
+                twVerifyBtn.disabled = false;
+                twVerifyBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)';
+            }
         });
         
         window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); };
+        
         window.navigateTo = function(page) { 
             if(page === 'dashboard') window.location.href = 'dashboard.html';
             else if(page === 'profile') window.location.href = 'profile.html';
@@ -238,6 +293,7 @@
             else if(page === 'tasks') window.location.href = 'social-tasks.html';
             else if(page === 'withdraw') window.location.href = 'withdraw.html';
         };
+        
         window.logout = async function() { await signOut(auth); localStorage.clear(); window.location.href = 'index.html'; };
     </script>
 </body>
