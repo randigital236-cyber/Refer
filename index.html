@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards · Secure Signup | Email Verification Required</title>
+    <title>RND Rewards · Secure Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -142,7 +142,12 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
-        const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
+        
+        // IMPORTANT: Set to dashboard.html with continue URL
+        const actionCodeSettings = { 
+            url: 'https://app.randigital.in/dashboard.html',
+            handleCodeInApp: true 
+        };
 
         let lastSignedUpEmail = null;
         let lastSignedUpUid = null;
@@ -171,7 +176,6 @@
             if (bigMsgDiv) bigMsgDiv.style.display = 'none';
         }
 
-        // Get referral code from URL (client-side only, no DB read to avoid permission issues)
         function getReferralFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             let refCode = urlParams.get('ref');
@@ -228,8 +232,6 @@
             };
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
-            
-            // Note: Referrer bonus would require reading referrer's data - if permission denied, skip but still save user
             return userReferralCode;
         }
         
@@ -242,6 +244,68 @@
                 return false;
             }
         }
+        
+        // CHECK IF USER IS ALREADY VERIFIED AND REDIRECT TO DASHBOARD
+        onAuthStateChanged(auth, async (user) => {
+            // If user is logged in and email is verified, redirect to dashboard
+            if (user && user.emailVerified) {
+                const userRef = ref(db, 'users/' + user.uid);
+                const snap = await get(userRef).catch(err => null);
+                
+                if (!snap || !snap.exists()) {
+                    // Need to create user record
+                    const pendingRef = ref(db, 'pending_users/' + user.uid);
+                    const pendingSnap = await get(pendingRef).catch(err => null);
+                    
+                    let name = user.displayName || user.email.split('@')[0];
+                    let referralUsed = null;
+                    
+                    if (pendingSnap && pendingSnap.exists()) {
+                        const pending = pendingSnap.val();
+                        name = pending.name || name;
+                        referralUsed = pending.referralCodeUsed;
+                        await set(pendingRef, null).catch(err => console.warn("Pending cleanup error:", err));
+                    }
+                    if (!referralUsed) {
+                        referralUsed = sessionStorage.getItem('rnd_referral_code');
+                    }
+                    
+                    await saveUserToDatabase(user, name, referralUsed, true);
+                    localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
+                    localStorage.setItem('userName', name);
+                } else if (snap && snap.exists()) {
+                    localStorage.setItem('userReferralCode', snap.val().referralCode);
+                    localStorage.setItem('userName', snap.val().name);
+                }
+                
+                localStorage.setItem('userId', user.uid);
+                localStorage.setItem('userEmail', user.email);
+                
+                // CRITICAL: Redirect to dashboard and STOP
+                if (window.location.pathname.includes('index.html') || 
+                    window.location.pathname === '/' || 
+                    window.location.pathname === '' ||
+                    window.location.pathname.endsWith('/')) {
+                    window.location.replace('dashboard.html');
+                }
+                return;
+            }
+            
+            // If user exists but email not verified, show message on login card
+            if (user && !user.emailVerified) {
+                const loginMessageDiv = document.getElementById('loginMessage');
+                if (loginMessageDiv && window.location.pathname.includes('index.html')) {
+                    loginMessageDiv.innerHTML = '<div class="warning">⚠️ Email not verified! Please check your inbox/spam folder and click the verification link. <a id="resendVerifyLink" style="color:#a78bfa;cursor:pointer;">Resend email</a></div>';
+                    const resendLink = document.getElementById('resendVerifyLink');
+                    if (resendLink) {
+                        resendLink.onclick = async () => {
+                            await sendEmailVerification(user, actionCodeSettings);
+                            showNotification('📧 Resent!', 'Verification email resent. Check your inbox/spam.', false);
+                        };
+                    }
+                }
+            }
+        });
         
         // SIGNUP FORM SUBMIT
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
@@ -273,7 +337,6 @@
                 const user = userCredential.user;
                 await sendEmailVerification(user, actionCodeSettings);
                 
-                // Store pending data
                 await set(ref(db, 'pending_users/' + user.uid), {
                     name: name,
                     email: email,
@@ -287,14 +350,14 @@
                 messageDiv.innerHTML = '';
                 showVerificationBigMessage(email);
                 
-                // Setup resend button
                 const resendBtn = document.getElementById('resendVerificationBtn');
                 if (resendBtn) {
                     const newBtn = resendBtn.cloneNode(true);
                     resendBtn.parentNode.replaceChild(newBtn, resendBtn);
                     newBtn.addEventListener('click', async () => {
-                        if (auth.currentUser && auth.currentUser.email === email) {
-                            await sendEmailVerification(auth.currentUser, actionCodeSettings);
+                        const currentUser = auth.currentUser;
+                        if (currentUser && currentUser.email === email) {
+                            await sendEmailVerification(currentUser, actionCodeSettings);
                             showNotification('📧 Resent!', `Verification email resent to ${email}. Check spam folder.`, false);
                         } else {
                             showNotification('Session Expired', 'Please sign up again to resend verification.', true);
@@ -314,53 +377,6 @@
             }
         });
         
-        // AUTH STATE CHANGE - Handle email verification
-        onAuthStateChanged(auth, async (user) => {
-            if (user && user.emailVerified) {
-                const userRef = ref(db, 'users/' + user.uid);
-                const snap = await get(userRef).catch(err => {
-                    console.warn("User read error:", err);
-                    return null;
-                });
-                
-                if (!snap || !snap.exists()) {
-                    const pendingRef = ref(db, 'pending_users/' + user.uid);
-                    const pendingSnap = await get(pendingRef).catch(err => {
-                        console.warn("Pending read error:", err);
-                        return null;
-                    });
-                    
-                    let name = user.displayName || user.email.split('@')[0];
-                    let referralUsed = null;
-                    
-                    if (pendingSnap && pendingSnap.exists()) {
-                        const pending = pendingSnap.val();
-                        name = pending.name || name;
-                        referralUsed = pending.referralCodeUsed;
-                        await set(pendingRef, null).catch(err => console.warn("Pending cleanup error:", err));
-                    }
-                    if (!referralUsed) {
-                        referralUsed = sessionStorage.getItem('rnd_referral_code');
-                    }
-                    
-                    await saveUserToDatabase(user, name, referralUsed, true);
-                    localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
-                    localStorage.setItem('userName', name);
-                    showNotification('🎉 Account Activated!', 'Email verified! Redirecting to dashboard...', false);
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
-                } else if (snap && snap.exists()) {
-                    const userData = snap.val();
-                    if (userData && userData.status === 'active') {
-                        localStorage.setItem('userReferralCode', userData.referralCode);
-                        localStorage.setItem('userName', userData.name);
-                        if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
-                            window.location.href = 'dashboard.html';
-                        }
-                    }
-                }
-            }
-        });
-        
         // LOGIN FORM
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -373,15 +389,15 @@
                 if (!user.emailVerified) {
                     await sendEmailVerification(user, actionCodeSettings);
                     messageDiv.innerHTML = '<div class="warning">❌ Email not verified! A new verification link sent. Check Inbox/Spam.</div>';
-                    await auth.signOut();
                     return;
                 }
                 const snapshot = await get(ref(db, 'users/' + user.uid)).catch(err => null);
                 if (snapshot && snapshot.exists() && snapshot.val().status === 'active') {
-                    messageDiv.innerHTML = '<div class="success">✅ Verified! Redirecting...</div>';
+                    messageDiv.innerHTML = '<div class="success">✅ Verified! Redirecting to dashboard...</div>';
                     localStorage.setItem('userReferralCode', snapshot.val().referralCode);
                     localStorage.setItem('userName', snapshot.val().name);
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                    localStorage.setItem('userId', user.uid);
+                    setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
                 } else {
                     messageDiv.innerHTML = '<div class="error">Account not found or inactive.</div>';
                 }
@@ -405,8 +421,9 @@
                     if (existingUser.val().status === 'active') {
                         localStorage.setItem('userReferralCode', existingUser.val().referralCode);
                         localStorage.setItem('userName', existingUser.val().name);
+                        localStorage.setItem('userId', user.uid);
                         messageDiv.innerHTML = '<div class="success">Login success! Redirecting...</div>';
-                        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                        setTimeout(() => { window.location.replace('dashboard.html'); }, 1200);
                         return;
                     } else {
                         messageDiv.innerHTML = '<div class="error">Blocked account.</div>';
@@ -418,8 +435,9 @@
                 await saveUserToDatabase(user, name, finalRefCode, true);
                 localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
                 localStorage.setItem('userName', name);
-                messageDiv.innerHTML = '<div class="success">Google account created! Redirecting...</div>';
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                localStorage.setItem('userId', user.uid);
+                messageDiv.innerHTML = '<div class="success">Google account created! Redirecting to dashboard...</div>';
+                setTimeout(() => { window.location.replace('dashboard.html'); }, 1500);
                 
             } catch (err) {
                 messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + err.message + '</div>';
@@ -461,10 +479,9 @@
             document.getElementById('forgotCard').style.display = 'block';
         };
         
-        // Initialize referral code display
         applyReferralCodeToUI();
         
-        // Handle email verification from URL
+        // Handle email verification from URL - AUTO REDIRECT TO DASHBOARD
         (async function handleEmailVerification() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'verifyEmail') {
@@ -472,9 +489,16 @@
                 if (oobCode) {
                     try {
                         await applyActionCode(auth, oobCode);
-                        showNotification('✅ Email Verified!', 'Your account is now active. Please login.', false);
-                        setTimeout(() => showLogin(), 2000);
-                    } catch (err) { console.error(err); }
+                        showNotification('✅ Email Verified!', 'Your account is now active. Redirecting to dashboard...', false);
+                        // Force refresh user state
+                        await auth.currentUser?.reload();
+                        setTimeout(() => {
+                            window.location.replace('dashboard.html');
+                        }, 2000);
+                    } catch (err) { 
+                        console.error("Verification error:", err);
+                        showNotification('Verification Failed', 'Link may have expired. Please login to resend.', true);
+                    }
                 }
             }
         })();
