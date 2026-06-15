@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards · Secure Signup | Email Verification Required</title>
+    <title>RND Rewards · Secure Signup | Auto Referral Code</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -22,9 +22,10 @@
         .logo h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo p { color: #9ca3af; font-size: 14px; margin-top: 8px; }
         .form-group { margin-bottom: 20px; position: relative; }
-        .form-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; }
+        .form-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; z-index: 1; }
         .form-group input { width: 100%; padding: 14px 16px 14px 48px; background: rgba(10,10,20,0.9); border: 1px solid rgba(102,126,234,0.3); border-radius: 16px; font-size: 15px; color: white; transition: all 0.3s; }
         .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.2); }
+        .referral-hint { font-size: 11px; color: #a78bfa; margin-top: 6px; margin-left: 12px; display: flex; align-items: center; gap: 6px; }
         .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
         .btn-google { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 16px; }
@@ -51,7 +52,7 @@
         .notification-message { font-size: 12px; color: #94a3b8; line-height: 1.4; }
         .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
         @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
-        .badge-verified { background: rgba(16,185,129,0.2); border-radius: 40px; padding: 4px 12px; font-size: 11px; display: inline-block; margin-left: 8px; color: #10b981; }
+        .badge-auto { background: rgba(102,126,234,0.2); border-radius: 30px; padding: 2px 10px; font-size: 10px; color: #a78bfa; }
     </style>
 </head>
 <body>
@@ -63,22 +64,23 @@
     <div class="container">
         <!-- SIGNUP CARD -->
         <div class="card" id="signupCard">
-            <div class="logo"><div class="logo-icon"><i class="fas fa-shield-alt"></i></div><h1>RND Rewards</h1><p>Verify email · One account per email</p></div>
+            <div class="logo"><div class="logo-icon"><i class="fas fa-link"></i></div><h1>RND Rewards</h1><p>Referral code auto-detect · Secure email verification</p></div>
             <form id="signupForm">
                 <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required autocomplete="name"></div>
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required autocomplete="email"></div>
                 <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password (min 8 characters)" required autocomplete="new-password"></div>
-                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off"></div>
+                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Auto-filled from link)" autocomplete="off" readonly style="background:#0a0a14;color:#c4b5fd;font-weight:500;cursor:default;"></div>
+                <div class="referral-hint" id="referralHint"><i class="fas fa-magic"></i> <span id="hintText">No referral link detected</span></div>
                 <button type="submit" class="btn"><i class="fas fa-envelope"></i> Sign Up & Verify Email</button>
             </form>
             <div class="divider"><span>OR CONTINUE WITH</span></div>
             <button id="googleSignupBtn" class="btn btn-google"><i class="fab fa-google"></i> Google (Auto-Verified)</button>
             <div id="message" class="message"></div>
             <div class="link-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
-            <div class="footer-note"><i class="fas fa-shield-alt"></i> Email verification mandatory · No spam accounts</div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Referral codes lock automatically & safe from tampering</div>
         </div>
 
-        <!-- LOGIN CARD -->
+        <!-- LOGIN CARD (same as before) -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo"><div class="logo-icon"><i class="fas fa-coins"></i></div><h1>Welcome Back</h1><p>Login to your verified account</p></div>
             <form id="loginForm">
@@ -127,46 +129,103 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const OFFICIAL_DOMAIN = "https://app.randigital.in";
         const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // Helper: show floating notification
+        // Helper: floating notification
         function showNotification(title, message, isError = false) {
             const container = document.getElementById('notificationContainer');
             const popup = document.createElement('div');
             popup.className = 'notification-popup';
             const iconColor = isError ? '#ef4444' : '#3b82f6';
-            popup.style.borderLeftColor = isError ? '#ef4444' : '#3b82f6';
+            popup.style.borderLeftColor = iconColor;
             popup.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-envelope'}" style="color:${iconColor};"></i><div class="notification-content"><div class="notification-title">${title}</div><div class="notification-message">${message}</div></div><i class="fas fa-times notification-close" onclick="this.parentElement.remove()"></i>`;
             container.appendChild(popup);
             setTimeout(() => popup.remove(), 8000);
         }
 
-        // === STRICT PREVENTION: check if email already registered (even unverified)
-        async function isEmailAlreadyRegistered(email) {
-            try {
-                const methods = await fetchSignInMethodsForEmail(auth, email);
-                return methods.length > 0;
-            } catch (err) {
-                console.warn("fetchSignInMethods error", err);
-                return false;
+        // === AUTO REFERRAL CODE WITH SECURE STORAGE (URL + sessionStorage) ===
+        let lockedReferralCode = null;   // immutable for this session
+        
+        function getAndLockReferralFromURL() {
+            // priority: URL parameter 'ref' -> then sessionStorage fallback (if already captured)
+            const urlParams = new URLSearchParams(window.location.search);
+            let refCode = urlParams.get('ref');
+            if (refCode) {
+                refCode = refCode.trim().toUpperCase();
+                // store in sessionStorage so even if user navigates away within same tab, code persists
+                if (refCode.length >= 3 && refCode.length <= 12) {
+                    sessionStorage.setItem('rnd_referral_code', refCode);
+                    return refCode;
+                }
             }
+            // if no URL param but sessionStorage has it (after refresh or internal navigation)
+            const stored = sessionStorage.getItem('rnd_referral_code');
+            if (stored && stored.length >= 3) return stored.toUpperCase();
+            return null;
         }
-
-        // generate referral code
+        
+        // Validate referral code against existing users in DB (ensure it's real, but still lock)
+        async function validateReferralCodeExists(code) {
+            if (!code) return false;
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            const users = snapshot.val();
+            if (users) {
+                for (let uid in users) {
+                    if (users[uid].referralCode === code) return true;
+                }
+            }
+            return false;
+        }
+        
+        // update UI: referral input field readonly, show hint
+        async function applyAutoReferralCode() {
+            const refInput = document.getElementById('referralCode');
+            const hintSpan = document.getElementById('hintText');
+            const hintDiv = document.getElementById('referralHint');
+            const autoCode = getAndLockReferralFromURL();
+            
+            if (autoCode) {
+                // Check if exists in DB (optional but gives user feedback)
+                const exists = await validateReferralCodeExists(autoCode);
+                if (exists) {
+                    refInput.value = autoCode;
+                    lockedReferralCode = autoCode;
+                    hintSpan.innerHTML = `<i class="fas fa-check-circle"></i> Referral code <strong>${autoCode}</strong> applied automatically! You'll earn bonus after verification.`;
+                    hintDiv.style.color = "#c084fc";
+                } else {
+                    // invalid code from URL — but we still lock it? better show warning but don't allow fake referrer.
+                    refInput.value = "";
+                    lockedReferralCode = null;
+                    hintSpan.innerHTML = `⚠️ Invalid referral code in link. You can still signup (no referral bonus).`;
+                    hintDiv.style.color = "#f97316";
+                    sessionStorage.removeItem('rnd_referral_code');
+                }
+            } else {
+                refInput.value = "";
+                lockedReferralCode = null;
+                hintSpan.innerHTML = `No referral link detected. You can still join & earn!`;
+                hintDiv.style.color = "#9ca3af";
+            }
+            // make input readonly so user cannot manually change or cheat
+            refInput.readOnly = true;
+            refInput.style.cursor = "default";
+        }
+        
+        // generate user refer code
         function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
-
-        // Save user to DB with referral rewards (only after email verified OR google signup)
-        async function saveUserToDatabase(user, name, referralCodeFromInput, isEmailVerified = false) {
+        
+        // Save user after email verification / Google signup
+        async function saveUserToDatabase(user, name, referralCodeFromLock, isEmailVerified = false) {
             const userReferralCode = generateReferralCode(user.uid);
             let referredBy = null, level1Referrer = null, level2Referrer = null;
-            if (referralCodeFromInput) {
+            if (referralCodeFromLock) {
                 const usersRef = ref(db, 'users');
                 const snapshot = await get(usersRef);
                 const users = snapshot.val();
                 if (users) {
                     for (let uid in users) {
-                        if (users[uid].referralCode === referralCodeFromInput.toUpperCase()) {
+                        if (users[uid].referralCode === referralCodeFromLock.toUpperCase()) {
                             referredBy = uid;
                             if (users[uid].referredBy) {
                                 level1Referrer = users[uid].referredBy;
@@ -178,7 +237,6 @@
                 }
             }
             
-            // NEW USER REWARD: 1 RND (strict)
             const userData = {
                 name: name,
                 email: user.email,
@@ -197,7 +255,6 @@
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
             
-            // Referral rewards (level 1 gets 2 RND, level 2 gets 1 RND)
             if (referredBy) {
                 const referrerRef = ref(db, 'users/' + referredBy);
                 const referrerSnap = await get(referrerRef);
@@ -230,119 +287,64 @@
             }
             return userReferralCode;
         }
-
-        // Email verification link handler (auto redirect after verify)
-        async function handleEmailVerification() {
+        
+        // check if email already exists (strict one per email)
+        async function isEmailAlreadyRegistered(email) {
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('mode') === 'verifyEmail') {
-                    const actionCode = urlParams.get('oobCode');
-                    if (actionCode) {
-                        try {
-                            await applyActionCode(auth, actionCode);
-                            const user = auth.currentUser;
-                            if (user) {
-                                await user.reload();
-                                if (user.emailVerified) {
-                                    const userRef = ref(db, 'users/' + user.uid);
-                                    const snap = await get(userRef);
-                                    if (snap.exists()) {
-                                        await update(ref(db, 'users/' + user.uid), { emailVerified: true });
-                                        showNotification('✅ Email Verified!', 'Your account is now active. Redirecting to dashboard...', false);
-                                        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1800);
-                                    } else {
-                                        // edge case: maybe user record missing? but redirect anyway
-                                        window.location.href = 'dashboard.html';
-                                    }
-                                } else {
-                                    showNotification('⚠️ Verification Pending', 'Please click the verification link again or request new email.', true);
-                                }
-                            } else {
-                                // user not logged in, store flag and ask to login
-                                localStorage.setItem('pendingVerification', 'true');
-                                showNotification('🔐 Almost Done', 'Please sign in after email verification.', false);
-                                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
-                            }
-                        } catch (err) {
-                            console.error("Apply code error", err);
-                            showNotification('Invalid Link', 'Verification link may have expired. Request a new one.', true);
-                        }
-                    }
-                }
-            } catch (err) { console.error(err); }
+                const methods = await fetchSignInMethodsForEmail(auth, email);
+                return methods.length > 0;
+            } catch (err) { return false; }
         }
-
-        // ========== SIGNUP WITH EMAIL (STRICT: no DB write before verification) ==========
+        
+        // ========== EMAIL SIGNUP (referral locked, cannot be changed) ==========
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const referralCode = document.getElementById('referralCode').value.trim();
             const messageDiv = document.getElementById('message');
-
-            if (password.length < 8) {
-                messageDiv.innerHTML = '<div class="error">❌ Password must be at least 8 characters!</div>';
-                return;
-            }
-            if (name.length < 2) {
-                messageDiv.innerHTML = '<div class="error">❌ Please enter your full name.</div>';
-                return;
-            }
-
-            // STRICT: Check if email already exists (prevents duplicate, even unverified)
+            
+            if (password.length < 8) { messageDiv.innerHTML = '<div class="error">❌ Password must be at least 8 characters!</div>'; return; }
+            if (name.length < 2) { messageDiv.innerHTML = '<div class="error">❌ Enter full name.</div>'; return; }
+            
             const emailExists = await isEmailAlreadyRegistered(email);
-            if (emailExists) {
-                messageDiv.innerHTML = '<div class="error">🚫 This email is already registered! Use another email or login.</div>';
-                return;
-            }
-
+            if (emailExists) { messageDiv.innerHTML = '<div class="error">🚫 Email already registered! Use another email or login.</div>'; return; }
+            
+            // get locked referral code (auto, from URL only, cannot be changed)
+            const finalReferral = lockedReferralCode || (() => { 
+                const fromUrl = getAndLockReferralFromURL(); 
+                if (fromUrl && fromUrl.length > 0) return fromUrl; 
+                return null; 
+            })();
+            
             try {
-                // 1. Create Firebase Auth user (but account stays disabled until email verification)
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                
-                // 2. Send verification email (critical)
                 await sendEmailVerification(user, actionCodeSettings);
                 
-                // 3. Store minimal pending data in RTDB to avoid duplicate creation later. But NO real wallet yet.
-                // we store a pending record with 'emailVerified: false' to block login until verification.
-                const pendingRef = ref(db, 'pending_users/' + user.uid);
-                await set(pendingRef, {
+                // store pending data with locked referral
+                await set(ref(db, 'pending_users/' + user.uid), {
                     name: name,
                     email: email,
-                    referralCodeUsed: referralCode || null,
-                    createdAt: Date.now(),
-                    tempUid: user.uid
+                    referralCodeUsed: finalReferral || null,
+                    createdAt: Date.now()
                 });
                 
-                // No active user document yet! Only after verification we move to 'users' collection.
-                showNotification('📧 Verify Your Email', `Verification link sent to ${email}. Please check inbox/spam and click the link to activate your account.`, false);
-                messageDiv.innerHTML = `<div class="success"><i class="fas fa-envelope"></i> ✅ Verification email sent!<br><br><strong>📬 Important:</strong> Without email verification, account won't be created.<br>🔗 Click the link in email → Dashboard auto-unlocks.</div>`;
-                
-                // sign out temporarily until verification
+                showNotification('📧 Verify Your Email', `Verification link sent to ${email}. Click to activate account (referral bonus will be applied).`, false);
+                messageDiv.innerHTML = `<div class="success"><i class="fas fa-envelope"></i> ✅ Verification email sent!<br><br><strong>🔗 Referral code locked:</strong> ${finalReferral || 'None'}<br>📬 Click link in email → dashboard auto-unlocks.</div>`;
                 await auth.signOut();
-                
             } catch (error) {
-                console.error(error);
-                if (error.code === 'auth/email-already-in-use') {
-                    messageDiv.innerHTML = '<div class="error">🚫 Email already exists! One account per email only.</div>';
-                } else if (error.code === 'auth/weak-password') {
-                    messageDiv.innerHTML = '<div class="error">Weak password. Use 8+ characters.</div>';
-                } else {
-                    messageDiv.innerHTML = '<div class="error">' + error.message.replace('Firebase:', '') + '</div>';
-                }
+                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">🚫 Email already exists! One account per email.</div>';
+                else messageDiv.innerHTML = '<div class="error">' + error.message.replace('Firebase:', '') + '</div>';
             }
         });
-
-        // ========== AFTER EMAIL VERIFICATION, create real user record ==========
+        
+        // Handle email verification & create real user with locked referral
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
-                // check if actual user document already exists in 'users' collection
                 const userRef = ref(db, 'users/' + user.uid);
                 const snap = await get(userRef);
                 if (!snap.exists()) {
-                    // move from pending to real user
                     const pendingRef = ref(db, 'pending_users/' + user.uid);
                     const pendingSnap = await get(pendingRef);
                     let name = user.displayName || user.email.split('@')[0];
@@ -351,45 +353,32 @@
                         const pending = pendingSnap.val();
                         name = pending.name || name;
                         referralUsed = pending.referralCodeUsed;
-                        // clean pending
                         await set(pendingRef, null);
                     }
-                    // Create full user with rewards (only after verification)
+                    // if no pending but still user exists? fallback to sessionStorage referral
+                    if (!referralUsed) {
+                        const storedRef = sessionStorage.getItem('rnd_referral_code');
+                        if (storedRef) referralUsed = storedRef;
+                    }
                     await saveUserToDatabase(user, name, referralUsed, true);
                     localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
                     localStorage.setItem('userName', name);
-                    localStorage.setItem('userId', user.uid);
-                    showNotification('🎉 Account Activated!', 'Email verified. Redirecting to dashboard...', false);
+                    showNotification('🎉 Account Activated!', 'Email verified + referral bonus applied. Redirecting...', false);
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
                 } else {
-                    // already verified user -> proceed to dashboard
                     const userData = snap.val();
                     if (userData && userData.status === 'active') {
                         localStorage.setItem('userReferralCode', userData.referralCode);
                         localStorage.setItem('userName', userData.name);
-                        localStorage.setItem('userId', user.uid);
                         if (window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
                             window.location.href = 'dashboard.html';
                         }
                     }
                 }
-            } else if (user && !user.emailVerified) {
-                // user exists but not verified -> block and show alert + resend option if needed
-                const messageDiv = document.getElementById('message') || document.getElementById('loginMessage');
-                if (messageDiv && window.location.pathname.includes('index.html')) {
-                    messageDiv.innerHTML = '<div class="error">⚠️ Email not verified! Check your inbox or spam. <a id="resendVerifyLink" style="color:#a78bfa;cursor:pointer;">Resend verification</a></div>';
-                    const resendBtn = document.getElementById('resendVerifyLink');
-                    if (resendBtn) {
-                        resendBtn.onclick = async () => {
-                            await sendEmailVerification(user, actionCodeSettings);
-                            showNotification('📧 Resent!', 'Verification email sent again. Please check.', false);
-                        };
-                    }
-                }
             }
         });
-
-        // ========== LOGIN with verification block ==========
+        
+        // ========== LOGIN ==========
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -400,19 +389,18 @@
                 const user = userCredential.user;
                 if (!user.emailVerified) {
                     await sendEmailVerification(user, actionCodeSettings);
-                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link has been sent. Please verify to login.</div>';
+                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link sent.</div>';
                     await auth.signOut();
                     return;
                 }
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
+                const snapshot = await get(ref(db, 'users/' + user.uid));
                 if (snapshot.exists() && snapshot.val().status === 'active') {
                     messageDiv.innerHTML = '<div class="success">✅ Verified! Redirecting...</div>';
                     localStorage.setItem('userReferralCode', snapshot.val().referralCode);
                     localStorage.setItem('userName', snapshot.val().name);
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
                 } else {
-                    messageDiv.innerHTML = '<div class="error">Account not found or inactive. Contact support.</div>';
+                    messageDiv.innerHTML = '<div class="error">Account inactive.</div>';
                 }
             } catch (error) {
                 if (error.code === 'auth/user-not-found') messageDiv.innerHTML = '<div class="error">No account found. Sign up first.</div>';
@@ -420,67 +408,54 @@
                 else messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
         });
-
-        // Google Sign-In (Auto verified & strict duplicate prevention)
+        
+        // Google signup with auto referral lock
         async function handleGoogleSignIn(isSignup = true) {
             const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
-            const referralCode = isSignup ? document.getElementById('referralCode').value : null;
+            const finalRefCode = lockedReferralCode || getAndLockReferralFromURL();
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
-                const email = user.email;
-                const existingSnapshot = await get(ref(db, 'users/' + user.uid));
-                if (existingSnapshot.exists()) {
-                    const userData = existingSnapshot.val();
-                    if (userData.status === 'active') {
-                        localStorage.setItem('userReferralCode', userData.referralCode);
-                        localStorage.setItem('userName', userData.name);
-                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
+                const existingUser = await get(ref(db, 'users/' + user.uid));
+                if (existingUser.exists()) {
+                    if (existingUser.val().status === 'active') {
+                        localStorage.setItem('userReferralCode', existingUser.val().referralCode);
+                        localStorage.setItem('userName', existingUser.val().name);
+                        messageDiv.innerHTML = '<div class="success">Login success! Redirecting...</div>';
                         setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
                         return;
-                    } else {
-                        messageDiv.innerHTML = '<div class="error">Account blocked.</div>';
-                        return;
-                    }
+                    } else { messageDiv.innerHTML = '<div class="error">Blocked account.</div>'; return; }
                 }
-                // Google account new: check if email exists as normal email signup
-                const emailMethods = await fetchSignInMethodsForEmail(auth, email);
+                const emailMethods = await fetchSignInMethodsForEmail(auth, user.email);
                 if (emailMethods.length > 0 && emailMethods[0] !== 'google.com') {
-                    messageDiv.innerHTML = '<div class="error">This email is already registered with password. Please login with email.</div>';
+                    messageDiv.innerHTML = '<div class="error">Email already registered with password. Login normally.</div>';
                     return;
                 }
                 if (isSignup) {
                     const name = user.displayName || user.email.split('@')[0];
-                    await saveUserToDatabase(user, name, referralCode, true);
+                    await saveUserToDatabase(user, name, finalRefCode, true);
                     localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
                     localStorage.setItem('userName', name);
                     messageDiv.innerHTML = '<div class="success">Google account created! Redirecting...</div>';
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
-                } else {
-                    messageDiv.innerHTML = '<div class="error">No account linked. Sign up first.</div>';
-                }
-            } catch (err) {
-                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + err.message + '</div>';
-            }
+                } else { messageDiv.innerHTML = '<div class="error">Sign up first with Google.</div>'; }
+            } catch (err) { messageDiv.innerHTML = '<div class="error">Google failed: ' + err.message + '</div>'; }
         }
-
+        
         document.getElementById('googleSignupBtn').addEventListener('click', () => handleGoogleSignIn(true));
         document.getElementById('googleLoginBtn').addEventListener('click', () => handleGoogleSignIn(false));
-
-        // Forgot password
+        
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('forgotEmail').value;
-            const messageDiv = document.getElementById('forgotMessage');
+            const msgDiv = document.getElementById('forgotMessage');
             try {
                 await sendPasswordResetEmail(auth, email);
-                messageDiv.innerHTML = '<div class="success">Password reset email sent! Check inbox.</div>';
-                setTimeout(() => { showLogin(); }, 3000);
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
-            }
+                msgDiv.innerHTML = '<div class="success">Password reset email sent!</div>';
+                setTimeout(() => showLogin(), 3000);
+            } catch (err) { msgDiv.innerHTML = '<div class="error">' + err.message + '</div>'; }
         });
-
+        
         window.showLogin = function() {
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
@@ -490,15 +465,30 @@
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
-            const refCode = new URLSearchParams(window.location.search).get('ref');
-            if (refCode) document.getElementById('referralCode').value = refCode.toUpperCase();
+            applyAutoReferralCode(); // re-evaluate URL code when showing signup card
         };
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
         };
-
-        handleEmailVerification();
+        
+        // Initial load: auto lock referral code
+        applyAutoReferralCode();
+        
+        // Handle email verification action from URL
+        (async function handleEmailVerification() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode') === 'verifyEmail') {
+                const oobCode = params.get('oobCode');
+                if (oobCode) {
+                    try {
+                        await applyActionCode(auth, oobCode);
+                        showNotification('✅ Email Verified', 'Your account is now active. Please login.', false);
+                        setTimeout(() => showLogin(), 2000);
+                    } catch (err) { console.error(err); }
+                }
+            }
+        })();
     </script>
 </body>
 </html>
