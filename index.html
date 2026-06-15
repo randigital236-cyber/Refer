@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards · Secure Signup | Auto Referral Code</title>
+    <title>RND Rewards · Secure Signup | Email Verification Required</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -39,6 +39,7 @@
         .error { background: rgba(220,38,38,0.18); color: #f87171; border-left: 3px solid #ef4444; }
         .success { background: rgba(16,185,129,0.15); color: #34d399; border-left: 3px solid #10b981; }
         .info { background: rgba(59,130,246,0.15); color: #60a5fa; border-left: 3px solid #3b82f6; }
+        .warning { background: rgba(245,158,11,0.15); color: #fbbf24; border-left: 3px solid #f59e0b; }
         .link-text { text-align: center; margin-top: 28px; color: #9ca3af; font-size: 14px; }
         .link-text a { color: #a78bfa; text-decoration: none; font-weight: 500; cursor: pointer; transition: color 0.2s; }
         .link-text a:hover { color: #c4b5fd; }
@@ -53,6 +54,11 @@
         .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
         @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
         .badge-auto { background: rgba(102,126,234,0.2); border-radius: 30px; padding: 2px 10px; font-size: 10px; color: #a78bfa; }
+        .verification-big-message { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15)); border-radius: 20px; padding: 18px; margin-top: 20px; text-align: center; border: 1px solid rgba(59,130,246,0.3); }
+        .verification-big-message i { font-size: 40px; color: #60a5fa; margin-bottom: 12px; display: block; }
+        .verification-big-message h4 { color: white; font-size: 18px; margin-bottom: 8px; }
+        .verification-big-message p { color: #cbd5e1; font-size: 13px; line-height: 1.5; }
+        .resend-link { color: #a78bfa; cursor: pointer; text-decoration: underline; font-weight: 500; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -64,7 +70,7 @@
     <div class="container">
         <!-- SIGNUP CARD -->
         <div class="card" id="signupCard">
-            <div class="logo"><div class="logo-icon"><i class="fas fa-link"></i></div><h1>RND Rewards</h1><p>Referral code auto-detect · Secure email verification</p></div>
+            <div class="logo"><div class="logo-icon"><i class="fas fa-link"></i></div><h1>RND Rewards</h1><p>Referral auto-detect · Secure email verification</p></div>
             <form id="signupForm">
                 <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required autocomplete="name"></div>
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required autocomplete="email"></div>
@@ -76,11 +82,21 @@
             <div class="divider"><span>OR CONTINUE WITH</span></div>
             <button id="googleSignupBtn" class="btn btn-google"><i class="fab fa-google"></i> Google (Auto-Verified)</button>
             <div id="message" class="message"></div>
+            <!-- BIG VERIFICATION MESSAGE AREA - WILL SHOW PROMINENTLY AFTER SIGNUP -->
+            <div id="verificationMessageArea" style="display: none;" class="verification-big-message">
+                <i class="fas fa-envelope-open-text"></i>
+                <h4>📧 Verification Email Sent!</h4>
+                <p>We've sent a verification link to <strong id="verifyEmailDisplay"></strong><br><br>
+                📌 Please check your <strong style="color:#60a5fa;">Inbox</strong> or <strong style="color:#fbbf24;">Spam / Junk folder</strong><br><br>
+                🔗 Click the verification link inside the email — your dashboard will open automatically.<br>
+                ⚠️ Account will NOT be activated until email is verified.</p>
+                <div class="resend-link" id="resendVerificationBtn"><i class="fas fa-redo-alt"></i> Didn't receive email? Click here to resend</div>
+            </div>
             <div class="link-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
-            <div class="footer-note"><i class="fas fa-shield-alt"></i> Referral codes lock automatically & safe from tampering</div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> One account per email · Mandatory verification</div>
         </div>
 
-        <!-- LOGIN CARD (same as before) -->
+        <!-- LOGIN CARD -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo"><div class="logo-icon"><i class="fas fa-coins"></i></div><h1>Welcome Back</h1><p>Login to your verified account</p></div>
             <form id="loginForm">
@@ -128,10 +144,12 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
-
         const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // Helper: floating notification
+        // Store last signed up email for resend
+        let lastSignedUpEmail = null;
+        let lastSignedUpUid = null;
+
         function showNotification(title, message, isError = false) {
             const container = document.getElementById('notificationContainer');
             const popup = document.createElement('div');
@@ -143,28 +161,64 @@
             setTimeout(() => popup.remove(), 8000);
         }
 
-        // === AUTO REFERRAL CODE WITH SECURE STORAGE (URL + sessionStorage) ===
-        let lockedReferralCode = null;   // immutable for this session
+        // Show the BIG VERIFICATION MESSAGE (prominent box)
+        function showVerificationBigMessage(email) {
+            const bigMsgDiv = document.getElementById('verificationMessageArea');
+            const emailSpan = document.getElementById('verifyEmailDisplay');
+            if (emailSpan) emailSpan.innerText = email;
+            if (bigMsgDiv) {
+                bigMsgDiv.style.display = 'block';
+                // smooth scroll to it
+                setTimeout(() => bigMsgDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
+            }
+            // Also show floating notification
+            showNotification('📧 Verification Required', `Verification link sent to ${email}. Check Inbox or Spam folder.`, false);
+        }
+
+        function hideVerificationBigMessage() {
+            const bigMsgDiv = document.getElementById('verificationMessageArea');
+            if (bigMsgDiv) bigMsgDiv.style.display = 'none';
+        }
+
+        // Resend verification handler
+        async function resendVerificationEmail() {
+            if (!lastSignedUpEmail || !lastSignedUpUid) {
+                showNotification('⚠️ No pending signup', 'Please sign up again to receive verification email.', true);
+                return;
+            }
+            try {
+                const user = auth.currentUser;
+                if (user && user.email === lastSignedUpEmail && !user.emailVerified) {
+                    await sendEmailVerification(user, actionCodeSettings);
+                    showNotification('📧 Resent!', `Verification email resent to ${lastSignedUpEmail}. Check spam folder.`, false);
+                } else {
+                    // try to sign in temporarily to resend
+                    // but better just inform user
+                    showNotification('Session Expired', 'Please sign up again to receive a new verification link.', true);
+                }
+            } catch (err) {
+                showNotification('Error', 'Could not resend. Please try signing up again.', true);
+            }
+        }
+
+        // === AUTO REFERRAL CODE LOCK ===
+        let lockedReferralCode = null;
         
         function getAndLockReferralFromURL() {
-            // priority: URL parameter 'ref' -> then sessionStorage fallback (if already captured)
             const urlParams = new URLSearchParams(window.location.search);
             let refCode = urlParams.get('ref');
             if (refCode) {
                 refCode = refCode.trim().toUpperCase();
-                // store in sessionStorage so even if user navigates away within same tab, code persists
                 if (refCode.length >= 3 && refCode.length <= 12) {
                     sessionStorage.setItem('rnd_referral_code', refCode);
                     return refCode;
                 }
             }
-            // if no URL param but sessionStorage has it (after refresh or internal navigation)
             const stored = sessionStorage.getItem('rnd_referral_code');
             if (stored && stored.length >= 3) return stored.toUpperCase();
             return null;
         }
         
-        // Validate referral code against existing users in DB (ensure it's real, but still lock)
         async function validateReferralCodeExists(code) {
             if (!code) return false;
             const usersRef = ref(db, 'users');
@@ -178,7 +232,6 @@
             return false;
         }
         
-        // update UI: referral input field readonly, show hint
         async function applyAutoReferralCode() {
             const refInput = document.getElementById('referralCode');
             const hintSpan = document.getElementById('hintText');
@@ -186,7 +239,6 @@
             const autoCode = getAndLockReferralFromURL();
             
             if (autoCode) {
-                // Check if exists in DB (optional but gives user feedback)
                 const exists = await validateReferralCodeExists(autoCode);
                 if (exists) {
                     refInput.value = autoCode;
@@ -194,7 +246,6 @@
                     hintSpan.innerHTML = `<i class="fas fa-check-circle"></i> Referral code <strong>${autoCode}</strong> applied automatically! You'll earn bonus after verification.`;
                     hintDiv.style.color = "#c084fc";
                 } else {
-                    // invalid code from URL — but we still lock it? better show warning but don't allow fake referrer.
                     refInput.value = "";
                     lockedReferralCode = null;
                     hintSpan.innerHTML = `⚠️ Invalid referral code in link. You can still signup (no referral bonus).`;
@@ -207,15 +258,12 @@
                 hintSpan.innerHTML = `No referral link detected. You can still join & earn!`;
                 hintDiv.style.color = "#9ca3af";
             }
-            // make input readonly so user cannot manually change or cheat
             refInput.readOnly = true;
             refInput.style.cursor = "default";
         }
         
-        // generate user refer code
         function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
         
-        // Save user after email verification / Google signup
         async function saveUserToDatabase(user, name, referralCodeFromLock, isEmailVerified = false) {
             const userReferralCode = generateReferralCode(user.uid);
             let referredBy = null, level1Referrer = null, level2Referrer = null;
@@ -288,7 +336,6 @@
             return userReferralCode;
         }
         
-        // check if email already exists (strict one per email)
         async function isEmailAlreadyRegistered(email) {
             try {
                 const methods = await fetchSignInMethodsForEmail(auth, email);
@@ -296,7 +343,7 @@
             } catch (err) { return false; }
         }
         
-        // ========== EMAIL SIGNUP (referral locked, cannot be changed) ==========
+        // ========== SIGNUP WITH EMAIL ==========
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -310,19 +357,14 @@
             const emailExists = await isEmailAlreadyRegistered(email);
             if (emailExists) { messageDiv.innerHTML = '<div class="error">🚫 Email already registered! Use another email or login.</div>'; return; }
             
-            // get locked referral code (auto, from URL only, cannot be changed)
-            const finalReferral = lockedReferralCode || (() => { 
-                const fromUrl = getAndLockReferralFromURL(); 
-                if (fromUrl && fromUrl.length > 0) return fromUrl; 
-                return null; 
-            })();
+            const finalReferral = lockedReferralCode || getAndLockReferralFromURL();
             
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 await sendEmailVerification(user, actionCodeSettings);
                 
-                // store pending data with locked referral
+                // Store pending data
                 await set(ref(db, 'pending_users/' + user.uid), {
                     name: name,
                     email: email,
@@ -330,16 +372,41 @@
                     createdAt: Date.now()
                 });
                 
-                showNotification('📧 Verify Your Email', `Verification link sent to ${email}. Click to activate account (referral bonus will be applied).`, false);
-                messageDiv.innerHTML = `<div class="success"><i class="fas fa-envelope"></i> ✅ Verification email sent!<br><br><strong>🔗 Referral code locked:</strong> ${finalReferral || 'None'}<br>📬 Click link in email → dashboard auto-unlocks.</div>`;
+                // Store for resend functionality
+                lastSignedUpEmail = email;
+                lastSignedUpUid = user.uid;
+                
+                // Clear any previous messages and show BIG VERIFICATION BOX
+                messageDiv.innerHTML = ''; // clear small message
+                showVerificationBigMessage(email);
+                
+                // Also show detailed info message inside the area (already there)
+                // Add resend listener
+                const resendBtn = document.getElementById('resendVerificationBtn');
+                if (resendBtn) {
+                    // remove previous listener
+                    const newBtn = resendBtn.cloneNode(true);
+                    resendBtn.parentNode.replaceChild(newBtn, resendBtn);
+                    newBtn.addEventListener('click', async () => {
+                        if (auth.currentUser && auth.currentUser.email === email) {
+                            await sendEmailVerification(auth.currentUser, actionCodeSettings);
+                            showNotification('📧 Resent!', `Verification email resent to ${email}. Check spam folder.`, false);
+                        } else {
+                            showNotification('Session Expired', 'Please sign in again to resend verification.', true);
+                        }
+                    });
+                }
+                
+                // Sign out temporarily until verification
                 await auth.signOut();
+                
             } catch (error) {
-                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">🚫 Email already exists! One account per email.</div>';
+                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">🚫 Email already exists!</div>';
                 else messageDiv.innerHTML = '<div class="error">' + error.message.replace('Firebase:', '') + '</div>';
             }
         });
         
-        // Handle email verification & create real user with locked referral
+        // ========== AFTER VERIFICATION ==========
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
                 const userRef = ref(db, 'users/' + user.uid);
@@ -355,7 +422,6 @@
                         referralUsed = pending.referralCodeUsed;
                         await set(pendingRef, null);
                     }
-                    // if no pending but still user exists? fallback to sessionStorage referral
                     if (!referralUsed) {
                         const storedRef = sessionStorage.getItem('rnd_referral_code');
                         if (storedRef) referralUsed = storedRef;
@@ -363,7 +429,7 @@
                     await saveUserToDatabase(user, name, referralUsed, true);
                     localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
                     localStorage.setItem('userName', name);
-                    showNotification('🎉 Account Activated!', 'Email verified + referral bonus applied. Redirecting...', false);
+                    showNotification('🎉 Account Activated!', 'Email verified + referral bonus applied. Redirecting to dashboard...', false);
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
                 } else {
                     const userData = snap.val();
@@ -389,7 +455,7 @@
                 const user = userCredential.user;
                 if (!user.emailVerified) {
                     await sendEmailVerification(user, actionCodeSettings);
-                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link sent.</div>';
+                    messageDiv.innerHTML = '<div class="warning">❌ Email not verified! A new verification link sent to your email. Please check Inbox/Spam.</div>';
                     await auth.signOut();
                     return;
                 }
@@ -409,7 +475,7 @@
             }
         });
         
-        // Google signup with auto referral lock
+        // Google Sign-In
         async function handleGoogleSignIn(isSignup = true) {
             const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
             const finalRefCode = lockedReferralCode || getAndLockReferralFromURL();
@@ -451,7 +517,7 @@
             const msgDiv = document.getElementById('forgotMessage');
             try {
                 await sendPasswordResetEmail(auth, email);
-                msgDiv.innerHTML = '<div class="success">Password reset email sent!</div>';
+                msgDiv.innerHTML = '<div class="success">Password reset email sent! Check inbox.</div>';
                 setTimeout(() => showLogin(), 3000);
             } catch (err) { msgDiv.innerHTML = '<div class="error">' + err.message + '</div>'; }
         });
@@ -460,22 +526,23 @@
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
+            hideVerificationBigMessage();
         };
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
-            applyAutoReferralCode(); // re-evaluate URL code when showing signup card
+            hideVerificationBigMessage();
+            applyAutoReferralCode();
         };
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
         };
         
-        // Initial load: auto lock referral code
         applyAutoReferralCode();
         
-        // Handle email verification action from URL
+        // Handle email verification from URL
         (async function handleEmailVerification() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'verifyEmail') {
@@ -483,7 +550,7 @@
                 if (oobCode) {
                     try {
                         await applyActionCode(auth, oobCode);
-                        showNotification('✅ Email Verified', 'Your account is now active. Please login.', false);
+                        showNotification('✅ Email Verified!', 'Your account is now active. Please login.', false);
                         setTimeout(() => showLogin(), 2000);
                     } catch (err) { console.error(err); }
                 }
