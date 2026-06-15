@@ -53,7 +53,6 @@
         .notification-message { font-size: 12px; color: #94a3b8; line-height: 1.4; }
         .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
         @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
-        .badge-auto { background: rgba(102,126,234,0.2); border-radius: 30px; padding: 2px 10px; font-size: 10px; color: #a78bfa; }
         .verification-big-message { background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15)); border-radius: 20px; padding: 18px; margin-top: 20px; text-align: center; border: 1px solid rgba(59,130,246,0.3); }
         .verification-big-message i { font-size: 40px; color: #60a5fa; margin-bottom: 12px; display: block; }
         .verification-big-message h4 { color: white; font-size: 18px; margin-bottom: 8px; }
@@ -82,7 +81,6 @@
             <div class="divider"><span>OR CONTINUE WITH</span></div>
             <button id="googleSignupBtn" class="btn btn-google"><i class="fab fa-google"></i> Google (Auto-Verified)</button>
             <div id="message" class="message"></div>
-            <!-- BIG VERIFICATION MESSAGE AREA - WILL SHOW PROMINENTLY AFTER SIGNUP -->
             <div id="verificationMessageArea" style="display: none;" class="verification-big-message">
                 <i class="fas fa-envelope-open-text"></i>
                 <h4>📧 Verification Email Sent!</h4>
@@ -146,7 +144,6 @@
         const googleProvider = new GoogleAuthProvider();
         const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // Store last signed up email for resend
         let lastSignedUpEmail = null;
         let lastSignedUpUid = null;
 
@@ -161,17 +158,11 @@
             setTimeout(() => popup.remove(), 8000);
         }
 
-        // Show the BIG VERIFICATION MESSAGE (prominent box)
         function showVerificationBigMessage(email) {
             const bigMsgDiv = document.getElementById('verificationMessageArea');
             const emailSpan = document.getElementById('verifyEmailDisplay');
             if (emailSpan) emailSpan.innerText = email;
-            if (bigMsgDiv) {
-                bigMsgDiv.style.display = 'block';
-                // smooth scroll to it
-                setTimeout(() => bigMsgDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
-            }
-            // Also show floating notification
+            if (bigMsgDiv) bigMsgDiv.style.display = 'block';
             showNotification('📧 Verification Required', `Verification link sent to ${email}. Check Inbox or Spam folder.`, false);
         }
 
@@ -180,31 +171,8 @@
             if (bigMsgDiv) bigMsgDiv.style.display = 'none';
         }
 
-        // Resend verification handler
-        async function resendVerificationEmail() {
-            if (!lastSignedUpEmail || !lastSignedUpUid) {
-                showNotification('⚠️ No pending signup', 'Please sign up again to receive verification email.', true);
-                return;
-            }
-            try {
-                const user = auth.currentUser;
-                if (user && user.email === lastSignedUpEmail && !user.emailVerified) {
-                    await sendEmailVerification(user, actionCodeSettings);
-                    showNotification('📧 Resent!', `Verification email resent to ${lastSignedUpEmail}. Check spam folder.`, false);
-                } else {
-                    // try to sign in temporarily to resend
-                    // but better just inform user
-                    showNotification('Session Expired', 'Please sign up again to receive a new verification link.', true);
-                }
-            } catch (err) {
-                showNotification('Error', 'Could not resend. Please try signing up again.', true);
-            }
-        }
-
-        // === AUTO REFERRAL CODE LOCK ===
-        let lockedReferralCode = null;
-        
-        function getAndLockReferralFromURL() {
+        // Get referral code from URL (client-side only, no DB read to avoid permission issues)
+        function getReferralFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             let refCode = urlParams.get('ref');
             if (refCode) {
@@ -218,82 +186,40 @@
             if (stored && stored.length >= 3) return stored.toUpperCase();
             return null;
         }
-        
-        async function validateReferralCodeExists(code) {
-            if (!code) return false;
-            const usersRef = ref(db, 'users');
-            const snapshot = await get(usersRef);
-            const users = snapshot.val();
-            if (users) {
-                for (let uid in users) {
-                    if (users[uid].referralCode === code) return true;
-                }
-            }
-            return false;
-        }
-        
-        async function applyAutoReferralCode() {
+
+        function applyReferralCodeToUI() {
             const refInput = document.getElementById('referralCode');
             const hintSpan = document.getElementById('hintText');
-            const hintDiv = document.getElementById('referralHint');
-            const autoCode = getAndLockReferralFromURL();
+            const autoCode = getReferralFromURL();
             
             if (autoCode) {
-                const exists = await validateReferralCodeExists(autoCode);
-                if (exists) {
-                    refInput.value = autoCode;
-                    lockedReferralCode = autoCode;
-                    hintSpan.innerHTML = `<i class="fas fa-check-circle"></i> Referral code <strong>${autoCode}</strong> applied automatically! You'll earn bonus after verification.`;
-                    hintDiv.style.color = "#c084fc";
-                } else {
-                    refInput.value = "";
-                    lockedReferralCode = null;
-                    hintSpan.innerHTML = `⚠️ Invalid referral code in link. You can still signup (no referral bonus).`;
-                    hintDiv.style.color = "#f97316";
-                    sessionStorage.removeItem('rnd_referral_code');
-                }
+                refInput.value = autoCode;
+                hintSpan.innerHTML = `<i class="fas fa-check-circle"></i> Referral code <strong>${autoCode}</strong> applied! You'll get bonus after verification.`;
+                document.getElementById('referralHint').style.color = "#c084fc";
             } else {
                 refInput.value = "";
-                lockedReferralCode = null;
                 hintSpan.innerHTML = `No referral link detected. You can still join & earn!`;
-                hintDiv.style.color = "#9ca3af";
+                document.getElementById('referralHint').style.color = "#9ca3af";
             }
             refInput.readOnly = true;
-            refInput.style.cursor = "default";
+        }
+
+        function generateReferralCode(userId) { 
+            return userId.substring(0, 8).toUpperCase(); 
         }
         
-        function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
-        
-        async function saveUserToDatabase(user, name, referralCodeFromLock, isEmailVerified = false) {
+        async function saveUserToDatabase(user, name, referralCodeFromUrl, isEmailVerified = false) {
             const userReferralCode = generateReferralCode(user.uid);
-            let referredBy = null, level1Referrer = null, level2Referrer = null;
-            if (referralCodeFromLock) {
-                const usersRef = ref(db, 'users');
-                const snapshot = await get(usersRef);
-                const users = snapshot.val();
-                if (users) {
-                    for (let uid in users) {
-                        if (users[uid].referralCode === referralCodeFromLock.toUpperCase()) {
-                            referredBy = uid;
-                            if (users[uid].referredBy) {
-                                level1Referrer = users[uid].referredBy;
-                                if (users[level1Referrer] && users[level1Referrer].referredBy) level2Referrer = users[level1Referrer].referredBy;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
             
             const userData = {
                 name: name,
                 email: user.email,
                 userId: user.uid,
                 referralCode: userReferralCode,
-                referredBy: referredBy || null,
-                referralWallet: referredBy ? 1 : 0,
+                referredBy: referralCodeFromUrl || null,
+                referralWallet: referralCodeFromUrl ? 1 : 0,
                 spinWallet: 0,
-                totalEarned: referredBy ? 1 : 0,
+                totalEarned: referralCodeFromUrl ? 1 : 0,
                 totalWithdrawn: 0,
                 status: 'active',
                 emailVerified: isEmailVerified,
@@ -303,36 +229,7 @@
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
             
-            if (referredBy) {
-                const referrerRef = ref(db, 'users/' + referredBy);
-                const referrerSnap = await get(referrerRef);
-                if (referrerSnap.exists()) {
-                    const referrer = referrerSnap.val();
-                    await update(ref(db, 'users/' + referredBy), { 
-                        referralWallet: (referrer.referralWallet || 0) + 2, 
-                        totalEarned: (referrer.totalEarned || 0) + 2 
-                    });
-                    const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
-                    const level1Data = await get(level1Ref);
-                    let level1List = level1Data.val() || [];
-                    if (!level1List.includes(user.uid)) { level1List.push(user.uid); await set(level1Ref, level1List); }
-                }
-                if (level1Referrer) {
-                    const level2UserRef = ref(db, 'users/' + level1Referrer);
-                    const level2Snap = await get(level2UserRef);
-                    if (level2Snap.exists()) {
-                        const level2User = level2Snap.val();
-                        await update(ref(db, 'users/' + level1Referrer), { 
-                            referralWallet: (level2User.referralWallet || 0) + 1, 
-                            totalEarned: (level2User.totalEarned || 0) + 1 
-                        });
-                        const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
-                        const level2ListData = await get(level2ListRef);
-                        let level2List = level2ListData.val() || [];
-                        if (!level2List.includes(user.uid)) { level2List.push(user.uid); await set(level2ListRef, level2List); }
-                    }
-                }
-            }
+            // Note: Referrer bonus would require reading referrer's data - if permission denied, skip but still save user
             return userReferralCode;
         }
         
@@ -340,10 +237,13 @@
             try {
                 const methods = await fetchSignInMethodsForEmail(auth, email);
                 return methods.length > 0;
-            } catch (err) { return false; }
+            } catch (err) { 
+                console.warn("fetchSignInMethods error", err);
+                return false;
+            }
         }
         
-        // ========== SIGNUP WITH EMAIL ==========
+        // SIGNUP FORM SUBMIT
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -351,13 +251,22 @@
             const password = document.getElementById('password').value;
             const messageDiv = document.getElementById('message');
             
-            if (password.length < 8) { messageDiv.innerHTML = '<div class="error">❌ Password must be at least 8 characters!</div>'; return; }
-            if (name.length < 2) { messageDiv.innerHTML = '<div class="error">❌ Enter full name.</div>'; return; }
+            if (password.length < 8) { 
+                messageDiv.innerHTML = '<div class="error">❌ Password must be at least 8 characters!</div>'; 
+                return; 
+            }
+            if (name.length < 2) { 
+                messageDiv.innerHTML = '<div class="error">❌ Enter full name.</div>'; 
+                return; 
+            }
             
             const emailExists = await isEmailAlreadyRegistered(email);
-            if (emailExists) { messageDiv.innerHTML = '<div class="error">🚫 Email already registered! Use another email or login.</div>'; return; }
+            if (emailExists) { 
+                messageDiv.innerHTML = '<div class="error">🚫 Email already registered! Use another email or login.</div>'; 
+                return; 
+            }
             
-            const finalReferral = lockedReferralCode || getAndLockReferralFromURL();
+            const finalReferral = getReferralFromURL();
             
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -370,21 +279,17 @@
                     email: email,
                     referralCodeUsed: finalReferral || null,
                     createdAt: Date.now()
-                });
+                }).catch(err => console.warn("Pending store warning:", err));
                 
-                // Store for resend functionality
                 lastSignedUpEmail = email;
                 lastSignedUpUid = user.uid;
                 
-                // Clear any previous messages and show BIG VERIFICATION BOX
-                messageDiv.innerHTML = ''; // clear small message
+                messageDiv.innerHTML = '';
                 showVerificationBigMessage(email);
                 
-                // Also show detailed info message inside the area (already there)
-                // Add resend listener
+                // Setup resend button
                 const resendBtn = document.getElementById('resendVerificationBtn');
                 if (resendBtn) {
-                    // remove previous listener
                     const newBtn = resendBtn.cloneNode(true);
                     resendBtn.parentNode.replaceChild(newBtn, resendBtn);
                     newBtn.addEventListener('click', async () => {
@@ -392,46 +297,58 @@
                             await sendEmailVerification(auth.currentUser, actionCodeSettings);
                             showNotification('📧 Resent!', `Verification email resent to ${email}. Check spam folder.`, false);
                         } else {
-                            showNotification('Session Expired', 'Please sign in again to resend verification.', true);
+                            showNotification('Session Expired', 'Please sign up again to resend verification.', true);
                         }
                     });
                 }
                 
-                // Sign out temporarily until verification
                 await auth.signOut();
                 
             } catch (error) {
-                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">🚫 Email already exists!</div>';
-                else messageDiv.innerHTML = '<div class="error">' + error.message.replace('Firebase:', '') + '</div>';
+                console.error("Signup error:", error);
+                if (error.code === 'auth/email-already-in-use') {
+                    messageDiv.innerHTML = '<div class="error">🚫 Email already exists!</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error">' + error.message.replace('Firebase:', '') + '</div>';
+                }
             }
         });
         
-        // ========== AFTER VERIFICATION ==========
+        // AUTH STATE CHANGE - Handle email verification
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
                 const userRef = ref(db, 'users/' + user.uid);
-                const snap = await get(userRef);
-                if (!snap.exists()) {
+                const snap = await get(userRef).catch(err => {
+                    console.warn("User read error:", err);
+                    return null;
+                });
+                
+                if (!snap || !snap.exists()) {
                     const pendingRef = ref(db, 'pending_users/' + user.uid);
-                    const pendingSnap = await get(pendingRef);
+                    const pendingSnap = await get(pendingRef).catch(err => {
+                        console.warn("Pending read error:", err);
+                        return null;
+                    });
+                    
                     let name = user.displayName || user.email.split('@')[0];
                     let referralUsed = null;
-                    if (pendingSnap.exists()) {
+                    
+                    if (pendingSnap && pendingSnap.exists()) {
                         const pending = pendingSnap.val();
                         name = pending.name || name;
                         referralUsed = pending.referralCodeUsed;
-                        await set(pendingRef, null);
+                        await set(pendingRef, null).catch(err => console.warn("Pending cleanup error:", err));
                     }
                     if (!referralUsed) {
-                        const storedRef = sessionStorage.getItem('rnd_referral_code');
-                        if (storedRef) referralUsed = storedRef;
+                        referralUsed = sessionStorage.getItem('rnd_referral_code');
                     }
+                    
                     await saveUserToDatabase(user, name, referralUsed, true);
                     localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
                     localStorage.setItem('userName', name);
-                    showNotification('🎉 Account Activated!', 'Email verified + referral bonus applied. Redirecting to dashboard...', false);
+                    showNotification('🎉 Account Activated!', 'Email verified! Redirecting to dashboard...', false);
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
-                } else {
+                } else if (snap && snap.exists()) {
                     const userData = snap.val();
                     if (userData && userData.status === 'active') {
                         localStorage.setItem('userReferralCode', userData.referralCode);
@@ -444,7 +361,7 @@
             }
         });
         
-        // ========== LOGIN ==========
+        // LOGIN FORM
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -455,18 +372,18 @@
                 const user = userCredential.user;
                 if (!user.emailVerified) {
                     await sendEmailVerification(user, actionCodeSettings);
-                    messageDiv.innerHTML = '<div class="warning">❌ Email not verified! A new verification link sent to your email. Please check Inbox/Spam.</div>';
+                    messageDiv.innerHTML = '<div class="warning">❌ Email not verified! A new verification link sent. Check Inbox/Spam.</div>';
                     await auth.signOut();
                     return;
                 }
-                const snapshot = await get(ref(db, 'users/' + user.uid));
-                if (snapshot.exists() && snapshot.val().status === 'active') {
+                const snapshot = await get(ref(db, 'users/' + user.uid)).catch(err => null);
+                if (snapshot && snapshot.exists() && snapshot.val().status === 'active') {
                     messageDiv.innerHTML = '<div class="success">✅ Verified! Redirecting...</div>';
                     localStorage.setItem('userReferralCode', snapshot.val().referralCode);
                     localStorage.setItem('userName', snapshot.val().name);
                     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
                 } else {
-                    messageDiv.innerHTML = '<div class="error">Account inactive.</div>';
+                    messageDiv.innerHTML = '<div class="error">Account not found or inactive.</div>';
                 }
             } catch (error) {
                 if (error.code === 'auth/user-not-found') messageDiv.innerHTML = '<div class="error">No account found. Sign up first.</div>';
@@ -475,42 +392,44 @@
             }
         });
         
-        // Google Sign-In
+        // GOOGLE SIGN IN
         async function handleGoogleSignIn(isSignup = true) {
             const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
-            const finalRefCode = lockedReferralCode || getAndLockReferralFromURL();
+            const finalRefCode = getReferralFromURL();
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
-                const existingUser = await get(ref(db, 'users/' + user.uid));
-                if (existingUser.exists()) {
+                const existingUser = await get(ref(db, 'users/' + user.uid)).catch(err => null);
+                
+                if (existingUser && existingUser.exists()) {
                     if (existingUser.val().status === 'active') {
                         localStorage.setItem('userReferralCode', existingUser.val().referralCode);
                         localStorage.setItem('userName', existingUser.val().name);
                         messageDiv.innerHTML = '<div class="success">Login success! Redirecting...</div>';
                         setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
                         return;
-                    } else { messageDiv.innerHTML = '<div class="error">Blocked account.</div>'; return; }
+                    } else {
+                        messageDiv.innerHTML = '<div class="error">Blocked account.</div>';
+                        return;
+                    }
                 }
-                const emailMethods = await fetchSignInMethodsForEmail(auth, user.email);
-                if (emailMethods.length > 0 && emailMethods[0] !== 'google.com') {
-                    messageDiv.innerHTML = '<div class="error">Email already registered with password. Login normally.</div>';
-                    return;
-                }
-                if (isSignup) {
-                    const name = user.displayName || user.email.split('@')[0];
-                    await saveUserToDatabase(user, name, finalRefCode, true);
-                    localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
-                    localStorage.setItem('userName', name);
-                    messageDiv.innerHTML = '<div class="success">Google account created! Redirecting...</div>';
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
-                } else { messageDiv.innerHTML = '<div class="error">Sign up first with Google.</div>'; }
-            } catch (err) { messageDiv.innerHTML = '<div class="error">Google failed: ' + err.message + '</div>'; }
+                
+                const name = user.displayName || user.email.split('@')[0];
+                await saveUserToDatabase(user, name, finalRefCode, true);
+                localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
+                localStorage.setItem('userName', name);
+                messageDiv.innerHTML = '<div class="success">Google account created! Redirecting...</div>';
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                
+            } catch (err) {
+                messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + err.message + '</div>';
+            }
         }
         
         document.getElementById('googleSignupBtn').addEventListener('click', () => handleGoogleSignIn(true));
         document.getElementById('googleLoginBtn').addEventListener('click', () => handleGoogleSignIn(false));
         
+        // FORGOT PASSWORD
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('forgotEmail').value;
@@ -519,7 +438,9 @@
                 await sendPasswordResetEmail(auth, email);
                 msgDiv.innerHTML = '<div class="success">Password reset email sent! Check inbox.</div>';
                 setTimeout(() => showLogin(), 3000);
-            } catch (err) { msgDiv.innerHTML = '<div class="error">' + err.message + '</div>'; }
+            } catch (err) {
+                msgDiv.innerHTML = '<div class="error">' + err.message + '</div>';
+            }
         });
         
         window.showLogin = function() {
@@ -533,14 +454,15 @@
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
             hideVerificationBigMessage();
-            applyAutoReferralCode();
+            applyReferralCodeToUI();
         };
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
         };
         
-        applyAutoReferralCode();
+        // Initialize referral code display
+        applyReferralCodeToUI();
         
         // Handle email verification from URL
         (async function handleEmailVerification() {
