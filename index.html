@@ -22,7 +22,6 @@
         .logo h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo p { color: #9ca3af; font-size: 14px; margin-top: 8px; }
         
-        /* Google Main Button - Upar */
         .btn-google-main {
             width: 100%;
             padding: 16px;
@@ -88,6 +87,19 @@
         .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
         
         @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
+        
+        .verification-big-box {
+            background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid rgba(59,130,246,0.3);
+        }
+        .verification-big-box i { font-size: 40px; color: #60a5fa; margin-bottom: 12px; display: block; }
+        .verification-big-box h4 { color: white; font-size: 18px; margin-bottom: 8px; }
+        .verification-big-box p { color: #cbd5e1; font-size: 13px; line-height: 1.5; }
+        .resend-link { color: #a78bfa; cursor: pointer; text-decoration: underline; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -97,11 +109,10 @@
     <div id="notificationContainer"></div>
 
     <div class="container">
-        <!-- SIGNUP CARD - Google Button UPAR -->
+        <!-- SIGNUP CARD -->
         <div class="card" id="signupCard">
             <div class="logo"><div class="logo-icon"><i class="fab fa-google"></i></div><h1>RND Rewards</h1><p>Google se karein shuruaat · Fast & Secure</p></div>
             
-            <!-- 🔥 GOOGLE BUTTON - SABSE UPAR 🔥 -->
             <button id="googleSignupBtn" class="btn-google-main">
                 <i class="fab fa-google"></i> ✨ Google se Sign Up karein ✨
             </button>
@@ -117,15 +128,22 @@
             </form>
             
             <div id="message" class="message"></div>
+            <div id="verificationBox" style="display: none;" class="verification-big-box">
+                <i class="fas fa-envelope-open-text"></i>
+                <h4>📧 Verification Email Sent!</h4>
+                <p>Verification link bhej di gayi hai <strong id="verifyEmailDisplay"></strong> par<br><br>
+                📌 Please check your <strong style="color:#60a5fa;">Inbox</strong> or <strong style="color:#fbbf24;">Spam / Junk folder</strong><br><br>
+                🔗 Click the verification link to activate your account.</p>
+                <div class="resend-link" id="resendBtn"><i class="fas fa-redo-alt"></i> Resend verification email</div>
+            </div>
             <div class="link-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
             <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
 
-        <!-- LOGIN CARD - Google Button UPAR -->
+        <!-- LOGIN CARD -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo"><div class="logo-icon"><i class="fab fa-google"></i></div><h1>Welcome Back</h1><p>Google se direct login karein</p></div>
             
-            <!-- 🔥 GOOGLE BUTTON - SABSE UPAR 🔥 -->
             <button id="googleLoginBtn" class="btn-google-main">
                 <i class="fab fa-google"></i> ✨ Google se Sign In karein ✨
             </button>
@@ -159,7 +177,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, applyActionCode, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, applyActionCode, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -180,17 +198,41 @@
 
         const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // AUTO REDIRECT TO DASHBOARD IF ALREADY VERIFIED
+        // ========== CRITICAL: AUTO REDIRECT TO DASHBOARD IF VERIFIED ==========
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                const userData = snapshot.val();
-                if (userData && userData.status === 'active') {
-                    localStorage.setItem('userReferralCode', userData.referralCode);
-                    localStorage.setItem('userName', userData.name);
-                    localStorage.setItem('userId', user.uid);
-                    window.location.replace('dashboard.html');
+                try {
+                    const userRef = ref(db, 'users/' + user.uid);
+                    const snapshot = await get(userRef);
+                    let userData = snapshot.val();
+                    
+                    if (!userData) {
+                        // User exists in Auth but not in DB (rare case from verification)
+                        const pendingRef = ref(db, 'pending_users/' + user.uid);
+                        const pendingSnap = await get(pendingRef);
+                        let name = user.displayName || user.email.split('@')[0];
+                        let referralUsed = null;
+                        if (pendingSnap.exists()) {
+                            name = pendingSnap.val().name || name;
+                            referralUsed = pendingSnap.val().referralCode;
+                            await set(pendingRef, null);
+                        }
+                        await saveUserToDatabase(user, name, referralUsed, true);
+                        userData = { name: name, referralCode: generateReferralCode(user.uid), status: 'active' };
+                    }
+                    
+                    if (userData && userData.status === 'active') {
+                        localStorage.setItem('userReferralCode', userData.referralCode);
+                        localStorage.setItem('userName', userData.name);
+                        localStorage.setItem('userId', user.uid);
+                        localStorage.setItem('userEmail', user.email);
+                        localStorage.setItem('userVerified', 'true');
+                        
+                        // DIRECT REDIRECT - NO GOING BACK
+                        window.location.replace('dashboard.html');
+                    }
+                } catch (error) {
+                    console.error("Auth state error:", error);
                 }
             }
         });
@@ -265,42 +307,70 @@
             return userReferralCode;
         }
 
-        // CRITICAL: Handle email verification and auto redirect to dashboard
+        // ========== VERIFICATION LINK HANDLER - DIRECT DASHBOARD ==========
         async function handleEmailVerification() {
-            try {
-                if (window.location.href.includes('mode=verifyEmail')) {
-                    const actionCode = new URLSearchParams(window.location.search).get('oobCode');
-                    if (actionCode) {
-                        await applyActionCode(auth, actionCode);
-                        // Wait for Firebase to update the user state
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        const user = auth.currentUser;
-                        if (user && user.emailVerified) {
-                            const userRef = ref(db, 'users/' + user.uid);
-                            const snapshot = await get(userRef);
-                            if (snapshot.exists()) {
-                                await update(ref(db, 'users/' + user.uid), { emailVerified: true });
-                                localStorage.setItem('userReferralCode', snapshot.val().referralCode);
-                                localStorage.setItem('userName', snapshot.val().name);
-                                localStorage.setItem('userId', user.uid);
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const oobCode = urlParams.get('oobCode');
+            
+            if (mode === 'verifyEmail' && oobCode) {
+                try {
+                    showNotification('Verifying Email', 'Please wait, verifying your email...');
+                    
+                    // Apply verification code
+                    await applyActionCode(auth, oobCode);
+                    
+                    // Wait for Firebase to process
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Get current user
+                    const user = auth.currentUser;
+                    
+                    if (user && user.emailVerified) {
+                        // Check if user exists in DB, if not create
+                        const userRef = ref(db, 'users/' + user.uid);
+                        const snapshot = await get(userRef);
+                        
+                        let name = user.displayName || user.email.split('@')[0];
+                        let referralUsed = null;
+                        
+                        if (!snapshot.exists()) {
+                            // Get from pending
+                            const pendingRef = ref(db, 'pending_users/' + user.uid);
+                            const pendingSnap = await get(pendingRef);
+                            if (pendingSnap.exists()) {
+                                name = pendingSnap.val().name || name;
+                                referralUsed = pendingSnap.val().referralCode;
+                                await set(pendingRef, null);
                             }
-                            // AUTO REDIRECT TO DASHBOARD
-                            window.location.replace('dashboard.html');
+                            await saveUserToDatabase(user, name, referralUsed, true);
                         } else {
-                            // If not verified yet, try to reload and check again
-                            await user?.reload();
-                            if (user?.emailVerified) {
-                                window.location.replace('dashboard.html');
-                            } else {
-                                showNotification('Verification Success', 'Please login to continue');
-                                showLogin();
-                            }
+                            // Update emailVerified flag
+                            await update(ref(db, 'users/' + user.uid), { emailVerified: true });
                         }
+                        
+                        // Store in localStorage
+                        localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
+                        localStorage.setItem('userName', name);
+                        localStorage.setItem('userId', user.uid);
+                        localStorage.setItem('userEmail', user.email);
+                        localStorage.setItem('userVerified', 'true');
+                        
+                        showNotification('✅ Email Verified!', 'Redirecting to dashboard...');
+                        
+                        // DIRECT REDIRECT TO DASHBOARD
+                        setTimeout(() => {
+                            window.location.replace('dashboard.html');
+                        }, 1000);
+                    } else {
+                        showNotification('Verification Complete', 'Please login to continue.');
+                        showLogin();
                     }
+                } catch (error) {
+                    console.error("Verification error:", error);
+                    showNotification('Verification Failed', 'Link may have expired. Please try again.', true);
+                    showLogin();
                 }
-            } catch (error) { 
-                console.error("Verification error:", error); 
-                showNotification('Verification Error', 'Please try logging in manually');
             }
         }
 
@@ -308,11 +378,13 @@
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
+            document.getElementById('verificationBox').style.display = 'none';
         };
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
+            document.getElementById('verificationBox').style.display = 'none';
             setReferralCodeFromURL();
         };
         window.showForgotPassword = function() {
@@ -321,7 +393,7 @@
         };
         setReferralCodeFromURL();
 
-        // EMAIL SIGNUP
+        // ========== EMAIL SIGNUP ==========
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value;
@@ -329,22 +401,58 @@
             const password = document.getElementById('password').value;
             const referralCode = document.getElementById('referralCode').value;
             const messageDiv = document.getElementById('message');
-            if (password.length < 6) { messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>'; return; }
+            const verificationBox = document.getElementById('verificationBox');
+            const emailSpan = document.getElementById('verifyEmailDisplay');
+            
+            if (password.length < 6) { 
+                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>'; 
+                return; 
+            }
+            
+            // CHECK IF EMAIL ALREADY EXISTS
+            try {
+                const methods = await fetchSignInMethodsForEmail(auth, email);
+                if (methods.length > 0) {
+                    messageDiv.innerHTML = '<div class="error">🚫 This email is already registered! Please login instead.</div>';
+                    return;
+                }
+            } catch (err) {
+                console.warn("Email check error:", err);
+            }
+            
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 await sendEmailVerification(user, actionCodeSettings);
                 await saveUserToDatabase(user, name, referralCode, false);
-                showNotification('📧 Verification Email Sent!', `✅ Verification email sent to ${email}!<br><br>📌 Please check your Inbox or Spam folder.<br>🔗 Click the verification link to directly access your dashboard.`);
-                messageDiv.innerHTML = `<div class="info"><i class="fas fa-envelope"></i> ✅ Verification email sent!<br><br><strong>📧 Check your email inbox or spam folder</strong><br><br>Click the link in email - Dashboard will open automatically!</div>`;
+                
+                emailSpan.innerText = email;
+                verificationBox.style.display = 'block';
+                messageDiv.innerHTML = '';
+                showNotification('📧 Verification Email Sent!', `Check ${email} inbox or spam folder`);
+                
+                // Resend button handler
+                const resendBtn = document.getElementById('resendBtn');
+                const newResend = resendBtn.cloneNode(true);
+                resendBtn.parentNode.replaceChild(newResend, resendBtn);
+                newResend.onclick = async () => {
+                    await sendEmailVerification(user, actionCodeSettings);
+                    showNotification('📧 Resent!', 'Verification email resent. Check spam folder.');
+                };
+                
+                // Sign out until verification
                 await auth.signOut();
+                
             } catch (error) {
-                if (error.code === 'auth/email-already-in-use') messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
-                else messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
+                if (error.code === 'auth/email-already-in-use') {
+                    messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
+                } else {
+                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
+                }
             }
         });
 
-        // EMAIL LOGIN
+        // ========== EMAIL LOGIN ==========
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -365,9 +473,12 @@
                     localStorage.setItem('userReferralCode', userData.referralCode);
                     localStorage.setItem('userName', userData.name);
                     localStorage.setItem('userId', user.uid);
+                    localStorage.setItem('userEmail', email);
                     messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
                     setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
-                } else { messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; }
+                } else { 
+                    messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; 
+                }
             } catch (error) {
                 if (error.code === 'auth/user-not-found') messageDiv.innerHTML = '<div class="error">No account found. Please sign up.</div>';
                 else if (error.code === 'auth/wrong-password') messageDiv.innerHTML = '<div class="error">Wrong password. Try again.</div>';
@@ -375,7 +486,7 @@
             }
         });
 
-        // GOOGLE SIGN IN/UP
+        // ========== GOOGLE SIGN IN ==========
         async function handleGoogleSignIn(isSignup = true) {
             const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
             const referralCode = isSignup ? document.getElementById('referralCode').value : null;
@@ -407,7 +518,7 @@
         document.getElementById('googleSignupBtn').addEventListener('click', () => handleGoogleSignIn(true));
         document.getElementById('googleLoginBtn').addEventListener('click', () => handleGoogleSignIn(false));
 
-        // FORGOT PASSWORD
+        // ========== FORGOT PASSWORD ==========
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('forgotEmail').value;
@@ -419,7 +530,7 @@
             } catch (error) { messageDiv.innerHTML = '<div class="error">' + error.message + '</div>'; }
         });
 
-        // Call verification handler
+        // Run verification handler
         handleEmailVerification();
     </script>
 </body>
