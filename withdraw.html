@@ -198,7 +198,7 @@
         function checkTasks() {
             const tasks = userData?.socialTasks || {}, allDone = tasks.facebook === true && tasks.twitter === true;
             const warningDiv = document.getElementById('taskWarning'), successDiv = document.getElementById('taskSuccess');
-            if (!allDone) { warningDiv.style.display = 'flex'; successDiv.style.display = 'none'; document.getElementById('warningText').innerHTML = '⚠️ You must complete Facebook & Twitter tasks before withdrawing! Each task gives +3 RND.'; }
+            if (!allDone) { warningDiv.style.display = 'flex'; successDiv.style.display = 'none'; document.getElementById('warningText').innerHTML = '⚠️ You must complete Facebook & Twitter tasks before withdrawing! Each task gives +1 RND.'; }
             else { warningDiv.style.display = 'none'; successDiv.style.display = 'flex'; }
         }
         
