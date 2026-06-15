@@ -225,7 +225,7 @@
             const walletType = document.getElementById('walletType').value, amount = parseInt(document.getElementById('amount').value), address = document.getElementById('address').value, msgDiv = document.getElementById('message');
             const tasks = userData?.socialTasks || {}, allTasksDone = tasks.facebook === true && tasks.twitter === true;
             msgDiv.innerHTML = '';
-            if (!allTasksDone) { msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +3 RND.</div>'; return; }
+            if (!allTasksDone) { msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +1 RND.</div>'; return; }
             if (amount !== 1) { msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time.</div>'; return; }
             if (!address) { msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>'; return; }
             if (!address.startsWith('0x') || address.length !== 42) { msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP20 wallet address (0x... 42 characters).</div>'; return; }
