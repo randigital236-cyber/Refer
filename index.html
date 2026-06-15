@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>RND Rewards · Google Signup First</title>
+    <title>RND Rewards · Google First | Secure Signup</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +22,6 @@
         .logo h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo p { color: #9ca3af; font-size: 14px; margin-top: 8px; }
         
-        /* Google Button - Big and Prominent */
         .btn-google-main {
             width: 100%;
             padding: 16px;
@@ -41,17 +40,9 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .btn-google-main:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
-            background: #f8fafc;
-        }
-        .btn-google-main i {
-            color: #db4437;
-            font-size: 22px;
-        }
+        .btn-google-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(102,126,234,0.3); background: #f8fafc; }
+        .btn-google-main i { color: #db4437; font-size: 22px; }
         
-        /* Normal Buttons */
         .btn {
             width: 100%;
             padding: 14px;
@@ -64,10 +55,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102,126,234,0.4);
-        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
         
         .form-group { margin-bottom: 18px; position: relative; }
         .form-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; z-index: 1; }
@@ -89,7 +77,6 @@
         .link-text a:hover { text-decoration: underline; }
         
         .footer-note { text-align: center; margin-top: 25px; font-size: 11px; color: #6b7280; }
-        
         .referral-hint { font-size: 11px; color: #a78bfa; margin-top: 6px; margin-left: 12px; display: flex; align-items: center; gap: 6px; }
         
         .notification-popup { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 4px solid #3b82f6; border-radius: 16px; padding: 16px 24px; max-width: 90%; width: 400px; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.4); animation: slideDown 0.4s ease-out; display: flex; align-items: center; gap: 15px; }
@@ -116,7 +103,6 @@
     <div id="notificationContainer"></div>
 
     <div class="container">
-        <!-- SIGNUP CARD - Google Button UPAR -->
         <div class="card" id="signupCard">
             <div class="logo">
                 <div class="logo-icon"><i class="fab fa-google"></i></div>
@@ -124,14 +110,12 @@
                 <p>Google se karein shuruaat · Fast & Secure</p>
             </div>
             
-            <!-- 🔥 GOOGLE BUTTON - SABSE UPAR 🔥 -->
             <button id="googleSignupBtn" class="btn-google-main">
                 <i class="fab fa-google"></i> ✨ Google se Sign Up karein ✨
             </button>
             
             <div class="divider"><span>या फिर Email se sign up karein</span></div>
             
-            <!-- Email Signup Form - NICHE -->
             <form id="signupForm">
                 <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required autocomplete="name"></div>
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required autocomplete="email"></div>
@@ -152,7 +136,6 @@
             <div class="footer-note"><i class="fas fa-shield-alt"></i> One account per email · Google se direct login</div>
         </div>
 
-        <!-- LOGIN CARD - Google Button UPAR -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo">
                 <div class="logo-icon"><i class="fab fa-google"></i></div>
@@ -160,14 +143,12 @@
                 <p>Google se direct login karein</p>
             </div>
             
-            <!-- 🔥 GOOGLE BUTTON - SABSE UPAR 🔥 -->
             <button id="googleLoginBtn" class="btn-google-main">
                 <i class="fab fa-google"></i> ✨ Google se Sign In karein ✨
             </button>
             
             <div class="divider"><span>या फिर Email se login karein</span></div>
             
-            <!-- Email Login Form - NICHE -->
             <form id="loginForm">
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email Address" required autocomplete="email"></div>
                 <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password"></div>
@@ -179,7 +160,6 @@
             <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
         </div>
 
-        <!-- FORGOT PASSWORD -->
         <div class="card" id="forgotCard" style="display:none;">
             <div class="logo">
                 <div class="logo-icon"><i class="fas fa-key"></i></div>
@@ -214,8 +194,17 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        if (localStorage.getItem('rnd_user_id') && localStorage.getItem('rnd_user_verified') === 'true') {
-            window.location.replace('dashboard.html');
+        // Clear any existing session on page load to prevent auto-login
+        // But don't clear if coming from verification
+        const urlParams = new URLSearchParams(window.location.search);
+        const isVerification = urlParams.get('mode') === 'verifyEmail';
+        
+        if (!isVerification) {
+            // Only clear if not verification flow
+            localStorage.removeItem('rnd_user_id');
+            localStorage.removeItem('rnd_user_verified');
+            localStorage.removeItem('rnd_user_name');
+            localStorage.removeItem('rnd_user_email');
         }
 
         function showNotification(title, message, isError = false) {
@@ -270,22 +259,23 @@
                     createdAt: new Date().toISOString()
                 };
                 await set(userRef, userData);
+                return true;
             }
-            localStorage.setItem('rnd_user_id', user.uid);
-            localStorage.setItem('rnd_user_name', name);
-            localStorage.setItem('rnd_user_email', user.email);
-            localStorage.setItem('rnd_user_verified', user.emailVerified ? 'true' : 'false');
+            return false;
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user && user.emailVerified) {
-                await createUserInDB(user, user.displayName || user.email.split('@')[0], getReferralFromURL());
-                localStorage.setItem('rnd_user_verified', 'true');
-                window.location.replace('dashboard.html');
+        // STRICT: Check if email already has an account (prevents multiple accounts)
+        async function isEmailStrictlyRegistered(email) {
+            try {
+                const methods = await fetchSignInMethodsForEmail(auth, email);
+                return methods.length > 0;
+            } catch (err) {
+                console.warn("fetchSignInMethods error", err);
+                return false;
             }
-        });
+        }
 
-        // EMAIL SIGNUP
+        // SIGNUP - STRICT ONE EMAIL ONLY
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('name').value.trim();
@@ -300,13 +290,14 @@
                 return;
             }
 
-            try {
-                const methods = await fetchSignInMethodsForEmail(auth, email);
-                if (methods.length > 0) {
-                    msgDiv.innerHTML = '<div class="error">🚫 Email already registered! Please login.</div>';
-                    return;
-                }
+            // STRICT CHECK: Email already registered?
+            const emailExists = await isEmailStrictlyRegistered(email);
+            if (emailExists) {
+                msgDiv.innerHTML = '<div class="error">🚫 This email is already registered! Please login instead.</div>';
+                return;
+            }
 
+            try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 await sendEmailVerification(user);
@@ -331,14 +322,20 @@
                     showNotification('📧 Resent!', 'Verification email resent. Check spam folder.', false);
                 };
 
+                // Sign out after signup to prevent auto-login
                 await auth.signOut();
+                
             } catch (error) {
                 console.error(error);
-                msgDiv.innerHTML = '<div class="error">' + (error.message.split(':')[0] || 'Signup failed') + '</div>';
+                if (error.code === 'auth/email-already-in-use') {
+                    msgDiv.innerHTML = '<div class="error">🚫 Email already registered! Please login.</div>';
+                } else {
+                    msgDiv.innerHTML = '<div class="error">' + (error.message.split(':')[0] || 'Signup failed') + '</div>';
+                }
             }
         });
 
-        // EMAIL LOGIN
+        // LOGIN - Only verified users can login
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
@@ -352,10 +349,16 @@
                 if (!user.emailVerified) {
                     await sendEmailVerification(user);
                     msgDiv.innerHTML = '<div class="warning">⚠️ Email not verified! New verification link sent. Check inbox/spam.</div>';
+                    await auth.signOut();
                     return;
                 }
 
                 await createUserInDB(user, user.displayName || email.split('@')[0], getReferralFromURL());
+                localStorage.setItem('rnd_user_id', user.uid);
+                localStorage.setItem('rnd_user_verified', 'true');
+                localStorage.setItem('rnd_user_name', user.displayName || email.split('@')[0]);
+                localStorage.setItem('rnd_user_email', email);
+                
                 msgDiv.innerHTML = '<div class="success">✅ Login successful! Redirecting...</div>';
                 setTimeout(() => {
                     window.location.replace('dashboard.html');
@@ -371,12 +374,25 @@
             }
         });
 
-        // GOOGLE AUTH (Main method)
+        // GOOGLE AUTH
         async function handleGoogleAuth() {
             try {
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
-                await createUserInDB(user, user.displayName || user.email.split('@')[0], getReferralFromURL());
+                
+                // Check if user already exists in DB
+                const userRef = ref(db, 'users/' + user.uid);
+                const existing = await get(userRef);
+                
+                if (!existing.exists()) {
+                    await createUserInDB(user, user.displayName || user.email.split('@')[0], getReferralFromURL());
+                }
+                
+                localStorage.setItem('rnd_user_id', user.uid);
+                localStorage.setItem('rnd_user_verified', 'true');
+                localStorage.setItem('rnd_user_name', user.displayName || user.email.split('@')[0]);
+                localStorage.setItem('rnd_user_email', user.email);
+                
                 showNotification('✅ Success!', 'Google login successful! Redirecting to dashboard...', false);
                 setTimeout(() => {
                     window.location.replace('dashboard.html');
@@ -403,7 +419,7 @@
             }
         });
 
-        // VERIFICATION LINK HANDLER
+        // CRITICAL: Handle verification link and auto-redirect to dashboard
         (async function handleVerificationLink() {
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'verifyEmail' && params.get('oobCode')) {
@@ -411,12 +427,25 @@
                 try {
                     showNotification('Verifying', 'Please wait, verifying your email...', false);
                     await applyActionCode(auth, oobCode);
-                    await new Promise(r => setTimeout(r, 1000));
+                    
+                    // Wait for Firebase to update emailVerified status
+                    await new Promise(r => setTimeout(r, 2000));
+                    
+                    // Get current user after verification
                     const user = auth.currentUser;
                     if (user && user.emailVerified) {
+                        // Create user in database if not exists
                         await createUserInDB(user, user.displayName || user.email.split('@')[0], getReferralFromURL());
+                        
+                        // Save to localStorage
+                        localStorage.setItem('rnd_user_id', user.uid);
                         localStorage.setItem('rnd_user_verified', 'true');
+                        localStorage.setItem('rnd_user_name', user.displayName || user.email.split('@')[0]);
+                        localStorage.setItem('rnd_user_email', user.email);
+                        
                         showNotification('✅ Verified!', 'Email verified. Redirecting to dashboard...', false);
+                        
+                        // DIRECT REDIRECT TO DASHBOARD
                         setTimeout(() => {
                             window.location.replace('dashboard.html');
                         }, 1500);
@@ -425,12 +454,27 @@
                         showLogin();
                     }
                 } catch (error) {
-                    console.error(error);
+                    console.error("Verification error:", error);
                     showNotification('Verification Failed', 'Link may have expired. Please login to resend.', true);
                     showLogin();
                 }
             }
         })();
+
+        // Remove any auto-login from previous sessions on page load (except verification flow)
+        onAuthStateChanged(auth, async (user) => {
+            const params = new URLSearchParams(window.location.search);
+            const isVerificationFlow = params.get('mode') === 'verifyEmail';
+            
+            if (user && user.emailVerified && !isVerificationFlow) {
+                // Only auto-redirect if not in verification flow
+                const isFirstTime = !localStorage.getItem('rnd_user_verified');
+                if (!isFirstTime) {
+                    // User is already verified and has session, redirect to dashboard
+                    window.location.replace('dashboard.html');
+                }
+            }
+        });
 
         window.showLogin = function() {
             document.getElementById('signupCard').style.display = 'none';
