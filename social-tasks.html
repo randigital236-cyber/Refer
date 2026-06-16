@@ -56,6 +56,7 @@
         
         .open-page-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 13px; transition: all 0.2s; margin-bottom: 10px; }
         .open-page-btn:hover { background: rgba(255,255,255,0.15); }
+        .open-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
         .upload-area { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
         .upload-label { display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 12px 24px; border-radius: 40px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s; }
@@ -66,12 +67,16 @@
         .verify-btn:hover { transform: translateY(-2px); }
         .verify-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
-        .task-completed { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px; padding: 15px; text-align: center; margin-top: 15px; }
+        .task-completed { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px; padding: 15px; text-align: center; margin-top: 15px; display: none; }
         .task-completed i { color: #10b981; font-size: 20px; margin-right: 8px; }
         .task-completed span { color: #34d399; font-weight: 500; }
         
+        .task-already-done { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 15px; text-align: center; margin-top: 15px; display: none; }
+        .task-already-done i { color: #fbbf24; font-size: 20px; margin-right: 8px; }
+        .task-already-done span { color: #fbbf24; font-weight: 500; }
+        
         .reward-badge { display: inline-block; background: rgba(212,175,55,0.2); color: #d4af37; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .info-message { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 10px; margin-bottom: 15px; font-size: 12px; color: #60a5fa; text-align: center; }
+        .info-message { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 10px; margin-bottom: 15px; font-size: 12px; color: #60a5fa; text-align: center; display: none; }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; max-width: 500px; margin: 0 auto; background: rgba(15,15,25,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-around; padding: 12px 20px; border-radius: 30px 30px 0 0; }
         .nav-item-bottom { text-align: center; cursor: pointer; color: #6b7280; transition: color 0.2s; }
@@ -108,11 +113,16 @@
         <div class="section-title"><i class="fab fa-facebook"></i><span>Facebook Task</span></div>
         <div class="task-card">
             <div class="task-header"><div class="task-icon fb-icon"><i class="fab fa-facebook-f"></i></div><div class="task-info"><h4>Follow & Like Facebook Page</h4><p>Earn +1 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +1 RND</span></div></div>
+            
+            <!-- Already Done Message (Hidden by default) -->
+            <div id="fbAlreadyDone" class="task-already-done"><i class="fas fa-check-circle"></i> <span>✅ Facebook Task Already Completed! You cannot do it again.</span></div>
+            
             <div class="task-steps"><div class="step"><div class="step-number">1</div><div class="step-text"><strong>Click</strong> "Open Facebook Page" button below</div></div><div class="step"><div class="step-number">2</div><div class="step-text"><strong>Follow</strong> our Facebook page</div></div><div class="step"><div class="step-number">3</div><div class="step-text"><strong>Like</strong> the latest post</div></div><div class="step"><div class="step-number">4</div><div class="step-text"><strong>Comment</strong> "RND" on the latest post</div></div><div class="step"><div class="step-number">5</div><div class="step-text"><strong>Take Screenshot</strong> showing follow, like & comment</div></div><div class="step"><div class="step-number">6</div><div class="step-text"><strong>Come back</strong> and upload screenshot for verification</div></div></div>
-            <button class="open-page-btn" onclick="openFacebookPage('fb')"><i class="fab fa-facebook-f"></i> 🔗 Open Facebook Page (Click First)</button>
-            <div id="fbInfoMsg" class="info-message" style="display:none;"><i class="fas fa-info-circle"></i> ✅ Facebook page opened! After completing steps, upload your screenshot below.</div>
+            
+            <button id="fbOpenBtn" class="open-page-btn" onclick="openFacebookPage()"><i class="fab fa-facebook-f"></i> 🔗 Open Facebook Page (Click First)</button>
+            <div id="fbInfoMsg" class="info-message"><i class="fas fa-info-circle"></i> ✅ Facebook page opened! After completing steps, upload your screenshot below.</div>
             <div id="fbUploadArea" class="upload-area"><label class="upload-label" for="fbFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="fbFile" class="file-input" accept="image/*"><div id="fbPreviewDiv" class="preview-area"></div><button id="fbVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)</button></div>
-            <div id="fbCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Facebook Task Completed! +1 RND Added</span></div>
+            <div id="fbCompleted" class="task-completed"><i class="fas fa-check-circle"></i> <span>Facebook Task Completed! +1 RND Added ✅</span></div>
         </div>
     </div>
 
@@ -121,11 +131,16 @@
         <div class="section-title"><i class="fab fa-twitter"></i><span>Twitter / X Task</span></div>
         <div class="task-card">
             <div class="task-header"><div class="task-icon tw-icon"><i class="fab fa-twitter"></i></div><div class="task-info"><h4>Follow & Engage on Twitter</h4><p>Earn +1 RND after verification</p></div><div><span class="reward-badge"><i class="fas fa-coins"></i> +1 RND</span></div></div>
+            
+            <!-- Already Done Message (Hidden by default) -->
+            <div id="twAlreadyDone" class="task-already-done"><i class="fas fa-check-circle"></i> <span>✅ Twitter Task Already Completed! You cannot do it again.</span></div>
+            
             <div class="task-steps"><div class="step"><div class="step-number">1</div><div class="step-text"><strong>Click</strong> "Open Twitter/X" button below</div></div><div class="step"><div class="step-number">2</div><div class="step-text"><strong>Follow</strong> @RanDigitalRND on Twitter/X</div></div><div class="step"><div class="step-number">3</div><div class="step-text"><strong>Like</strong> the pinned post</div></div><div class="step"><div class="step-number">4</div><div class="step-text"><strong>Comment</strong> "RND" on the pinned post</div></div><div class="step"><div class="step-number">5</div><div class="step-text"><strong>Take Screenshot</strong> showing follow, like & comment</div></div><div class="step"><div class="step-number">6</div><div class="step-text"><strong>Come back</strong> and upload screenshot for verification</div></div></div>
-            <button class="open-page-btn" onclick="openTwitterPage('tw')"><i class="fab fa-twitter"></i> 🔗 Open Twitter/X (Click First)</button>
-            <div id="twInfoMsg" class="info-message" style="display:none;"><i class="fas fa-info-circle"></i> ✅ Twitter/X page opened! After completing steps, upload your screenshot below.</div>
+            
+            <button id="twOpenBtn" class="open-page-btn" onclick="openTwitterPage()"><i class="fab fa-twitter"></i> 🔗 Open Twitter/X (Click First)</button>
+            <div id="twInfoMsg" class="info-message"><i class="fas fa-info-circle"></i> ✅ Twitter/X page opened! After completing steps, upload your screenshot below.</div>
             <div id="twUploadArea" class="upload-area"><label class="upload-label" for="twFile"><i class="fas fa-camera"></i> 📸 Select Screenshot</label><input type="file" id="twFile" class="file-input" accept="image/*"><div id="twPreviewDiv" class="preview-area"></div><button id="twVerifyBtn" class="verify-btn" disabled><i class="fas fa-check-circle"></i> Submit & Verify (+1 RND)</button></div>
-            <div id="twCompleted" class="task-completed" style="display:none;"><i class="fas fa-check-circle"></i> <span>Twitter Task Completed! +1 RND Added</span></div>
+            <div id="twCompleted" class="task-completed"><i class="fas fa-check-circle"></i> <span>Twitter Task Completed! +1 RND Added ✅</span></div>
         </div>
     </div>
 
@@ -133,7 +148,7 @@
         <div class="section-title"><i class="fas fa-info-circle"></i><span>Important Notes</span></div>
         <div style="color:#d1d5db;font-size:13px;line-height:1.6;">
             <p><i class="fas fa-check-circle" style="color:#10b981;"></i> You must complete <strong>BOTH</strong> Facebook and Twitter tasks to enable withdrawal.</p>
-            <p style="margin-top:10px;"><i class="fas fa-shield-alt" style="color:#667eea;"></i> Your screenshot is for verification only and will not be stored permanently.</p>
+            <p style="margin-top:10px;"><i class="fas fa-shield-alt" style="color:#667eea;"></i> Each task can be completed only <strong>ONCE</strong> per account.</p>
             <p style="margin-top:10px;"><i class="fas fa-external-link-alt" style="color:#fbbf24;"></i> First click "Open" button, complete steps, take screenshot, then upload here.</p>
         </div>
     </div>
@@ -186,23 +201,60 @@
         
         async function loadTaskStatus() {
             const tasks = userData?.socialTasks || {};
-            if (tasks.facebook === true) { document.getElementById('fbUploadArea').style.display = 'none'; document.getElementById('fbCompleted').style.display = 'block'; document.getElementById('fbInfoMsg').style.display = 'none'; }
-            if (tasks.twitter === true) { document.getElementById('twUploadArea').style.display = 'none'; document.getElementById('twCompleted').style.display = 'block'; document.getElementById('twInfoMsg').style.display = 'none'; }
+            
+            // Facebook Task Status
+            if (tasks.facebook === true) {
+                document.getElementById('fbOpenBtn').disabled = true;
+                document.getElementById('fbInfoMsg').style.display = 'none';
+                document.getElementById('fbUploadArea').style.display = 'none';
+                document.getElementById('fbCompleted').style.display = 'block';
+                document.getElementById('fbAlreadyDone').style.display = 'block';
+            } else {
+                document.getElementById('fbOpenBtn').disabled = false;
+                document.getElementById('fbInfoMsg').style.display = 'none';
+                document.getElementById('fbUploadArea').style.display = 'none';
+                document.getElementById('fbCompleted').style.display = 'none';
+                document.getElementById('fbAlreadyDone').style.display = 'none';
+            }
+            
+            // Twitter Task Status
+            if (tasks.twitter === true) {
+                document.getElementById('twOpenBtn').disabled = true;
+                document.getElementById('twInfoMsg').style.display = 'none';
+                document.getElementById('twUploadArea').style.display = 'none';
+                document.getElementById('twCompleted').style.display = 'block';
+                document.getElementById('twAlreadyDone').style.display = 'block';
+            } else {
+                document.getElementById('twOpenBtn').disabled = false;
+                document.getElementById('twInfoMsg').style.display = 'none';
+                document.getElementById('twUploadArea').style.display = 'none';
+                document.getElementById('twCompleted').style.display = 'none';
+                document.getElementById('twAlreadyDone').style.display = 'none';
+            }
         }
         
         window.openFacebookPage = function() { 
+            // Check again if already done
+            if (userData?.socialTasks?.facebook === true) {
+                alert('⚠️ आप पहले ही Facebook Task Complete कर चुके हैं!');
+                return;
+            }
             window.open(SOCIAL_LINKS.facebook, '_blank'); 
-            document.getElementById('fbInfoMsg').style.display = 'flex'; 
+            document.getElementById('fbInfoMsg').style.display = 'block'; 
             document.getElementById('fbUploadArea').style.display = 'block'; 
         };
         
         window.openTwitterPage = function() { 
+            if (userData?.socialTasks?.twitter === true) {
+                alert('⚠️ आप पहले ही Twitter Task Complete कर चुके हैं!');
+                return;
+            }
             window.open(SOCIAL_LINKS.twitter, '_blank'); 
-            document.getElementById('twInfoMsg').style.display = 'flex'; 
+            document.getElementById('twInfoMsg').style.display = 'block'; 
             document.getElementById('twUploadArea').style.display = 'block'; 
         };
         
-        // ========== FACEBOOK UPLOAD (Reward: +1 RND) ==========
+        // ========== FACEBOOK UPLOAD ==========
         const fbFile = document.getElementById('fbFile');
         const fbPreviewDiv = document.getElementById('fbPreviewDiv');
         const fbVerifyBtn = document.getElementById('fbVerifyBtn');
@@ -222,18 +274,31 @@
         });
         
         fbVerifyBtn.addEventListener('click', async function() {
+            // Double check - agar already complete hai toh block
+            if (userData?.socialTasks?.facebook === true) {
+                alert('⚠️ आप पहले ही Facebook Task Complete कर चुके हैं!');
+                return;
+            }
+            
             if (!fbImageData) { alert('❌ Please select a screenshot first!'); return; }
             fbVerifyBtn.disabled = true;
             fbVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             try {
                 const currentSpin = userData.spinWallet || 0;
-                // UPDATED: +1 RND instead of +3 RND
-                const updates = { 'socialTasks/facebook': true, spinWallet: currentSpin + 1, totalEarned: (userData.totalEarned || 0) + 1 };
+                const updates = { 
+                    'socialTasks/facebook': true, 
+                    spinWallet: currentSpin + 1, 
+                    totalEarned: (userData.totalEarned || 0) + 1 
+                };
                 await update(ref(db, 'users/' + currentUser.uid), updates);
                 userData.spinWallet = currentSpin + 1;
                 userData.socialTasks.facebook = true;
+                userData.totalEarned = (userData.totalEarned || 0) + 1;
+                
+                document.getElementById('fbOpenBtn').disabled = true;
                 document.getElementById('fbUploadArea').style.display = 'none';
                 document.getElementById('fbCompleted').style.display = 'block';
+                document.getElementById('fbAlreadyDone').style.display = 'block';
                 document.getElementById('fbInfoMsg').style.display = 'none';
                 alert('✅ Facebook Task Verified! +1 RND added to your Spin Wallet!');
             } catch (error) {
@@ -243,7 +308,7 @@
             }
         });
         
-        // ========== TWITTER UPLOAD (Reward: +1 RND) ==========
+        // ========== TWITTER UPLOAD ==========
         const twFile = document.getElementById('twFile');
         const twPreviewDiv = document.getElementById('twPreviewDiv');
         const twVerifyBtn = document.getElementById('twVerifyBtn');
@@ -263,18 +328,31 @@
         });
         
         twVerifyBtn.addEventListener('click', async function() {
+            // Double check - agar already complete hai toh block
+            if (userData?.socialTasks?.twitter === true) {
+                alert('⚠️ आप पहले ही Twitter Task Complete कर चुके हैं!');
+                return;
+            }
+            
             if (!twImageData) { alert('❌ Please select a screenshot first!'); return; }
             twVerifyBtn.disabled = true;
             twVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
             try {
                 const currentSpin = userData.spinWallet || 0;
-                // UPDATED: +1 RND instead of +3 RND
-                const updates = { 'socialTasks/twitter': true, spinWallet: currentSpin + 1, totalEarned: (userData.totalEarned || 0) + 1 };
+                const updates = { 
+                    'socialTasks/twitter': true, 
+                    spinWallet: currentSpin + 1, 
+                    totalEarned: (userData.totalEarned || 0) + 1 
+                };
                 await update(ref(db, 'users/' + currentUser.uid), updates);
                 userData.spinWallet = currentSpin + 1;
                 userData.socialTasks.twitter = true;
+                userData.totalEarned = (userData.totalEarned || 0) + 1;
+                
+                document.getElementById('twOpenBtn').disabled = true;
                 document.getElementById('twUploadArea').style.display = 'none';
                 document.getElementById('twCompleted').style.display = 'block';
+                document.getElementById('twAlreadyDone').style.display = 'block';
                 document.getElementById('twInfoMsg').style.display = 'none';
                 alert('✅ Twitter Task Verified! +1 RND added to your Spin Wallet!');
             } catch (error) {
