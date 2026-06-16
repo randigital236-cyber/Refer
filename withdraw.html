@@ -44,9 +44,12 @@
         .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: rgba(10,10,20,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; font-size: 14px; color: white; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
         .address-hint { font-size: 11px; color: #9ca3af; margin-top: 5px; }
+        .address-hint.success { color: #34d399; }
+        .address-hint.error { color: #f87171; }
         
         .withdraw-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 16px; transition: all 0.3s; margin-top: 10px; }
         .withdraw-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.3); }
+        .withdraw-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         
         .task-warning { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 13px; }
         .task-success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #34d399; font-size: 13px; }
@@ -54,6 +57,7 @@
         .message { margin-top: 15px; padding: 12px; border-radius: 14px; text-align: center; font-size: 13px; }
         .error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
         .success { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .warning { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
         
         .withdrawal-status { background: rgba(10,10,20,0.6); border-radius: 20px; padding: 15px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .withdrawal-status h4 { font-size: 15px; margin-bottom: 15px; color: white; display: flex; align-items: center; gap: 8px; }
@@ -65,12 +69,14 @@
         .status-completed { background: rgba(16,185,129,0.2); color: #34d399; }
         .status-rejected { background: rgba(239,68,68,0.2); color: #f87171; }
         .status-date { font-size: 10px; color: #6b7280; margin-top: 5px; }
+        .status-address { font-size: 10px; color: #6b7280; margin-top: 3px; font-family: monospace; }
         .reject-reason { background: rgba(239,68,68,0.1); border-radius: 10px; padding: 8px; margin-top: 8px; font-size: 11px; color: #f87171; border-left: 2px solid #ef4444; }
         .no-withdrawal { text-align: center; padding: 20px; color: #6b7280; font-size: 13px; }
         
         .toast-message { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 16px 20px; border-radius: 20px; max-width: 90%; width: 400px; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: slideUp 0.3s ease-out; text-align: left; border-left: 4px solid; }
         .toast-success { border-left-color: #10b981; }
         .toast-warning { border-left-color: #f59e0b; }
+        .toast-error { border-left-color: #ef4444; }
         .toast-message .toast-title { font-weight: 700; margin-bottom: 5px; font-size: 15px; }
         .toast-message .toast-desc { font-size: 12px; opacity: 0.9; line-height: 1.4; }
         .toast-close { position: absolute; top: 10px; right: 15px; cursor: pointer; opacity: 0.7; }
@@ -113,8 +119,11 @@
         
         <form id="withdrawForm">
             <div class="form-group"><label><i class="fas fa-credit-card"></i> Select Wallet</label><select id="walletType"><option value="referralWallet">Referral Wallet</option><option value="spinWallet">Spin Wallet</option></select></div>
-            <div class="form-group"><label><i class="fas fa-coins"></i> Amount (Only 1 RND allowed)</label><input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1"></div>
-            <div class="form-group"><label><i class="fas fa-link"></i> RND BEP20 Wallet Address</label><input type="text" id="address" placeholder="0x... (RND BEP20 address)"><div class="address-hint"><i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address</div></div>
+            <div class="form-group"><label><i class="fas fa-coins"></i> Amount (Only 1 RND allowed)</label><input type="number" id="amount" placeholder="Enter 1" min="1" max="1" step="1" value="1" readonly></div>
+            <div class="form-group"><label><i class="fas fa-link"></i> RND BEP20 Wallet Address</label>
+                <input type="text" id="address" placeholder="0x... (RND BEP20 address)" oninput="checkAddressExists(this.value)">
+                <div class="address-hint" id="addressHint"><i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address</div>
+            </div>
             <button type="button" id="withdrawBtn" class="withdraw-btn"><i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)</button>
         </form>
         <div id="message" class="message"></div>
@@ -134,7 +143,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -151,6 +160,7 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         let currentUser = null, userData = null;
+        let usedAddresses = [];
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
@@ -159,9 +169,23 @@
             userData = snap.val();
             if (!userData) userData = { spinWallet: 0, referralWallet: 0, socialTasks: {} };
             if (!userData.socialTasks) userData.socialTasks = {};
-            updateBalanceDisplay(); checkTasks();
+            updateBalanceDisplay();
+            checkTasks();
             await loadUserWithdrawals();
+            await loadUsedAddresses();
         });
+        
+        async function loadUsedAddresses() {
+            usedAddresses = [];
+            const withdrawalsRef = ref(db, 'withdrawals');
+            const snapshot = await get(withdrawalsRef);
+            snapshot.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.uid === currentUser.uid && data.walletAddress) {
+                    usedAddresses.push(data.walletAddress.toLowerCase());
+                }
+            });
+        }
         
         async function loadUserWithdrawals() {
             const withdrawalsRef = ref(db, 'withdrawals'), snapshot = await get(withdrawalsRef), withdrawals = [];
@@ -180,6 +204,7 @@
                 if (wd.status === 'completed') { statusClass = 'status-completed'; statusText = '✅ Completed'; }
                 else if (wd.status === 'rejected') { statusClass = 'status-rejected'; statusText = '❌ Rejected'; }
                 let html = `<div class="status-item"><div class="status-header"><div><span class="status-amount">${wd.amount} RND</span><div class="status-date"><i class="far fa-calendar-alt"></i> ${new Date(wd.date).toLocaleString('hi-IN')}</div></div><span class="status-badge ${statusClass}">${statusText}</span></div>`;
+                if (wd.walletAddress) html += `<div class="status-address"><i class="fas fa-link"></i> ${escapeHtml(wd.walletAddress)}</div>`;
                 if (wd.status === 'rejected' && wd.rejectReason) html += `<div class="reject-reason"><i class="fas fa-info-circle"></i> <strong>Reason:</strong> ${escapeHtml(wd.rejectReason)}</div>`;
                 html += `</div>`;
                 container.innerHTML += html;
@@ -202,47 +227,130 @@
             else { warningDiv.style.display = 'none'; successDiv.style.display = 'flex'; }
         }
         
-        function showToast(message, isSuccess) {
+        function showToast(message, type = 'warning') {
             const existingToast = document.querySelector('.toast-message');
             if (existingToast) existingToast.remove();
             const toast = document.createElement('div');
-            toast.className = `toast-message ${isSuccess ? 'toast-success' : 'toast-warning'}`;
-            toast.innerHTML = `<span class="toast-close" onclick="this.parentElement.remove();">&times;</span><div class="toast-title">${isSuccess ? '✅ Success!' : '⚠️ Notice'}</div><div class="toast-desc">${message}</div>`;
+            toast.className = `toast-message toast-${type}`;
+            const title = type === 'success' ? '✅ Success!' : type === 'error' ? '❌ Error!' : '⚠️ Notice';
+            toast.innerHTML = `<span class="toast-close" onclick="this.parentElement.remove();">&times;</span><div class="toast-title">${title}</div><div class="toast-desc">${message}</div>`;
             document.body.appendChild(toast);
             setTimeout(() => { if (toast) toast.remove(); }, 8000);
         }
         
-        async function hasUserWithdrawnBefore() {
-            const withdrawalsRef = ref(db, 'withdrawals'), snapshot = await get(withdrawalsRef);
-            let hasWithdrawn = false;
-            snapshot.forEach((childSnap) => { const data = childSnap.val(); if (data.uid === currentUser.uid && data.status !== 'rejected' && data.status !== 'cancelled') hasWithdrawn = true; });
-            return hasWithdrawn;
+        // Check if address already used
+        async function checkAddressExists(address) {
+            const hint = document.getElementById('addressHint');
+            const normalized = address.toLowerCase().trim();
+            if (address.length < 10) {
+                hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
+                hint.className = 'address-hint';
+                return false;
+            }
+            if (usedAddresses.includes(normalized)) {
+                hint.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ⚠️ You have already withdrawn using this address! Each address can be used only once.';
+                hint.className = 'address-hint error';
+                return true;
+            } else {
+                hint.innerHTML = '<i class="fas fa-check-circle"></i> ✅ This address is available for withdrawal.';
+                hint.className = 'address-hint success';
+                return false;
+            }
         }
         
         document.getElementById('walletType').addEventListener('change', () => updateBalanceDisplay());
         
+        document.getElementById('address').addEventListener('input', async function() {
+            if (this.value.length >= 10) {
+                await checkAddressExists(this.value);
+            } else {
+                const hint = document.getElementById('addressHint');
+                hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
+                hint.className = 'address-hint';
+            }
+        });
+        
         document.getElementById('withdrawBtn').addEventListener('click', async () => {
-            const walletType = document.getElementById('walletType').value, amount = parseInt(document.getElementById('amount').value), address = document.getElementById('address').value, msgDiv = document.getElementById('message');
-            const tasks = userData?.socialTasks || {}, allTasksDone = tasks.facebook === true && tasks.twitter === true;
+            const walletType = document.getElementById('walletType').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const address = document.getElementById('address').value.trim();
+            const msgDiv = document.getElementById('message');
             msgDiv.innerHTML = '';
-            if (!allTasksDone) { msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +1 RND.</div>'; return; }
-            if (amount !== 1) { msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time.</div>'; return; }
-            if (!address) { msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>'; return; }
-            if (!address.startsWith('0x') || address.length !== 42) { msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP20 wallet address (0x... 42 characters).</div>'; return; }
+            
+            const tasks = userData?.socialTasks || {}, allTasksDone = tasks.facebook === true && tasks.twitter === true;
+            if (!allTasksDone) { 
+                msgDiv.innerHTML = '<div class="error">❌ Complete Facebook & Twitter tasks first! Each gives +1 RND.</div>'; 
+                return; 
+            }
+            if (amount !== 1) { 
+                msgDiv.innerHTML = '<div class="error">❌ You can withdraw only 1 RND at a time.</div>'; 
+                return; 
+            }
+            if (!address) { 
+                msgDiv.innerHTML = '<div class="error">❌ Please enter your RND BEP20 wallet address!</div>'; 
+                return; 
+            }
+            if (!address.startsWith('0x') || address.length !== 42) { 
+                msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP20 wallet address (0x... 42 characters).</div>'; 
+                return; 
+            }
+            
+            // CHECK IF ADDRESS ALREADY USED
+            const normalizedAddress = address.toLowerCase();
+            if (usedAddresses.includes(normalizedAddress)) {
+                msgDiv.innerHTML = '<div class="warning">⚠️ You have already withdrawn using this address! Each wallet address can be used only once.</div>';
+                showToast('आप इस Address से पहले ही Withdrawal कर चुके हैं! प्रत्येक Address का उपयोग केवल एक बार किया जा सकता है।', 'error');
+                return;
+            }
+            
             const currentBal = userData[walletType] || 0;
-            if (currentBal < amount) { msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>'; return; }
-            const alreadyWithdrawn = await hasUserWithdrawnBefore();
-            if (alreadyWithdrawn) { showToast('RND Coin को जल्द ही बड़े Official Exchange पर List किया जाएगा। Listing के बाद आप अपना पूरा Withdrawal आसानी से कर सकेंगे। तब तक Refer करके कमाई करें, Spin करके RND Coins अर्जित करें और अपनी Income को बढ़ाएँ। आपके सहयोग के लिए धन्यवाद।', false); return; }
+            if (currentBal < amount) { 
+                msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>'; 
+                return; 
+            }
+            
+            // CHECK IF USER ALREADY HAS PENDING WITHDRAWAL
+            const withdrawalsRef = ref(db, 'withdrawals');
+            const snapshot = await get(withdrawalsRef);
+            let hasPending = false;
+            snapshot.forEach((childSnap) => {
+                const data = childSnap.val();
+                if (data.uid === currentUser.uid && data.status === 'pending') {
+                    hasPending = true;
+                }
+            });
+            if (hasPending) {
+                msgDiv.innerHTML = '<div class="warning">⏳ You already have a pending withdrawal request. Please wait for it to be processed.</div>';
+                return;
+            }
+            
             try {
                 const updatedBal = currentBal - amount;
                 await update(ref(db, 'users/' + currentUser.uid), { [walletType]: updatedBal });
                 const withdrawRef = push(ref(db, 'withdrawals'));
-                await set(withdrawRef, { uid: currentUser.uid, walletType: walletType, amount: amount, walletAddress: address, status: 'pending', rejectReason: null, date: new Date().toISOString() });
-                userData[walletType] = updatedBal; updateBalanceDisplay();
-                document.getElementById('address').value = ''; msgDiv.innerHTML = '';
-                showToast('आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है। 2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।', true);
+                await set(withdrawRef, { 
+                    uid: currentUser.uid, 
+                    walletType: walletType, 
+                    amount: amount, 
+                    walletAddress: address, 
+                    status: 'pending', 
+                    rejectReason: null, 
+                    date: new Date().toISOString() 
+                });
+                userData[walletType] = updatedBal; 
+                updateBalanceDisplay();
+                document.getElementById('address').value = '';
+                msgDiv.innerHTML = '';
+                usedAddresses.push(normalizedAddress);
+                const hint = document.getElementById('addressHint');
+                hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
+                hint.className = 'address-hint';
+                showToast('आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है। 2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।', 'success');
                 await loadUserWithdrawals();
-            } catch (error) { console.error("Error:", error); msgDiv.innerHTML = '<div class="error">❌ Something went wrong! Please try again.</div>'; }
+            } catch (error) { 
+                console.error("Error:", error); 
+                msgDiv.innerHTML = '<div class="error">❌ Something went wrong! Please try again.</div>'; 
+            }
         });
         
         window.toggleSidebar = function() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); };
