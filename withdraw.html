@@ -54,11 +54,13 @@
         
         .task-warning { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); border-radius: 16px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #fbbf24; font-size: 13px; }
         .task-success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 16px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #34d399; font-size: 13px; }
+        .withdraw-limit-info { background: rgba(102,126,234,0.1); border: 1px solid rgba(102,126,234,0.2); border-radius: 16px; padding: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: #a78bfa; font-size: 13px; }
         
         .message { margin-top: 15px; padding: 12px; border-radius: 14px; text-align: center; font-size: 13px; }
         .error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
         .success { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
         .warning { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+        .info { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
         
         .withdrawal-status { background: rgba(10,10,20,0.6); border-radius: 20px; padding: 15px; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1); }
         .withdrawal-status h4 { font-size: 15px; margin-bottom: 15px; color: white; display: flex; align-items: center; gap: 8px; }
@@ -110,11 +112,17 @@
 
     <div class="header">
         <div class="header-top"><button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><div class="logo-area"><h2><i class="fas fa-coins"></i> RND</h2></div><div style="width:40px;"></div></div>
-        <div class="page-title"><h3><i class="fas fa-hand-holding-usd"></i> Withdraw</h3><p>Withdraw your earned RND tokens (Only 1 RND per withdrawal)</p></div>
+        <div class="page-title"><h3><i class="fas fa-hand-holding-usd"></i> Withdraw</h3><p>⚠️ Only 1 withdrawal per account • Only 1 RND per withdrawal</p></div>
     </div>
 
     <div class="withdraw-card">
         <div class="balance-show"><i class="fas fa-wallet"></i> <span id="walletLabel">Referral Wallet</span><h3 id="walletBalance">0</h3></div>
+        
+        <div class="withdraw-limit-info">
+            <i class="fas fa-info-circle"></i> 
+            <span>⚠️ <strong>Important:</strong> Each account can withdraw only <strong>1 RND</strong> only <strong>1 time</strong>. After withdrawal, you cannot withdraw again from this account.</span>
+        </div>
+        
         <div id="taskWarning" class="task-warning" style="display:none;"><i class="fas fa-exclamation-triangle"></i> <span id="warningText">Complete all social tasks first!</span></div>
         <div id="taskSuccess" class="task-success" style="display:none;"><i class="fas fa-check-circle"></i> <span>✅ Social tasks completed! You are eligible for withdrawal.</span></div>
         
@@ -163,6 +171,7 @@
         let currentUser = null, userData = null;
         let globalUsedAddresses = new Set();
         let userWithdrawals = [];
+        let hasUserWithdrawn = false;
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
@@ -179,9 +188,9 @@
         async function loadAllData() {
             await loadGlobalAddresses();
             await loadUserWithdrawals();
+            checkIfUserAlreadyWithdrawn();
         }
         
-        // GLOBAL CHECK: Saare withdrawals se addresses collect karo
         async function loadGlobalAddresses() {
             globalUsedAddresses = new Set();
             const withdrawalsRef = ref(db, 'withdrawals');
@@ -192,7 +201,6 @@
                     globalUsedAddresses.add(data.walletAddress.toLowerCase().trim());
                 }
             });
-            console.log('Global used addresses:', globalUsedAddresses.size);
         }
         
         async function loadUserWithdrawals() {
@@ -207,6 +215,25 @@
             });
             userWithdrawals.sort((a,b) => new Date(b.date) - new Date(a.date));
             displayWithdrawalStatus(userWithdrawals);
+        }
+        
+        // CRITICAL: Check if user has ANY withdrawal (pending, completed, or rejected)
+        function checkIfUserAlreadyWithdrawn() {
+            hasUserWithdrawn = userWithdrawals.length > 0;
+            const withdrawBtn = document.getElementById('withdrawBtn');
+            const msgDiv = document.getElementById('message');
+            
+            if (hasUserWithdrawn) {
+                withdrawBtn.disabled = true;
+                withdrawBtn.style.opacity = '0.5';
+                withdrawBtn.style.cursor = 'not-allowed';
+                msgDiv.innerHTML = '<div class="info">⛔ आप पहले ही Withdrawal कर चुके हैं! <br>📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।<br>💰 आपके बाकी RND Coins आपके Wallet में सुरक्षित हैं।</div>';
+            } else {
+                withdrawBtn.disabled = false;
+                withdrawBtn.style.opacity = '1';
+                withdrawBtn.style.cursor = 'pointer';
+                msgDiv.innerHTML = '';
+            }
         }
         
         function displayWithdrawalStatus(withdrawals) {
@@ -262,7 +289,6 @@
             setTimeout(() => { if (toast) toast.remove(); }, 8000);
         }
         
-        // GLOBAL ADDRESS CHECK - Kisi bhi user ne use kiya hai toh block
         window.checkAddressGlobal = function(address) {
             const hint = document.getElementById('addressHint');
             const normalized = address.toLowerCase().trim();
@@ -279,9 +305,8 @@
                 return false;
             }
             
-            // GLOBAL CHECK: Kisi bhi user ne yeh address use kiya hai?
             if (globalUsedAddresses.has(normalized)) {
-                hint.innerHTML = '<i class="fas fa-times-circle"></i> ❌ This wallet address has already been used for withdrawal by someone! Each address can be used only once globally.';
+                hint.innerHTML = '<i class="fas fa-times-circle"></i> ❌ This wallet address has already been used for withdrawal! Each address can be used only once globally.';
                 hint.className = 'address-hint error';
                 return false;
             } else {
@@ -310,6 +335,13 @@
             const msgDiv = document.getElementById('message');
             msgDiv.innerHTML = '';
             
+            // CRITICAL CHECK: User already withdrew?
+            if (hasUserWithdrawn) {
+                msgDiv.innerHTML = '<div class="warning">⛔ आप पहले ही Withdrawal कर चुके हैं! प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।</div>';
+                showToast('❌ आप पहले ही Withdrawal कर चुके हैं! प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।', 'error');
+                return;
+            }
+            
             // Task check
             const tasks = userData?.socialTasks || {}, allTasksDone = tasks.facebook === true && tasks.twitter === true;
             if (!allTasksDone) { 
@@ -333,11 +365,11 @@
                 return; 
             }
             
-            // GLOBAL ADDRESS CHECK - MOST IMPORTANT
+            // Global address check
             const normalizedAddress = address.toLowerCase();
             if (globalUsedAddresses.has(normalizedAddress)) {
                 msgDiv.innerHTML = '<div class="warning">⚠️ This wallet address has already been used for withdrawal! Each address can be used only once globally.</div>';
-                showToast('❌ यह Wallet Address पहले ही किसी और के द्वारा Withdrawal के लिए उपयोग किया जा चुका है! प्रत्येक Address का उपयोग केवल एक बार किया जा सकता है।', 'error');
+                showToast('❌ यह Wallet Address पहले ही किसी और के द्वारा उपयोग किया जा चुका है!', 'error');
                 return;
             }
             
@@ -346,24 +378,6 @@
             if (currentBal < amount) { 
                 msgDiv.innerHTML = '<div class="error">❌ Insufficient balance! You need at least 1 RND in this wallet.</div>'; 
                 return; 
-            }
-            
-            // Check pending withdrawal
-            let hasPending = false;
-            for (const wd of userWithdrawals) {
-                if (wd.status === 'pending') { hasPending = true; break; }
-            }
-            if (hasPending) {
-                msgDiv.innerHTML = '<div class="warning">⏳ You already have a pending withdrawal request. Please wait for it to be processed.</div>';
-                return;
-            }
-            
-            // Check if user already has a withdrawal with same address (additional safety)
-            for (const wd of userWithdrawals) {
-                if (wd.walletAddress && wd.walletAddress.toLowerCase() === normalizedAddress) {
-                    msgDiv.innerHTML = '<div class="warning">⚠️ You have already used this address for withdrawal before! Each address can be used only once.</div>';
-                    return;
-                }
             }
             
             try {
@@ -386,7 +400,12 @@
                 userData[walletType] = updatedBal;
                 updateBalanceDisplay();
                 
-                // Add to global used addresses
+                // Mark as withdrawn
+                hasUserWithdrawn = true;
+                document.getElementById('withdrawBtn').disabled = true;
+                document.getElementById('withdrawBtn').style.opacity = '0.5';
+                document.getElementById('withdrawBtn').style.cursor = 'not-allowed';
+                
                 globalUsedAddresses.add(normalizedAddress);
                 
                 document.getElementById('address').value = '';
@@ -395,8 +414,11 @@
                 hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
                 hint.className = 'address-hint';
                 
-                showToast('✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है। 2 से 3 दिनों के अंदर आपका Withdrawal प्रोसेस कर दिया जाएगा।', 'success');
+                showToast('✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! आप इस Account से दोबारा Withdrawal नहीं कर सकते।', 'success');
                 await loadAllData();
+                
+                msgDiv.innerHTML = '<div class="success">✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! <br>📌 यह आपका पहला और आखिरी Withdrawal है। <br>⏳ 2-3 दिनों में प्रोसेस हो जाएगा।</div>';
+                
             } catch (error) { 
                 console.error("Error:", error); 
                 msgDiv.innerHTML = '<div class="error">❌ Something went wrong! Please try again.</div>'; 
