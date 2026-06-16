@@ -217,7 +217,6 @@
             displayWithdrawalStatus(userWithdrawals);
         }
         
-        // CRITICAL: Check if user has ANY withdrawal (pending, completed, or rejected)
         function checkIfUserAlreadyWithdrawn() {
             hasUserWithdrawn = userWithdrawals.length > 0;
             const withdrawBtn = document.getElementById('withdrawBtn');
@@ -227,7 +226,12 @@
                 withdrawBtn.disabled = true;
                 withdrawBtn.style.opacity = '0.5';
                 withdrawBtn.style.cursor = 'not-allowed';
-                msgDiv.innerHTML = '<div class="info">⛔ आप पहले ही Withdrawal कर चुके हैं! <br>📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।<br>💰 आपके बाकी RND Coins आपके Wallet में सुरक्षित हैं।</div>';
+                msgDiv.innerHTML = `<div class="info">
+                    ⛔ आप पहले ही Withdrawal कर चुके हैं!<br>
+                    📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।<br>
+                    💰 आपके बाकी RND Coins आपके Wallet में सुरक्षित हैं।<br>
+                    🚀 <strong>Exchange Listing के बाद आप अपने बाकी RND Coins Withdraw कर सकेंगे।</strong>
+                </div>`;
             } else {
                 withdrawBtn.disabled = false;
                 withdrawBtn.style.opacity = '1';
@@ -337,8 +341,12 @@
             
             // CRITICAL CHECK: User already withdrew?
             if (hasUserWithdrawn) {
-                msgDiv.innerHTML = '<div class="warning">⛔ आप पहले ही Withdrawal कर चुके हैं! प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।</div>';
-                showToast('❌ आप पहले ही Withdrawal कर चुके हैं! प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।', 'error');
+                msgDiv.innerHTML = `<div class="warning">
+                    ⛔ आप पहले ही Withdrawal कर चुके हैं!<br>
+                    📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।<br>
+                    🚀 <strong>Exchange Listing के बाद आप अपने बाकी RND Coins Withdraw कर सकेंगे।</strong>
+                </div>`;
+                showToast('❌ आप पहले ही Withdrawal कर चुके हैं! Exchange Listing के बाद बाकी Coins Withdraw कर सकेंगे।', 'error');
                 return;
             }
             
@@ -409,15 +417,19 @@
                 globalUsedAddresses.add(normalizedAddress);
                 
                 document.getElementById('address').value = '';
-                msgDiv.innerHTML = '';
                 const hint = document.getElementById('addressHint');
                 hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
                 hint.className = 'address-hint';
                 
-                showToast('✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! 🚀 Exchange Listing के बाद आप अपने बाकी RND Coins भी Withdraw कर सकेंगे।', 'success');
+                showToast('✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! Exchange Listing के बाद बाकी Coins Withdraw कर सकेंगे।', 'success');
                 await loadAllData();
                 
-                msgDiv.innerHTML = '<div class="success">✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! <br>📌 । <br>⏳ 2-3 दिनों में प्रोसेस हो जाएगा।</div>';
+                msgDiv.innerHTML = `<div class="success">
+                    ✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है!<br>
+                    ।<br>
+                    ⏳ 2-3 दिनों में प्रोसेस हो जाएगा।<br>
+                    🚀 <strong>Exchange Listing के बाद आप अपने बाकी RND Coins Withdraw कर सकेंगे।</strong>
+                </div>`;
                 
             } catch (error) { 
                 console.error("Error:", error); 
