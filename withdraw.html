@@ -152,7 +152,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, get, update, push, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update, push, set, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
@@ -172,6 +172,7 @@
         let globalUsedAddresses = new Set();
         let userWithdrawals = [];
         let hasUserWithdrawn = false;
+        let isProcessing = false;
         
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
@@ -218,6 +219,7 @@
         }
         
         function checkIfUserAlreadyWithdrawn() {
+            // STRICT CHECK: Agar koi bhi withdrawal hai (pending, completed, rejected) toh block
             hasUserWithdrawn = userWithdrawals.length > 0;
             const withdrawBtn = document.getElementById('withdrawBtn');
             const msgDiv = document.getElementById('message');
@@ -333,14 +335,19 @@
         });
         
         document.getElementById('withdrawBtn').addEventListener('click', async () => {
+            if (isProcessing) return;
+            
             const walletType = document.getElementById('walletType').value;
             const amount = parseInt(document.getElementById('amount').value);
             const address = document.getElementById('address').value.trim();
             const msgDiv = document.getElementById('message');
             msgDiv.innerHTML = '';
             
-            // CRITICAL CHECK: User already withdrew?
-            if (hasUserWithdrawn) {
+            // CRITICAL: RELOAD USER WITHDRAWALS TO CHECK LATEST STATUS
+            await loadUserWithdrawals();
+            
+            // CRITICAL CHECK: User already withdrew? (Double check)
+            if (hasUserWithdrawn || userWithdrawals.length > 0) {
                 msgDiv.innerHTML = `<div class="warning">
                     ⛔ आप पहले ही Withdrawal कर चुके हैं!<br>
                     📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।<br>
@@ -388,9 +395,44 @@
                 return; 
             }
             
+            isProcessing = true;
+            const withdrawBtn = document.getElementById('withdrawBtn');
+            withdrawBtn.disabled = true;
+            withdrawBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
             try {
+                // Double check: READ DATABASE AGAIN before writing
+                const checkSnapshot = await get(ref(db, 'users/' + currentUser.uid));
+                const freshUserData = checkSnapshot.val();
+                if (!freshUserData) throw new Error('User data not found');
+                
+                // Check if user already has any withdrawal in DB (real-time check)
+                const allWithdrawalsSnap = await get(ref(db, 'withdrawals'));
+                let existingWithdrawal = false;
+                allWithdrawalsSnap.forEach((childSnap) => {
+                    const data = childSnap.val();
+                    if (data.uid === currentUser.uid) {
+                        existingWithdrawal = true;
+                    }
+                });
+                
+                if (existingWithdrawal) {
+                    msgDiv.innerHTML = `<div class="warning">
+                        ⛔ आप पहले ही Withdrawal कर चुके हैं!<br>
+                        📌 प्रत्येक Account से केवल 1 बार Withdrawal किया जा सकता है।
+                    </div>`;
+                    showToast('❌ आप पहले ही Withdrawal कर चुके हैं!', 'error');
+                    return;
+                }
+                
                 // Update user balance
-                const updatedBal = currentBal - amount;
+                const currentFreshBal = freshUserData[walletType] || 0;
+                if (currentFreshBal < amount) { 
+                    msgDiv.innerHTML = '<div class="error">❌ Insufficient balance!</div>'; 
+                    return; 
+                }
+                
+                const updatedBal = currentFreshBal - amount;
                 await update(ref(db, 'users/' + currentUser.uid), { [walletType]: updatedBal });
                 
                 // Create withdrawal request
@@ -405,35 +447,37 @@
                     date: new Date().toISOString() 
                 });
                 
+                // Update local data
                 userData[walletType] = updatedBal;
                 updateBalanceDisplay();
                 
-                // Mark as withdrawn
-                hasUserWithdrawn = true;
-                document.getElementById('withdrawBtn').disabled = true;
-                document.getElementById('withdrawBtn').style.opacity = '0.5';
-                document.getElementById('withdrawBtn').style.cursor = 'not-allowed';
+                // Reload all data
+                await loadAllData();
                 
                 globalUsedAddresses.add(normalizedAddress);
-                
                 document.getElementById('address').value = '';
+                
                 const hint = document.getElementById('addressHint');
                 hint.innerHTML = '<i class="fas fa-info-circle"></i> Please enter your valid RND BEP20 wallet address';
                 hint.className = 'address-hint';
                 
-                showToast('✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है! Exchange Listing के बाद बाकी Coins Withdraw कर सकेंगे।', 'success');
-                await loadAllData();
-                
                 msgDiv.innerHTML = `<div class="success">
                     ✅ आपकी Withdrawal Request सफलतापूर्वक प्राप्त हो गई है!<br>
-                    ।<br>
+                    📌 यह आपका पहला और आखिरी Withdrawal है।<br>
                     ⏳ 2-3 दिनों में प्रोसेस हो जाएगा।<br>
                     🚀 <strong>Exchange Listing के बाद आप अपने बाकी RND Coins Withdraw कर सकेंगे।</strong>
                 </div>`;
                 
+                showToast('✅ Withdrawal Request सफल! Exchange Listing के बाद बाकी Coins Withdraw कर सकेंगे।', 'success');
+                
             } catch (error) { 
                 console.error("Error:", error); 
                 msgDiv.innerHTML = '<div class="error">❌ Something went wrong! Please try again.</div>'; 
+            } finally {
+                isProcessing = false;
+                withdrawBtn.disabled = false;
+                withdrawBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Request Withdrawal (1 RND)';
+                checkIfUserAlreadyWithdrawn();
             }
         });
         
