@@ -7,29 +7,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #0a0a0f; min-height: 100vh; overflow-x: hidden; }
-        
-        /* ===== BACKGROUND EFFECTS ===== */
         .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%); }
         .bg-glow { position: fixed; top: 20%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, rgba(102,126,234,0) 70%); z-index: -1; animation: floatGlow 10s ease-in-out infinite; }
         .bg-glow-2 { position: fixed; bottom: 10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, rgba(212,175,55,0) 70%); z-index: -1; animation: floatGlow 8s ease-in-out infinite reverse; }
         @keyframes floatGlow { 0%,100% { transform: translate(0,0); opacity: 0.5; } 50% { transform: translate(30px,-20px); opacity: 0.8; } }
-        
-        /* ===== CONTAINER & CARD ===== */
         .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .card { background: rgba(20,20,30,0.8); backdrop-filter: blur(20px); border-radius: 32px; padding: 48px 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(102,126,234,0.2); width: 100%; max-width: 500px; animation: slideUp 0.6s ease; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* ===== LOGO ===== */
         .logo { text-align: center; margin-bottom: 40px; }
         .logo-icon { width: 70px; height: 70px; background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2)); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(102,126,234,0.3); }
         .logo-icon i { font-size: 35px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo h1 { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo p { color: #9ca3af; font-size: 14px; margin-top: 8px; }
         
-        /* ===== BUTTONS ===== */
         .btn-google-main {
             width: 100%;
             padding: 16px;
@@ -48,9 +40,13 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-        .btn-google-main:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(102,126,234,0.3); background: #f8fafc; }
+        .btn-google-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(102,126,234,0.3); background: #f8fafc; }
         .btn-google-main i { color: #db4437; font-size: 22px; }
-        .btn-google-main:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; }
+        .form-group input { width: 100%; padding: 14px 16px 14px 48px; background: rgba(10,10,20,0.8); border: 1px solid rgba(102,126,234,0.2); border-radius: 16px; font-size: 15px; color: white; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
         
         .btn {
             width: 100%;
@@ -63,64 +59,25 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.3); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .btn .spinner { display: none; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        .btn.loading .spinner { display: inline-block; }
-        .btn.loading .btn-text { display: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102,126,234,0.3); }
         
-        /* ===== FORM ELEMENTS ===== */
-        .form-group { margin-bottom: 20px; position: relative; }
-        .form-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; font-size: 16px; z-index: 1; }
-        .form-group input { width: 100%; padding: 14px 16px 14px 48px; background: rgba(10,10,20,0.8); border: 1px solid rgba(102,126,234,0.2); border-radius: 16px; font-size: 15px; color: white; transition: all 0.3s; }
-        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-        .form-group input:disabled { opacity: 0.5; }
-        .form-group .toggle-password { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #6b7280; cursor: pointer; z-index: 2; }
-        .form-group .toggle-password:hover { color: #9ca3af; }
-        
-        /* ===== CHECKBOXES ===== */
-        .checkbox-group { display: flex; align-items: flex-start; gap: 12px; margin: 16px 0; }
-        .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: #667eea; cursor: pointer; }
-        .checkbox-group label { color: #9ca3af; font-size: 13px; line-height: 1.5; cursor: pointer; }
-        .checkbox-group label a { color: #a78bfa; text-decoration: none; }
-        .checkbox-group label a:hover { color: #c4b5fd; text-decoration: underline; }
-        
-        .remember-me-group { display: flex; align-items: center; gap: 10px; margin: 12px 0 20px; }
-        .remember-me-group input[type="checkbox"] { width: 16px; height: 16px; accent-color: #667eea; cursor: pointer; }
-        .remember-me-group label { color: #9ca3af; font-size: 13px; cursor: pointer; }
-        
-        /* ===== DIVIDER ===== */
         .divider { text-align: center; margin: 24px 0; position: relative; }
         .divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(102,126,234,0.2); }
         .divider span { background: rgba(20,20,30,0.8); padding: 0 15px; position: relative; color: #9ca3af; font-size: 12px; }
         
-        /* ===== MESSAGES ===== */
-        .message { margin-top: 20px; padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; animation: fadeIn 0.3s ease; display: none; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .message.show { display: block; }
+        .message { margin-top: 20px; padding: 14px; border-radius: 14px; text-align: center; font-size: 13px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .error { background: rgba(220,38,38,0.15); color: #f87171; border-left: 3px solid #ef4444; }
         .success { background: rgba(16,185,129,0.15); color: #34d399; border-left: 3px solid #10b981; }
         .info { background: rgba(59,130,246,0.15); color: #60a5fa; border-left: 3px solid #3b82f6; }
-        .warning { background: rgba(245,158,11,0.15); color: #fbbf24; border-left: 3px solid #f59e0b; }
         
-        /* ===== LINKS ===== */
         .link-text { text-align: center; margin-top: 28px; color: #9ca3af; font-size: 14px; }
         .link-text a { color: #a78bfa; text-decoration: none; font-weight: 500; cursor: pointer; transition: color 0.2s; }
         .link-text a:hover { color: #c4b5fd; }
-        
-        /* ===== FOOTER ===== */
         .footer-note { text-align: center; margin-top: 30px; font-size: 11px; color: #6b7280; }
         .footer-note i { margin-right: 5px; }
-        .footer-note .version { color: #4b5563; margin-top: 5px; }
         
-        /* ===== NOTIFICATION ===== */
         .notification-popup { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 4px solid #3b82f6; border-radius: 16px; padding: 16px 24px; max-width: 90%; width: 400px; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); animation: slideDown 0.4s ease-out; display: flex; align-items: center; gap: 15px; }
         @keyframes slideDown { from { top: -100px; opacity: 0; } to { top: 20px; opacity: 1; } }
         .notification-popup i { font-size: 28px; color: #3b82f6; }
@@ -128,40 +85,21 @@
         .notification-title { font-weight: 700; color: white; margin-bottom: 5px; }
         .notification-message { font-size: 12px; color: #94a3b8; line-height: 1.4; }
         .notification-close { cursor: pointer; color: #64748b; font-size: 18px; }
-        .notification-popup.error { border-left-color: #ef4444; }
-        .notification-popup.error i { color: #ef4444; }
-        .notification-popup.success { border-left-color: #10b981; }
-        .notification-popup.success i { color: #10b981; }
-        .notification-popup.warning { border-left-color: #f59e0b; }
-        .notification-popup.warning i { color: #f59e0b; }
         
-        /* ===== VERIFICATION BOX ===== */
+        @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
+        
         .verification-big-box {
             background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.15));
             border-radius: 20px;
-            padding: 24px;
+            padding: 20px;
             margin-top: 20px;
             text-align: center;
             border: 1px solid rgba(59,130,246,0.3);
         }
         .verification-big-box i { font-size: 40px; color: #60a5fa; margin-bottom: 12px; display: block; }
         .verification-big-box h4 { color: white; font-size: 18px; margin-bottom: 8px; }
-        .verification-big-box p { color: #cbd5e1; font-size: 13px; line-height: 1.6; }
-        .resend-link { color: #a78bfa; cursor: pointer; margin-top: 10px; display: inline-block; font-size: 14px; }
-        .resend-link:hover { color: #c4b5fd; text-decoration: underline; }
-        .resend-link .countdown { color: #6b7280; font-size: 12px; margin-left: 5px; }
-        
-        /* ===== PASSWORD STRENGTH ===== */
-        .password-strength { margin-top: 8px; height: 4px; border-radius: 2px; background: #1e293b; overflow: hidden; }
-        .password-strength .bar { height: 100%; width: 0%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
-        .password-strength-text { font-size: 11px; color: #6b7280; margin-top: 4px; }
-        
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 480px) { .card { padding: 32px 24px; } .logo h1 { font-size: 28px; } }
-        
-        /* ===== LOGIN ATTEMPT LOCK ===== */
-        .lock-message { background: rgba(245,158,11,0.15); color: #fbbf24; padding: 12px; border-radius: 12px; text-align: center; margin-top: 12px; font-size: 13px; display: none; }
-        .lock-message.show { display: block; }
+        .verification-big-box p { color: #cbd5e1; font-size: 13px; line-height: 1.5; }
+        .resend-link { color: #a78bfa; cursor: pointer; text-decoration: underline; margin-top: 10px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -171,7 +109,7 @@
     <div id="notificationContainer"></div>
 
     <div class="container">
-        <!-- ===== SIGNUP CARD ===== -->
+        <!-- SIGNUP CARD -->
         <div class="card" id="signupCard">
             <div class="logo"><div class="logo-icon"><i class="fab fa-google"></i></div><h1>RND Rewards</h1><p>Google se karein shuruaat · Fast & Secure</p></div>
             
@@ -181,27 +119,12 @@
             
             <div class="divider"><span>या फिर Email se sign up karein</span></div>
             
-            <form id="signupForm" novalidate>
-                <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required minlength="2" maxlength="50"></div>
+            <form id="signupForm">
+                <div class="form-group"><i class="fas fa-user"></i><input type="text" id="name" placeholder="Full Name" required></div>
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="email" placeholder="Email Address" required></div>
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="password" placeholder="Password (min 8 characters)" required minlength="8">
-                    <i class="fas fa-eye toggle-password" id="toggleSignupPassword"></i>
-                </div>
-                <div class="password-strength"><div class="bar" id="passwordStrengthBar"></div></div>
-                <div class="password-strength-text" id="passwordStrengthText"></div>
-                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off" maxlength="20"></div>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="termsCheckbox" required>
-                    <label for="termsCheckbox">I agree to the <a href="#" onclick="showTerms()">Terms & Conditions</a> and <a href="#" onclick="showPrivacy()">Privacy Policy</a></label>
-                </div>
-                
-                <button type="submit" class="btn" id="signupBtn">
-                    <span class="spinner"></span>
-                    <span class="btn-text"><i class="fas fa-envelope"></i> Email se Sign Up karein</span>
-                </button>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password (min 6 characters)" required></div>
+                <div class="form-group"><i class="fas fa-gift"></i><input type="text" id="referralCode" placeholder="Referral Code (Optional)" autocomplete="off"></div>
+                <button type="submit" class="btn"><i class="fas fa-envelope"></i> Email se Sign Up karein</button>
             </form>
             
             <div id="message" class="message"></div>
@@ -211,16 +134,13 @@
                 <p>Verification link bhej di gayi hai <strong id="verifyEmailDisplay"></strong> par<br><br>
                 📌 Please check your <strong style="color:#60a5fa;">Inbox</strong> or <strong style="color:#fbbf24;">Spam / Junk folder</strong><br><br>
                 🔗 Click the verification link to activate your account.</p>
-                <div class="resend-link" id="resendBtn"><i class="fas fa-redo-alt"></i> Resend verification email <span class="countdown" id="resendCountdown"></span></div>
+                <div class="resend-link" id="resendBtn"><i class="fas fa-redo-alt"></i> Resend verification email</div>
             </div>
             <div class="link-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
-            <div class="footer-note">
-                <i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support
-                <div class="version">RND Rewards v2.1</div>
-            </div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
 
-        <!-- ===== LOGIN CARD ===== -->
+        <!-- LOGIN CARD -->
         <div class="card" id="loginCard" style="display:none;">
             <div class="logo"><div class="logo-icon"><i class="fab fa-google"></i></div><h1>Welcome Back</h1><p>Google se direct login karein</p></div>
             
@@ -230,83 +150,36 @@
             
             <div class="divider"><span>या फिर Email se login karein</span></div>
             
-            <form id="loginForm" novalidate>
+            <form id="loginForm">
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="Email Address" required></div>
-                <div class="form-group">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" id="loginPassword" placeholder="Password" required>
-                    <i class="fas fa-eye toggle-password" id="toggleLoginPassword"></i>
-                </div>
-                
-                <div class="remember-me-group">
-                    <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe">Remember Me</label>
-                </div>
-                
-                <div id="loginLockMessage" class="lock-message">
-                    <i class="fas fa-clock"></i> Too many failed attempts. Please wait <span id="lockTimer">0</span> seconds.
-                </div>
-                
-                <button type="submit" class="btn" id="loginBtn">
-                    <span class="spinner"></span>
-                    <span class="btn-text"><i class="fas fa-arrow-right"></i> Email se Sign In</span>
-                </button>
+                <div class="form-group"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="Password" required></div>
+                <button type="submit" class="btn"><i class="fas fa-arrow-right"></i> Email se Sign In</button>
             </form>
             
             <div id="loginMessage" class="message"></div>
             <div class="link-text"><a onclick="showForgotPassword()">Forgot Password?</a></div>
             <div class="link-text">New user? <a onclick="showSignup()">Create Account</a></div>
-            <div class="footer-note">
-                <i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support
-                <div class="version">RND Rewards v2.1</div>
-            </div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
 
-        <!-- ===== FORGOT PASSWORD ===== -->
+        <!-- FORGOT PASSWORD -->
         <div class="card" id="forgotCard" style="display:none;">
             <div class="logo"><div class="logo-icon"><i class="fas fa-key"></i></div><h1>Reset Password</h1><p>Enter your email to reset password</p></div>
-            <form id="forgotForm" novalidate>
+            <form id="forgotForm">
                 <div class="form-group"><i class="fas fa-envelope"></i><input type="email" id="forgotEmail" placeholder="Email Address" required></div>
-                <button type="submit" class="btn" id="forgotBtn">
-                    <span class="spinner"></span>
-                    <span class="btn-text"><i class="fas fa-paper-plane"></i> Send Reset Link</span>
-                </button>
+                <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
             </form>
             <div id="forgotMessage" class="message"></div>
             <div class="link-text"><a onclick="showLogin()">Back to Sign In</a></div>
-            <div class="footer-note">
-                <i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support
-                <div class="version">RND Rewards v2.1</div>
-            </div>
+            <div class="footer-note"><i class="fas fa-shield-alt"></i> Secure Platform | 24/7 Support</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            sendPasswordResetEmail, 
-            sendEmailVerification, 
-            applyActionCode, 
-            GoogleAuthProvider, 
-            signInWithPopup, 
-            onAuthStateChanged, 
-            fetchSignInMethodsForEmail,
-            signOut,
-            updateProfile,
-            setPersistence,
-            browserLocalPersistence,
-            browserSessionPersistence,
-            inMemoryPersistence,
-            reload
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, update, child, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, applyActionCode, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // ============================================================
-        // 🔧 FIREBASE CONFIG
-        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
             authDomain: "randigital-e7715.firebaseapp.com",
@@ -323,449 +196,118 @@
         const db = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const actionCodeSettings = { 
-            url: 'https://app.randigital.in/dashboard.html', 
-            handleCodeInApp: true 
-        };
+        const actionCodeSettings = { url: 'https://app.randigital.in/dashboard.html', handleCodeInApp: true };
 
-        // ============================================================
-        // 🔐 SECURE SESSION MANAGEMENT - NO SENSITIVE DATA IN LOCALSTORAGE
-        // ============================================================
-        // ✅ ONLY store: theme, language, rememberMe (preferences only)
-        // ❌ NEVER store: userId, email, name, sessionActive, loginTime
-        
-        const STORAGE_KEYS = {
-            THEME: 'rnd_theme',
-            LANGUAGE: 'rnd_language',
-            REMEMBER_ME: 'rnd_remember_me',
-            SESSION_TOKEN: 'rnd_session_token'  // Random token, not user data
-        };
-
-        // ============================================================
-        // 🔐 LOGIN ATTEMPT TRACKING (In-memory only, not stored)
-        // ============================================================
-        const loginAttempts = new Map(); // email -> { count, firstAttempt, lockedUntil }
-        const MAX_ATTEMPTS = 5;
-        const LOCKOUT_DURATION = 10 * 60 * 1000; // 10 minutes
-
-        function checkLoginLock(email) {
-            const record = loginAttempts.get(email);
-            if (!record) return { locked: false };
-            
-            if (record.lockedUntil && Date.now() < record.lockedUntil) {
-                return { 
-                    locked: true, 
-                    remaining: Math.ceil((record.lockedUntil - Date.now()) / 1000) 
-                };
-            }
-            
-            // Lock expired, reset
-            if (record.lockedUntil && Date.now() >= record.lockedUntil) {
-                loginAttempts.delete(email);
-                return { locked: false };
-            }
-            
-            return { locked: false };
-        }
-
-        function recordFailedAttempt(email) {
-            const record = loginAttempts.get(email) || { count: 0, firstAttempt: Date.now() };
-            record.count++;
-            
-            if (record.count >= MAX_ATTEMPTS) {
-                record.lockedUntil = Date.now() + LOCKOUT_DURATION;
-                // Don't delete, keep locked
-                loginAttempts.set(email, record);
-                return { locked: true, remaining: LOCKOUT_DURATION / 1000 };
-            }
-            
-            loginAttempts.set(email, record);
-            return { locked: false, attemptsLeft: MAX_ATTEMPTS - record.count };
-        }
-
-        function resetLoginAttempts(email) {
-            loginAttempts.delete(email);
-        }
-
-        // ============================================================
-        // 🔐 IDLE TIMEOUT - 30 minutes of inactivity
-        // ============================================================
-        let idleTimer = null;
-        let idleTimeout = 30 * 60 * 1000; // 30 minutes
-        let isIdle = false;
-
-        function resetIdleTimer() {
-            if (idleTimer) {
-                clearTimeout(idleTimer);
-                idleTimer = null;
-            }
-            if (isIdle) {
-                isIdle = false;
-            }
-            // Only start timer if user is logged in
-            if (auth.currentUser) {
-                idleTimer = setTimeout(() => {
-                    isIdle = true;
-                    handleIdleLogout();
-                }, idleTimeout);
-            }
-        }
-
-        function handleIdleLogout() {
-            if (auth.currentUser) {
-                showNotification('Session Expired', 'You were inactive for 30 minutes. Please login again.', 'warning');
-                signOut(auth);
-                // Clear session token
-                localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-            }
-        }
-
-        // Reset idle timer on user activity
-        document.addEventListener('mousemove', resetIdleTimer);
-        document.addEventListener('keydown', resetIdleTimer);
-        document.addEventListener('scroll', resetIdleTimer);
-        document.addEventListener('click', resetIdleTimer);
-        document.addEventListener('touchstart', resetIdleTimer);
-
-        // ============================================================
-        // 🔐 SESSION TOKEN MANAGEMENT
-        // ============================================================
-        function generateSessionToken() {
-            return 'rnd_' + Date.now() + '_' + Math.random().toString(36).substring(2, 15);
-        }
-
-        async function validateSessionToken(user) {
-            try {
-                const userRef = ref(db, 'users/' + user.uid);
-                const snapshot = await get(userRef);
-                if (!snapshot.exists()) return false;
-                
-                const userData = snapshot.val();
-                const storedToken = userData.sessionToken;
-                const currentToken = localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN);
-                
-                // If no token stored, or token doesn't match - session invalid
-                if (!storedToken || !currentToken || storedToken !== currentToken) {
-                    return false;
-                }
-                
-                // Check if token is expired (max 24 hours)
-                const tokenTime = parseInt(currentToken.split('_')[1]);
-                if (Date.now() - tokenTime > 24 * 60 * 60 * 1000) {
-                    return false;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error("Session validation error:", error);
-                return false;
-            }
-        }
-
-        async function createSession(user) {
-            const token = generateSessionToken();
-            localStorage.setItem(STORAGE_KEYS.SESSION_TOKEN, token);
-            
-            await update(ref(db, 'users/' + user.uid), {
-                sessionToken: token,
-                sessionCreated: serverTimestamp(),
-                lastActive: serverTimestamp()
-            });
-            
-            return token;
-        }
-
-        async function clearSession(user) {
-            localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-            if (user) {
-                await update(ref(db, 'users/' + user.uid), {
-                    sessionToken: null
-                });
-            }
-        }
-
-        // ============================================================
-        // 🔐 AUTH STATE MANAGER - SECURE
-        // ============================================================
-        let authStateChecked = false;
-        let sessionValidationInterval = null;
-
+        // ========== CRITICAL: AUTO REDIRECT TO DASHBOARD IF VERIFIED ==========
         onAuthStateChanged(auth, async (user) => {
-            if (authStateChecked && !user) return;
-            
-            if (user) {
-                // Check if user is verified
-                await reload(user);
-                if (!user.emailVerified) {
-                    showNotification('Email Not Verified', 'Please verify your email to continue.', 'error');
-                    await signOut(auth);
-                    localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-                    return;
-                }
-                
-                // Validate session token
-                const isValid = await validateSessionToken(user);
-                if (!isValid) {
-                    showNotification('Session Invalid', 'Please login again.', 'warning');
-                    await signOut(auth);
-                    localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-                    return;
-                }
-                
-                // Get user data from DB (not from localStorage)
+            if (user && user.emailVerified) {
                 try {
                     const userRef = ref(db, 'users/' + user.uid);
                     const snapshot = await get(userRef);
+                    let userData = snapshot.val();
                     
-                    if (!snapshot.exists()) {
-                        // User in Auth but not in DB - this shouldn't happen normally
-                        // Create basic entry (will be completed on first login)
-                        await saveUserToDatabase(user, user.displayName || user.email.split('@')[0], null, true);
-                    } else {
-                        const userData = snapshot.val();
-                        
-                        // Check account status
-                        if (userData.status !== 'active') {
-                            showNotification('Account Blocked', 'Contact support for assistance.', 'error');
-                            await signOut(auth);
-                            localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-                            return;
+                    if (!userData) {
+                        // User exists in Auth but not in DB (rare case from verification)
+                        const pendingRef = ref(db, 'pending_users/' + user.uid);
+                        const pendingSnap = await get(pendingRef);
+                        let name = user.displayName || user.email.split('@')[0];
+                        let referralUsed = null;
+                        if (pendingSnap.exists()) {
+                            name = pendingSnap.val().name || name;
+                            referralUsed = pendingSnap.val().referralCode;
+                            await set(pendingRef, null);
                         }
-                        
-                        // Update last active
-                        await update(ref(db, 'users/' + user.uid), {
-                            lastActive: serverTimestamp(),
-                            lastActiveDevice: navigator.userAgent || 'unknown'
-                        });
+                        await saveUserToDatabase(user, name, referralUsed, true);
+                        userData = { name: name, referralCode: generateReferralCode(user.uid), status: 'active' };
                     }
                     
-                    authStateChecked = true;
-                    
-                    // Reset idle timer
-                    resetIdleTimer();
-                    
-                    // Start session validation interval (check every 30 seconds)
-                    if (sessionValidationInterval) {
-                        clearInterval(sessionValidationInterval);
+                    if (userData && userData.status === 'active') {
+                        localStorage.setItem('userReferralCode', userData.referralCode);
+                        localStorage.setItem('userName', userData.name);
+                        localStorage.setItem('userId', user.uid);
+                        localStorage.setItem('userEmail', user.email);
+                        localStorage.setItem('userVerified', 'true');
+                        
+                        // DIRECT REDIRECT - NO GOING BACK
+                        window.location.replace('dashboard.html');
                     }
-                    sessionValidationInterval = setInterval(async () => {
-                        const isValid = await validateSessionToken(user);
-                        if (!isValid) {
-                            showNotification('Session Invalid', 'Please login again.', 'warning');
-                            await signOut(auth);
-                            localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-                            if (sessionValidationInterval) {
-                                clearInterval(sessionValidationInterval);
-                                sessionValidationInterval = null;
-                            }
-                        }
-                    }, 30000);
-                    
-                    // Redirect to dashboard
-                    window.location.replace('dashboard.html');
-                    
                 } catch (error) {
                     console.error("Auth state error:", error);
-                    showNotification('Error', 'Something went wrong. Please try again.', 'error');
-                }
-            } else {
-                // User is signed out
-                authStateChecked = true;
-                localStorage.removeItem(STORAGE_KEYS.SESSION_TOKEN);
-                if (sessionValidationInterval) {
-                    clearInterval(sessionValidationInterval);
-                    sessionValidationInterval = null;
-                }
-                if (idleTimer) {
-                    clearTimeout(idleTimer);
-                    idleTimer = null;
                 }
             }
         });
 
-        // ============================================================
-        // 🔐 UTILITY FUNCTIONS
-        // ============================================================
-        function showNotification(title, message, type = 'info') {
+        function showNotification(title, message) {
             const container = document.getElementById('notificationContainer');
             const popup = document.createElement('div');
-            const icons = { info: 'fa-info-circle', error: 'fa-exclamation-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle' };
-            popup.className = `notification-popup ${type}`;
-            popup.innerHTML = `
-                <i class="fas ${icons[type] || icons.info}"></i>
-                <div class="notification-content">
-                    <div class="notification-title">${title}</div>
-                    <div class="notification-message">${message}</div>
-                </div>
-                <i class="fas fa-times notification-close" onclick="this.parentElement.remove()"></i>
-            `;
+            popup.className = 'notification-popup';
+            popup.innerHTML = `<i class="fas fa-envelope"></i><div class="notification-content"><div class="notification-title">${title}</div><div class="notification-message">${message}</div></div><i class="fas fa-times notification-close" onclick="this.parentElement.remove()"></i>`;
             container.appendChild(popup);
-            setTimeout(() => { if (popup.parentElement) popup.remove(); }, 8000);
+            setTimeout(() => popup.remove(), 8000);
         }
 
-        function showMessage(elementId, message, type = 'info') {
-            const el = document.getElementById(elementId);
-            el.className = `message show ${type}`;
-            el.innerHTML = message;
-        }
+        function getReferralCodeFromURL() { return new URLSearchParams(window.location.search).get('ref'); }
+        function setReferralCodeFromURL() { const refCode = getReferralCodeFromURL(); if (refCode) document.getElementById('referralCode').value = refCode.toUpperCase(); }
+        function generateReferralCode(userId) { return userId.substring(0, 8).toUpperCase(); }
 
-        function hideMessage(elementId) {
-            const el = document.getElementById(elementId);
-            el.className = 'message';
-            el.innerHTML = '';
-        }
-
-        function setLoading(buttonId, loading) {
-            const btn = document.getElementById(buttonId);
-            if (loading) {
-                btn.classList.add('loading');
-                btn.disabled = true;
-            } else {
-                btn.classList.remove('loading');
-                btn.disabled = false;
-            }
-        }
-
-        function getReferralCodeFromURL() { 
-            return new URLSearchParams(window.location.search).get('ref'); 
-        }
-
-        function setReferralCodeFromURL() { 
-            const refCode = getReferralCodeFromURL(); 
-            if (refCode) document.getElementById('referralCode').value = refCode.toUpperCase(); 
-        }
-
-        // 🔐 GENERATE SECURE RANDOM REFERRAL CODE (8 characters, RND prefix)
-        function generateSecureReferralCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = 'RND';
-            for (let i = 0; i < 5; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-
-        function validatePassword(password) {
-            const minLength = 8;
-            const hasUpperCase = /[A-Z]/.test(password);
-            const hasLowerCase = /[a-z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-            const strength = [hasUpperCase, hasLowerCase, hasNumber, hasSpecial].filter(Boolean).length;
-            return { valid: password.length >= minLength, strength, hasUpperCase, hasLowerCase, hasNumber, hasSpecial };
-        }
-
-        // ============================================================
-        // 🔐 SAVE USER TO DATABASE
-        // ============================================================
         async function saveUserToDatabase(user, name, referralCodeFromInput, isEmailVerified = false) {
-            const userReferralCode = generateSecureReferralCode();
+            const userReferralCode = generateReferralCode(user.uid);
             let referredBy = null, level1Referrer = null, level2Referrer = null;
-            
-            // Validate referral code if provided
             if (referralCodeFromInput) {
                 const usersRef = ref(db, 'users');
                 const snapshot = await get(usersRef);
                 const users = snapshot.val();
                 if (users) {
-                    let found = false;
                     for (let uid in users) {
                         if (users[uid].referralCode === referralCodeFromInput.toUpperCase()) {
-                            if (uid === user.uid) {
-                                throw new Error('Self referral is not allowed!');
-                            }
                             referredBy = uid;
-                            found = true;
                             if (users[uid].referredBy) {
                                 level1Referrer = users[uid].referredBy;
-                                if (users[level1Referrer] && users[level1Referrer].referredBy) {
-                                    level2Referrer = users[level1Referrer].referredBy;
-                                }
+                                if (users[level1Referrer] && users[level1Referrer].referredBy) level2Referrer = users[level1Referrer].referredBy;
                             }
                             break;
                         }
                     }
-                    if (!found && referralCodeFromInput) {
-                        throw new Error('Invalid referral code!');
-                    }
                 }
             }
             
-            const sessionToken = generateSessionToken();
-            
             const userData = {
-                name: name || user.displayName || user.email.split('@')[0],
-                email: user.email,
-                userId: user.uid,
-                referralCode: userReferralCode,
-                referredBy: referredBy || null,
-                referralWallet: referredBy ? 1 : 0,
-                spinWallet: 0,
-                totalEarned: referredBy ? 1 : 0,
-                totalWithdrawn: 0,
-                status: 'active',
-                emailVerified: isEmailVerified,
-                createdAt: new Date().toISOString(),
-                lastActive: new Date().toISOString(),
-                lastActiveDevice: navigator.userAgent || 'unknown',
-                sessionToken: sessionToken,
-                sessionCreated: new Date().toISOString(),
-                socialTasks: {}
+                name, email: user.email, userId: user.uid, referralCode: userReferralCode,
+                referredBy: referredBy || null, referralWallet: referredBy ? 1 : 0, spinWallet: 0,
+                totalEarned: referredBy ? 1 : 0, totalWithdrawn: 0, status: 'active',
+                emailVerified: isEmailVerified, createdAt: new Date().toISOString(), socialTasks: {}
             };
-            
             await set(ref(db, 'users/' + user.uid), userData);
             await set(ref(db, 'referrals/' + user.uid), { level1: [], level2: [] });
             
-            // Store session token
-            localStorage.setItem(STORAGE_KEYS.SESSION_TOKEN, sessionToken);
-            
-            // Process referral rewards
             if (referredBy) {
-                // Level 1 reward (2 coins)
                 const referrerRef = ref(db, 'users/' + referredBy);
                 const referrerSnap = await get(referrerRef);
                 if (referrerSnap.exists()) {
                     const referrer = referrerSnap.val();
-                    await update(ref(db, 'users/' + referredBy), { 
-                        referralWallet: (referrer.referralWallet || 0) + 2, 
-                        totalEarned: (referrer.totalEarned || 0) + 2 
-                    });
+                    await update(ref(db, 'users/' + referredBy), { referralWallet: (referrer.referralWallet || 0) + 2, totalEarned: (referrer.totalEarned || 0) + 2 });
                     const level1Ref = ref(db, 'referrals/' + referredBy + '/level1');
                     const level1Data = await get(level1Ref);
                     let level1List = level1Data.val() || [];
-                    if (!level1List.includes(user.uid)) {
-                        level1List.push(user.uid);
-                        await set(level1Ref, level1List);
-                    }
+                    if (!level1List.includes(user.uid)) { level1List.push(user.uid); await set(level1Ref, level1List); }
                 }
-                
-                // Level 2 reward (1 coin)
                 if (level1Referrer) {
                     const level2UserRef = ref(db, 'users/' + level1Referrer);
                     const level2Snap = await get(level2UserRef);
                     if (level2Snap.exists()) {
                         const level2User = level2Snap.val();
-                        await update(ref(db, 'users/' + level1Referrer), { 
-                            referralWallet: (level2User.referralWallet || 0) + 1, 
-                            totalEarned: (level2User.totalEarned || 0) + 1 
-                        });
+                        await update(ref(db, 'users/' + level1Referrer), { referralWallet: (level2User.referralWallet || 0) + 1, totalEarned: (level2User.totalEarned || 0) + 1 });
                         const level2ListRef = ref(db, 'referrals/' + level1Referrer + '/level2');
                         const level2ListData = await get(level2ListRef);
                         let level2List = level2ListData.val() || [];
-                        if (!level2List.includes(user.uid)) {
-                            level2List.push(user.uid);
-                            await set(level2ListRef, level2List);
-                        }
+                        if (!level2List.includes(user.uid)) { level2List.push(user.uid); await set(level2ListRef, level2List); }
                     }
                 }
             }
-            
             return userReferralCode;
         }
 
-        // ============================================================
-        // 🔐 VERIFICATION LINK HANDLER
-        // ============================================================
+        // ========== VERIFICATION LINK HANDLER - DIRECT DASHBOARD ==========
         async function handleEmailVerification() {
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode');
@@ -773,12 +315,19 @@
             
             if (mode === 'verifyEmail' && oobCode) {
                 try {
-                    showNotification('Verifying Email', 'Please wait, verifying your email...', 'info');
-                    await applyActionCode(auth, oobCode);
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    showNotification('Verifying Email', 'Please wait, verifying your email...');
                     
+                    // Apply verification code
+                    await applyActionCode(auth, oobCode);
+                    
+                    // Wait for Firebase to process
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Get current user
                     const user = auth.currentUser;
+                    
                     if (user && user.emailVerified) {
+                        // Check if user exists in DB, if not create
                         const userRef = ref(db, 'users/' + user.uid);
                         const snapshot = await get(userRef);
                         
@@ -786,6 +335,7 @@
                         let referralUsed = null;
                         
                         if (!snapshot.exists()) {
+                            // Get from pending
                             const pendingRef = ref(db, 'pending_users/' + user.uid);
                             const pendingSnap = await get(pendingRef);
                             if (pendingSnap.exists()) {
@@ -795,443 +345,193 @@
                             }
                             await saveUserToDatabase(user, name, referralUsed, true);
                         } else {
+                            // Update emailVerified flag
                             await update(ref(db, 'users/' + user.uid), { emailVerified: true });
                         }
                         
-                        // Create session
-                        await createSession(user);
+                        // Store in localStorage
+                        localStorage.setItem('userReferralCode', generateReferralCode(user.uid));
+                        localStorage.setItem('userName', name);
+                        localStorage.setItem('userId', user.uid);
+                        localStorage.setItem('userEmail', user.email);
+                        localStorage.setItem('userVerified', 'true');
                         
-                        showNotification('✅ Email Verified!', 'Redirecting to dashboard...', 'success');
-                        setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
+                        showNotification('✅ Email Verified!', 'Redirecting to dashboard...');
+                        
+                        // DIRECT REDIRECT TO DASHBOARD
+                        setTimeout(() => {
+                            window.location.replace('dashboard.html');
+                        }, 1000);
                     } else {
-                        showNotification('Verification Complete', 'Please login to continue.', 'info');
+                        showNotification('Verification Complete', 'Please login to continue.');
                         showLogin();
                     }
                 } catch (error) {
                     console.error("Verification error:", error);
-                    showNotification('Verification Failed', 'Link may have expired. Please try again.', 'error');
+                    showNotification('Verification Failed', 'Link may have expired. Please try again.', true);
                     showLogin();
                 }
             }
         }
 
-        // ============================================================
-        // 🔐 UI NAVIGATION
-        // ============================================================
         window.showLogin = function() {
             document.getElementById('signupCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('forgotCard').style.display = 'none';
             document.getElementById('verificationBox').style.display = 'none';
-            hideMessage('loginMessage');
-            document.getElementById('loginLockMessage').classList.remove('show');
         };
-        
         window.showSignup = function() {
             document.getElementById('signupCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'none';
             document.getElementById('verificationBox').style.display = 'none';
-            hideMessage('message');
             setReferralCodeFromURL();
         };
-        
         window.showForgotPassword = function() {
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('forgotCard').style.display = 'block';
-            hideMessage('forgotMessage');
         };
-
-        window.showTerms = function() {
-            showNotification('Terms & Conditions', 'By using RND Rewards, you agree to our terms of service.', 'info');
-        };
-
-        window.showPrivacy = function() {
-            showNotification('Privacy Policy', 'Your data is secure with us. We never share your information.', 'info');
-        };
-
         setReferralCodeFromURL();
 
-        // ============================================================
-        // 🔐 PASSWORD STRENGTH INDICATOR
-        // ============================================================
-        document.getElementById('password')?.addEventListener('input', function() {
-            const result = validatePassword(this.value);
-            const bar = document.getElementById('passwordStrengthBar');
-            const text = document.getElementById('passwordStrengthText');
-            const strengthMap = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-            const colorMap = ['#ef4444', '#f59e0b', '#fbbf24', '#34d399', '#10b981'];
-            const score = result.strength;
-            bar.style.width = `${(score / 4) * 100}%`;
-            bar.style.background = colorMap[score] || '#6b7280';
-            text.textContent = this.value.length > 0 ? `Strength: ${strengthMap[score] || 'Weak'}` : '';
-            text.style.color = colorMap[score] || '#6b7280';
-        });
-
-        // ============================================================
-        // 🔐 TOGGLE PASSWORD VISIBILITY
-        // ============================================================
-        document.querySelectorAll('.toggle-password').forEach(el => {
-            el.addEventListener('click', function() {
-                const input = this.parentElement.querySelector('input');
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    this.classList.replace('fa-eye', 'fa-eye-slash');
-                } else {
-                    input.type = 'password';
-                    this.classList.replace('fa-eye-slash', 'fa-eye');
-                }
-            });
-        });
-
-        // ============================================================
-        // 🔐 EMAIL SIGNUP
-        // ============================================================
+        // ========== EMAIL SIGNUP ==========
         document.getElementById('signupForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const referralCode = document.getElementById('referralCode').value.trim();
-            const termsChecked = document.getElementById('termsCheckbox').checked;
+            const referralCode = document.getElementById('referralCode').value;
+            const messageDiv = document.getElementById('message');
+            const verificationBox = document.getElementById('verificationBox');
+            const emailSpan = document.getElementById('verifyEmailDisplay');
             
-            hideMessage('message');
-            
-            if (!termsChecked) {
-                showMessage('message', 'Please agree to Terms & Conditions.', 'error');
-                return;
+            if (password.length < 6) { 
+                messageDiv.innerHTML = '<div class="error">Password must be at least 6 characters!</div>'; 
+                return; 
             }
             
-            const passwordCheck = validatePassword(password);
-            if (!passwordCheck.valid) {
-                showMessage('message', 'Password must be at least 8 characters long.', 'error');
-                return;
-            }
-            
-            if (passwordCheck.strength < 2) {
-                showMessage('message', 'Password is too weak. Use uppercase, lowercase, numbers, and special characters.', 'error');
-                return;
-            }
-            
-            setLoading('signupBtn', true);
-            
+            // CHECK IF EMAIL ALREADY EXISTS
             try {
                 const methods = await fetchSignInMethodsForEmail(auth, email);
                 if (methods.length > 0) {
-                    showMessage('message', '🚫 This email is already registered! Please login instead.', 'error');
-                    setLoading('signupBtn', false);
+                    messageDiv.innerHTML = '<div class="error">🚫 This email is already registered! Please login instead.</div>';
                     return;
                 }
-                
+            } catch (err) {
+                console.warn("Email check error:", err);
+            }
+            
+            try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                
-                await updateProfile(user, { displayName: name });
                 await sendEmailVerification(user, actionCodeSettings);
                 await saveUserToDatabase(user, name, referralCode, false);
-                await set(ref(db, 'pending_users/' + user.uid), { name, referralCode: referralCode || null });
                 
-                await signOut(auth);
+                emailSpan.innerText = email;
+                verificationBox.style.display = 'block';
+                messageDiv.innerHTML = '';
+                showNotification('📧 Verification Email Sent!', `Check ${email} inbox or spam folder`);
                 
-                document.getElementById('verifyEmailDisplay').innerText = email;
-                document.getElementById('verificationBox').style.display = 'block';
-                
-                let cooldown = 60;
-                const countdownEl = document.getElementById('resendCountdown');
+                // Resend button handler
                 const resendBtn = document.getElementById('resendBtn');
-                
-                function updateCountdown() {
-                    if (cooldown > 0) {
-                        countdownEl.textContent = `(${cooldown}s)`;
-                        cooldown--;
-                        setTimeout(updateCountdown, 1000);
-                    } else {
-                        countdownEl.textContent = '';
-                    }
-                }
-                updateCountdown();
-                
                 const newResend = resendBtn.cloneNode(true);
                 resendBtn.parentNode.replaceChild(newResend, resendBtn);
                 newResend.onclick = async () => {
-                    if (cooldown > 0) {
-                        showNotification('Wait', `Please wait ${cooldown} seconds before resending.`, 'warning');
-                        return;
-                    }
-                    try {
-                        await auth.signInWithEmailAndPassword(email, password);
-                        await sendEmailVerification(auth.currentUser, actionCodeSettings);
-                        await signOut(auth);
-                        showNotification('📧 Resent!', 'Verification email resent. Check spam folder.', 'success');
-                        cooldown = 60;
-                        updateCountdown();
-                    } catch (err) {
-                        showNotification('Error', 'Failed to resend. Please try again later.', 'error');
-                    }
+                    await sendEmailVerification(user, actionCodeSettings);
+                    showNotification('📧 Resent!', 'Verification email resent. Check spam folder.');
                 };
                 
-                showNotification('📧 Verification Email Sent!', `Check ${email} inbox or spam folder`, 'info');
-                setLoading('signupBtn', false);
+                // Sign out until verification
+                await auth.signOut();
                 
             } catch (error) {
                 if (error.code === 'auth/email-already-in-use') {
-                    showMessage('message', 'Email already registered! Please login.', 'error');
-                } else if (error.code === 'auth/weak-password') {
-                    showMessage('message', 'Password is too weak. Use at least 8 characters with mix of letters, numbers, and symbols.', 'error');
-                } else if (error.message && error.message.includes('referral')) {
-                    showMessage('message', error.message, 'error');
+                    messageDiv.innerHTML = '<div class="error">Email already registered! Please login.</div>';
                 } else {
-                    showMessage('message', error.message || 'Something went wrong. Please try again.', 'error');
+                    messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
                 }
-                setLoading('signupBtn', false);
             }
         });
 
-        // ============================================================
-        // 🔐 EMAIL LOGIN
-        // ============================================================
+        // ========== EMAIL LOGIN ==========
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
+            const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            hideMessage('loginMessage');
-            document.getElementById('loginLockMessage').classList.remove('show');
-            
-            // Check login lock
-            const lockStatus = checkLoginLock(email);
-            if (lockStatus.locked) {
-                document.getElementById('loginLockMessage').classList.add('show');
-                document.getElementById('lockTimer').textContent = lockStatus.remaining || 0;
-                showNotification('Account Locked', `Too many failed attempts. Please wait ${Math.ceil(lockStatus.remaining / 60)} minutes.`, 'warning');
-                return;
-            }
-            
-            setLoading('loginBtn', true);
-            
+            const messageDiv = document.getElementById('loginMessage');
             try {
-                // Set persistence based on remember me
-                await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-                
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                
-                // Reset login attempts on success
-                resetLoginAttempts(email);
-                
-                await reload(user);
                 if (!user.emailVerified) {
                     await sendEmailVerification(user, actionCodeSettings);
-                    showMessage('loginMessage', '❌ Email not verified! A new verification link has been sent. Check your email.', 'error');
-                    await signOut(auth);
-                    setLoading('loginBtn', false);
+                    messageDiv.innerHTML = '<div class="error">❌ Email not verified! A new verification link has been sent. Check your email.</div>';
                     return;
                 }
-                
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
-                
-                if (!snapshot.exists()) {
-                    showMessage('loginMessage', 'Account not found. Please sign up.', 'error');
-                    await signOut(auth);
-                    setLoading('loginBtn', false);
-                    return;
-                }
-                
                 const userData = snapshot.val();
-                if (userData.status !== 'active') {
-                    showMessage('loginMessage', 'Account is blocked. Contact support.', 'error');
-                    await signOut(auth);
-                    setLoading('loginBtn', false);
-                    return;
+                if (userData && userData.status === 'active') {
+                    localStorage.setItem('userReferralCode', userData.referralCode);
+                    localStorage.setItem('userName', userData.name);
+                    localStorage.setItem('userId', user.uid);
+                    localStorage.setItem('userEmail', email);
+                    messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
+                    setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
+                } else { 
+                    messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; 
                 }
-                
-                // Create session
-                await createSession(user);
-                
-                // Update last active
-                await update(ref(db, 'users/' + user.uid), { 
-                    lastActive: new Date().toISOString(),
-                    lastActiveDevice: navigator.userAgent || 'unknown'
-                });
-                
-                // Store remember me preference only
-                localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, rememberMe ? 'true' : 'false');
-                
-                showMessage('loginMessage', '✅ Login successful! Redirecting...', 'success');
-                setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
-                
             } catch (error) {
-                // Record failed attempt
-                const attemptResult = recordFailedAttempt(email);
-                if (attemptResult.locked) {
-                    document.getElementById('loginLockMessage').classList.add('show');
-                    document.getElementById('lockTimer').textContent = Math.ceil(attemptResult.remaining);
-                    showMessage('loginMessage', `Too many failed attempts. Please wait ${Math.ceil(attemptResult.remaining / 60)} minutes.`, 'error');
-                }
-                
-                let message = 'Something went wrong. Please try again.';
-                if (error.code === 'auth/user-not-found') {
-                    message = 'No account found. Please sign up.';
-                } else if (error.code === 'auth/wrong-password') {
-                    const left = attemptResult.attemptsLeft || MAX_ATTEMPTS;
-                    message = `Wrong password. ${left} attempts remaining.`;
-                } else if (error.code === 'auth/too-many-requests') {
-                    message = 'Too many failed attempts. Please try again later.';
-                    document.getElementById('loginLockMessage').classList.add('show');
-                } else if (error.code === 'auth/network-request-failed') {
-                    message = 'Network error. Please check your internet connection.';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'Invalid email address.';
-                }
-                showMessage('loginMessage', message, 'error');
-                setLoading('loginBtn', false);
+                if (error.code === 'auth/user-not-found') messageDiv.innerHTML = '<div class="error">No account found. Please sign up.</div>';
+                else if (error.code === 'auth/wrong-password') messageDiv.innerHTML = '<div class="error">Wrong password. Try again.</div>';
+                else messageDiv.innerHTML = '<div class="error">' + error.message + '</div>';
             }
         });
 
-        // ============================================================
-        // 🔐 GOOGLE SIGN IN
-        // ============================================================
+        // ========== GOOGLE SIGN IN ==========
         async function handleGoogleSignIn(isSignup = true) {
-            const messageId = isSignup ? 'message' : 'loginMessage';
-            const referralCode = isSignup ? document.getElementById('referralCode').value.trim() : null;
-            const btnId = isSignup ? 'googleSignupBtn' : 'googleLoginBtn';
-            
-            hideMessage(messageId);
-            document.getElementById(btnId).disabled = true;
-            
+            const messageDiv = isSignup ? document.getElementById('message') : document.getElementById('loginMessage');
+            const referralCode = isSignup ? document.getElementById('referralCode').value : null;
             try {
-                await setPersistence(auth, browserLocalPersistence);
                 const result = await signInWithPopup(auth, googleProvider);
                 const user = result.user;
                 const name = user.displayName || user.email.split('@')[0];
-                
                 const userRef = ref(db, 'users/' + user.uid);
                 const snapshot = await get(userRef);
-                
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
-                    
-                    // Check account status
-                    if (userData.status !== 'active') {
-                        showMessage(messageId, 'Account is blocked. Contact support.', 'error');
-                        document.getElementById(btnId).disabled = false;
-                        await signOut(auth);
-                        return;
-                    }
-                    
-                    // Create session
-                    await createSession(user);
-                    
-                    await update(ref(db, 'users/' + user.uid), { 
-                        lastActive: new Date().toISOString(),
-                        lastActiveDevice: navigator.userAgent || 'unknown'
-                    });
-                    
-                    showMessage(messageId, 'Login successful! Redirecting...', 'success');
-                    setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
-                    
+                    if (userData.status === 'active') {
+                        localStorage.setItem('userReferralCode', userData.referralCode);
+                        localStorage.setItem('userName', userData.name);
+                        localStorage.setItem('userId', user.uid);
+                        messageDiv.innerHTML = '<div class="success">Login successful! Redirecting...</div>';
+                        setTimeout(() => { window.location.replace('dashboard.html'); }, 1500);
+                    } else { messageDiv.innerHTML = '<div class="error">Account is blocked. Contact support.</div>'; }
                 } else if (isSignup) {
-                    // Validate referral
-                    if (referralCode) {
-                        const usersRef = ref(db, 'users');
-                        const usersSnap = await get(usersRef);
-                        const users = usersSnap.val();
-                        let valid = false;
-                        if (users) {
-                            for (let uid in users) {
-                                if (users[uid].referralCode === referralCode.toUpperCase() && uid !== user.uid) {
-                                    valid = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!valid) {
-                            showMessage(messageId, 'Invalid referral code!', 'error');
-                            document.getElementById(btnId).disabled = false;
-                            await signOut(auth);
-                            return;
-                        }
-                    }
-                    
-                    await saveUserToDatabase(user, name, referralCode, true);
-                    
-                    showMessage(messageId, 'Account created! Redirecting...', 'success');
-                    setTimeout(() => { window.location.replace('dashboard.html'); }, 1000);
-                    
-                } else {
-                    showMessage(messageId, 'No account found. Please sign up first.', 'error');
-                    document.getElementById(btnId).disabled = false;
-                    await signOut(auth);
-                }
-                
-            } catch (error) {
-                if (error.code === 'auth/popup-closed-by-user') {
-                    showMessage(messageId, 'Google sign in cancelled.', 'warning');
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                    showMessage(messageId, 'An account with this email already exists. Please sign in with email and password.', 'error');
-                } else {
-                    showMessage(messageId, 'Google sign in failed: ' + error.message, 'error');
-                }
-                document.getElementById(btnId).disabled = false;
-            }
+                    const userReferralCode = await saveUserToDatabase(user, name, referralCode, true);
+                    messageDiv.innerHTML = '<div class="success">Account created! Redirecting...</div>';
+                    localStorage.setItem('userReferralCode', userReferralCode);
+                    localStorage.setItem('userName', name);
+                    localStorage.setItem('userId', user.uid);
+                    setTimeout(() => { window.location.replace('dashboard.html'); }, 2500);
+                } else { messageDiv.innerHTML = '<div class="error">No account found. Please sign up first.</div>'; }
+            } catch (error) { messageDiv.innerHTML = '<div class="error">Google sign in failed: ' + error.message + '</div>'; }
         }
-
         document.getElementById('googleSignupBtn').addEventListener('click', () => handleGoogleSignIn(true));
         document.getElementById('googleLoginBtn').addEventListener('click', () => handleGoogleSignIn(false));
 
-        // ============================================================
-        // 🔐 FORGOT PASSWORD
-        // ============================================================
+        // ========== FORGOT PASSWORD ==========
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('forgotEmail').value.trim();
-            hideMessage('forgotMessage');
-            setLoading('forgotBtn', true);
-            
+            const email = document.getElementById('forgotEmail').value;
+            const messageDiv = document.getElementById('forgotMessage');
             try {
                 await sendPasswordResetEmail(auth, email);
-                showMessage('forgotMessage', '✅ Password reset email sent! Check your inbox.', 'success');
+                messageDiv.innerHTML = '<div class="success">Password reset email sent! Check your inbox.</div>';
                 setTimeout(() => { showLogin(); }, 3000);
-            } catch (error) {
-                let message = 'Something went wrong. Please try again.';
-                if (error.code === 'auth/user-not-found') {
-                    message = 'No account found with this email.';
-                } else if (error.code === 'auth/invalid-email') {
-                    message = 'Invalid email address.';
-                }
-                showMessage('forgotMessage', message, 'error');
-                setLoading('forgotBtn', false);
-            }
+            } catch (error) { messageDiv.innerHTML = '<div class="error">' + error.message + '</div>'; }
         });
 
-        // ============================================================
-        // 🔐 INIT
-        // ============================================================
+        // Run verification handler
         handleEmailVerification();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            hideMessage('message');
-            hideMessage('loginMessage');
-            hideMessage('forgotMessage');
-            
-            // Restore remember me preference
-            const rememberMe = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME);
-            if (rememberMe === 'true') {
-                document.getElementById('rememberMe').checked = true;
-            }
-        });
-
-        // Prevent back button after logout
-        window.addEventListener('pageshow', function(event) {
-            const sessionToken = localStorage.getItem(STORAGE_KEYS.SESSION_TOKEN);
-            if (!sessionToken && window.location.pathname.includes('dashboard')) {
-                window.location.replace('index.html');
-            }
-        });
-
-        console.log('🔒 RND Rewards v2.1 - Maximum Security Authentication Loaded');
     </script>
 </body>
 </html>
