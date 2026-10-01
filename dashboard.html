@@ -22,29 +22,23 @@
 
         .bg-gradient {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: -2;
             background: radial-gradient(circle at 10% 20%, #0c0c14, #06060a);
         }
         .bg-glow {
             position: fixed;
-            top: 20%;
-            right: -10%;
-            width: 500px;
-            height: 500px;
+            top: 20%; right: -10%;
+            width: 500px; height: 500px;
             background: radial-gradient(circle, rgba(102,126,234,0.2) 0%, rgba(102,126,234,0) 70%);
             z-index: -1;
             animation: floatGlow 12s ease-in-out infinite;
         }
         .bg-glow-2 {
             position: fixed;
-            bottom: 10%;
-            left: -10%;
-            width: 400px;
-            height: 400px;
+            bottom: 10%; left: -10%;
+            width: 400px; height: 400px;
             background: radial-gradient(circle, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0) 70%);
             z-index: -1;
             animation: floatGlow 9s ease-in-out infinite reverse;
@@ -57,10 +51,8 @@
         /* ===== LOADING SCREEN ===== */
         #loadingScreen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: #0a0a0f;
             z-index: 9999;
             display: flex;
@@ -71,8 +63,7 @@
         }
         #loadingScreen.hide { display: none; }
         .loader-spinner {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 3px solid rgba(102,126,234,0.2);
             border-top-color: #667eea;
             border-radius: 50%;
@@ -101,13 +92,11 @@
         .loader-error .retry-btn:hover { background: rgba(102,126,234,0.3); }
         @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
-        /* sidebar & overlay */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100%;
+            top: 0; left: -280px;
+            width: 280px; height: 100%;
             background: rgba(12,12,20,0.98);
             backdrop-filter: blur(24px);
             border-right: 1px solid rgba(255,255,255,0.12);
@@ -119,10 +108,8 @@
         .sidebar.open { left: 0; }
         .overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.65);
             backdrop-filter: blur(5px);
             z-index: 999;
@@ -155,7 +142,7 @@
             background: rgba(220,38,38,0.25);
         }
 
-        /* header */
+        /* ===== HEADER ===== */
         .header {
             padding: 18px 18px 50px 18px;
             background: linear-gradient(145deg, rgba(102,126,234,0.06) 0%, rgba(118,75,162,0.02) 100%);
@@ -166,8 +153,7 @@
             border: 1px solid rgba(255,255,255,0.2);
             color: #c4b5fd;
             font-size: 22px;
-            width: 46px;
-            height: 46px;
+            width: 46px; height: 46px;
             border-radius: 20px;
             backdrop-filter: blur(8px);
             cursor: pointer;
@@ -187,7 +173,7 @@
             margin-top: 4px;
         }
 
-        /* stats grid */
+        /* ===== STATS GRID ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -226,7 +212,7 @@
             display: inline-block;
         }
 
-        /* sections */
+        /* ===== SECTIONS ===== */
         .section {
             background: rgba(18,18,28,0.65);
             backdrop-filter: blur(14px);
@@ -247,7 +233,7 @@
             color: #f1f5f9;
         }
 
-        /* referral */
+        /* ===== REFERRAL ===== */
         .referral-box {
             display: flex;
             gap: 12px;
@@ -278,9 +264,7 @@
             white-space: nowrap;
         }
         .copy-btn:hover { transform: scale(1.02); opacity: 0.9; }
-        .copy-btn.copied {
-            background: linear-gradient(95deg, #10b981, #059669);
-        }
+        .copy-btn.copied { background: linear-gradient(95deg, #10b981, #059669); }
         .share-grid {
             display: flex;
             gap: 14px;
@@ -303,7 +287,7 @@
         .facebook { background: #1877f2; color: white; }
         .twitter { background: #000000; color: white; }
 
-        /* quick actions */
+        /* ===== QUICK ACTIONS ===== */
         .action-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -327,7 +311,314 @@
         .action-card h4 { font-size: 15px; color: white; margin: 4px 0; }
         .action-card small { font-size: 10px; color: #9ca3af; }
 
-        /* tokenomics */
+        /* ===== STAKING — Calculator ===== */
+        .staking-avail {
+            background: linear-gradient(135deg, rgba(102,126,234,0.18), rgba(139,92,246,0.10));
+            border: 1px solid rgba(139,92,246,0.35);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .staking-avail .sa-label {
+            font-size: 11px;
+            color: #9ca3af;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .staking-avail .sa-value {
+            font-size: 36px;
+            font-weight: 800;
+            background: linear-gradient(125deg,#fff,#d9c8ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        .staking-avail .sa-unit {
+            font-size: 15px;
+            color: #a78bfa;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .amount-input-wrap { position: relative; margin-bottom: 16px; }
+        .amount-input {
+            width: 100%;
+            padding: 18px 90px 18px 20px;
+            background: #0e0e18;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 22px;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            outline: none;
+            transition: 0.2s;
+        }
+        .amount-input:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.15);
+        }
+        .amount-input::placeholder { color: #4b5563; }
+        .amount-input-wrap .suffix {
+            position: absolute;
+            right: 18px; top: 50%;
+            transform: translateY(-50%);
+            color: #a78bfa;
+            font-weight: 700;
+            font-size: 15px;
+            pointer-events: none;
+        }
+        .max-btn {
+            position: absolute;
+            right: 60px; top: 50%;
+            transform: translateY(-50%);
+            background: rgba(139,92,246,0.2);
+            border: 1px solid rgba(139,92,246,0.4);
+            color: #c4b5fd;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+        .max-btn:hover { background: rgba(139,92,246,0.35); }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+        }
+        .calc-row:last-of-type { border-bottom: none; }
+        .calc-row .label { color: #9ca3af; font-size: 13.5px; }
+        .calc-row .value { color: #f1f5f9; font-weight: 700; font-size: 15px; }
+        .calc-row .value.highlight { color: #34d399; }
+        .calc-row .value.gold { color: #facc15; }
+
+        .stake-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 18px;
+            background: linear-gradient(95deg, #5b6fdf, #8b5cf6);
+            border: none;
+            border-radius: 22px;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+        }
+        .stake-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(102,126,234,0.45);
+        }
+        .stake-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ===== Staking summary ===== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .summary-card {
+            background: rgba(22,22,34,0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 22px;
+            padding: 16px 14px;
+        }
+        .summary-card .sc-label {
+            font-size: 11px;
+            color: #9ca3af;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .summary-card .sc-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+        .summary-card .sc-value.gold { color: #facc15; }
+        .summary-card .sc-value.green { color: #34d399; }
+
+        /* ===== Stake Card ===== */
+        .stake-card {
+            background: rgba(18,18,28,0.85);
+            border: 1px solid rgba(139,92,246,0.25);
+            border-radius: 28px;
+            padding: 20px;
+            margin: 14px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .stake-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #a855f7, #667eea);
+        }
+        .stake-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .stake-id {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+        }
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .status-locked {
+            background: rgba(250,204,21,0.15);
+            color: #facc15;
+            border: 1px solid rgba(250,204,21,0.3);
+        }
+        .status-releasing {
+            background: rgba(52,211,153,0.15);
+            color: #34d399;
+            border: 1px solid rgba(52,211,153,0.3);
+        }
+        .status-completed {
+            background: rgba(107,114,128,0.2);
+            color: #9ca3af;
+            border: 1px solid rgba(107,114,128,0.35);
+        }
+        .stake-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .stake-item {
+            background: rgba(10,10,20,0.6);
+            border-radius: 16px;
+            padding: 10px 12px;
+        }
+        .stake-item .si-label {
+            font-size: 10px;
+            color: #6b7280;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .stake-item .si-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-top: 3px;
+        }
+        .stake-item .si-value.gold { color: #facc15; }
+        .stake-item .si-value.green { color: #34d399; }
+        .stake-item .si-value.purple { color: #c4b5fd; }
+
+        .progress-wrap { margin-top: 14px; }
+        .progress-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+        .progress-head span:last-child { color: #a78bfa; font-weight: 700; }
+        .progress-track {
+            height: 8px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #667eea, #a855f7);
+            transition: width 0.4s ease;
+        }
+
+        .countdown-box {
+            background: rgba(102,126,234,0.08);
+            border: 1px solid rgba(102,126,234,0.2);
+            border-radius: 18px;
+            padding: 14px;
+            text-align: center;
+            margin-top: 12px;
+        }
+        .countdown-label {
+            font-size: 10px;
+            color: #9ca3af;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .countdown-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #a78bfa;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+        .countdown-value.done { color: #34d399; }
+
+        /* History */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.06);
+        }
+        .history-item:last-child { border-bottom: none; }
+        .hi-left .hi-id {
+            font-family: monospace;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .hi-left .hi-amt {
+            font-size: 14px;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-top: 2px;
+        }
+        .hi-right { text-align: right; }
+        .hi-right .hi-status {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .hi-right .hi-date {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #6b7280;
+        }
+        .empty-state i {
+            font-size: 40px;
+            color: #374151;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .empty-state p { font-size: 13.5px; line-height: 1.6; }
+
+        /* ===== TOKENOMICS ===== */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(3,1fr);
@@ -350,7 +641,7 @@
             color: #9ca3af;
         }
 
-        /* roadmap */
+        /* ===== ROADMAP ===== */
         .roadmap-list {
             display: flex;
             flex-direction: column;
@@ -373,7 +664,7 @@
             margin-top: 4px;
         }
 
-        /* bottom nav */
+        /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -396,12 +687,8 @@
             color: #6c757d;
             transition: 0.2s;
         }
-        .nav-item-bottom.active {
-            color: #a78bfa;
-        }
-        .nav-item-bottom i {
-            font-size: 22px;
-        }
+        .nav-item-bottom.active { color: #a78bfa; }
+        .nav-item-bottom i { font-size: 22px; }
         .nav-item-bottom span {
             font-size: 10px;
             display: block;
@@ -409,7 +696,7 @@
             font-weight: 500;
         }
 
-        /* toast */
+        /* ===== TOAST ===== */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -439,7 +726,102 @@
         .toast.info i { color: #60a5fa; }
         .toast .toast-text { font-size: 14px; color: white; }
 
-        /* responsive */
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-box {
+            background: linear-gradient(160deg, #16162a, #0e0e18);
+            border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 28px;
+            padding: 26px 22px;
+            max-width: 420px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-box h3 {
+            font-size: 19px;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-box h3 i { color: #a78bfa; }
+        .modal-sub {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.06);
+        }
+        .modal-row:last-of-type { border-bottom: none; }
+        .modal-row .ml { color: #9ca3af; font-size: 13px; }
+        .modal-row .mv { color: #f1f5f9; font-weight: 700; font-size: 14px; }
+        .modal-row .mv.gold { color: #facc15; }
+        .modal-row .mv.green { color: #34d399; }
+        .modal-row .mv.purple { color: #c4b5fd; }
+        .modal-warn {
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.2);
+            border-radius: 16px;
+            padding: 12px 14px;
+            margin: 16px 0;
+            font-size: 12.5px;
+            color: #fde68a;
+            line-height: 1.5;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 18px;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: 0.2s;
+        }
+        .modal-cancel {
+            background: rgba(255,255,255,0.06);
+            color: #cbd5e1;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-cancel:hover { background: rgba(255,255,255,0.1); }
+        .modal-confirm {
+            background: linear-gradient(95deg, #5b6fdf, #8b5cf6);
+            color: white;
+            box-shadow: 0 8px 24px rgba(102,126,234,0.35);
+        }
+        .modal-confirm:hover:not(:disabled) { transform: translateY(-1px); }
+        .modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 480px) {
             .stats-grid { gap: 12px; }
             .stat-card .value { font-size: 28px; }
@@ -450,6 +832,7 @@
             .share-grid { gap: 10px; }
             .share-icon { font-size: 12px; padding: 10px 0; min-width: 70px; }
             .action-grid { gap: 10px; }
+            .staking-avail .sa-value { font-size: 30px; }
         }
         @media (max-width: 380px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -459,12 +842,8 @@
             .welcome-badge h3 { font-size: 22px; }
         }
 
-        .value {
-            transition: all 0.1s ease;
-        }
-        button, .action-card, .share-icon, .copy-btn {
-            cursor: pointer;
-        }
+        .value { transition: all 0.1s ease; }
+        button, .action-card, .share-icon, .copy-btn { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -484,6 +863,28 @@
         <span class="toast-text" id="toastText">Copied!</span>
     </div>
 
+    <!-- CONFIRM STAKE MODAL -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <h3><i class="fas fa-lock"></i> Confirm RND Staking</h3>
+            <p class="modal-sub">Please review your staking details carefully.</p>
+            <div class="modal-row"><span class="ml">Staking Amount</span><span class="mv" id="mPrincipal">0 RND</span></div>
+            <div class="modal-row"><span class="ml">20% Staking Bonus</span><span class="mv gold" id="mBonus">0 RND</span></div>
+            <div class="modal-row"><span class="ml">Total Locked</span><span class="mv purple" id="mTotal">0 RND</span></div>
+            <div class="modal-row"><span class="ml">Lock Period</span><span class="mv">6 Months</span></div>
+            <div class="modal-row"><span class="ml">Daily Release After Lock</span><span class="mv green" id="mDaily">0 RND/day</span></div>
+            <div class="modal-row"><span class="ml">Minimum Withdrawal</span><span class="mv">10 RND</span></div>
+            <div class="modal-warn">
+                <i class="fas fa-exclamation-triangle"></i>
+                Your original <strong id="mWarnPrincipal">0 RND</strong> will be locked for 6 months. Daily release begins only after the lock period ends.
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-cancel" onclick="closeStakeModal()">CANCEL</button>
+                <button class="modal-btn modal-confirm" id="confirmStakeBtn" onclick="confirmStake()">CONFIRM STAKE</button>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-gradient"></div>
     <div class="bg-glow"></div>
     <div class="bg-glow-2"></div>
@@ -498,7 +899,6 @@
         <div class="nav-item" onclick="navigateTo('profile')"><i class="fas fa-user-friends"></i> My Referrals</div>
         <div class="nav-item" onclick="navigateTo('spin')"><i class="fas fa-gamepad"></i> Spin Wheel</div>
         <div class="nav-item" onclick="navigateTo('tasks')"><i class="fab fa-facebook"></i> Social Tasks</div>
-        <div class="nav-item" onclick="navigateTo('staking')"><i class="fas fa-lock"></i> RND Staking</div>
         <div class="nav-item" onclick="navigateTo('withdraw')"><i class="fas fa-money-bill-wave"></i> Withdraw</div>
         <div class="nav-item logout-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</div>
     </div>
@@ -517,7 +917,7 @@
         </div>
     </div>
 
-    <!-- STATS GRID -->
+    <!-- STATS GRID — 4 Wallets -->
     <div class="stats-grid">
         <div class="stat-card"><i class="fas fa-coins"></i><div class="value" id="totalBalance">0.00</div><h4>Total Balance</h4></div>
         <div class="stat-card"><i class="fas fa-users"></i><div class="value" id="referralWallet">0.00</div><h4>Referral Wallet</h4></div>
@@ -525,7 +925,68 @@
         <div class="stat-card"><i class="fas fa-chart-line"></i><div class="value" id="totalEarned">0.00</div><h4>Total Earned</h4></div>
     </div>
 
-    <!-- REFERRAL SECTION -->
+    <!-- ===== RND STAKING ===== -->
+    <div class="section">
+        <div class="section-title"><i class="fas fa-lock"></i><span>RND Staking</span></div>
+
+        <!-- Available for staking -->
+        <div class="staking-avail">
+            <div class="sa-label">Available for Staking</div>
+            <div class="sa-value"><span id="stakingAvailable">0.00</span><span class="sa-unit">RND</span></div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:8px;">Referral Wallet + Main Wallet</div>
+        </div>
+
+        <!-- Calculator -->
+        <label style="font-size:13px; color:#9ca3af; margin-bottom:8px; display:block;">Enter RND Amount</label>
+        <div class="amount-input-wrap">
+            <input type="number" inputmode="decimal" step="0.00000001" min="0"
+                   class="amount-input" id="stakeAmountInput" placeholder="0.00">
+            <button class="max-btn" onclick="setStakeMax()">MAX</button>
+            <span class="suffix">RND</span>
+        </div>
+
+        <div class="calc-row"><span class="label">Staking Amount</span><span class="value" id="cPrincipal">0.00 RND</span></div>
+        <div class="calc-row"><span class="label">20% Staking Bonus</span><span class="value gold" id="cBonus">+0.00 RND</span></div>
+        <div class="calc-row"><span class="label">Total Locked</span><span class="value highlight" id="cTotal">0.00 RND</span></div>
+        <div class="calc-row"><span class="label">Lock Period</span><span class="value">6 Months</span></div>
+        <div class="calc-row"><span class="label">Daily Release After Lock</span><span class="value" id="cDaily">0.00 RND</span></div>
+
+        <button class="stake-btn" id="stakeBtn" onclick="openStakeModal()" disabled>
+            <i class="fas fa-lock"></i> STAKE FOR 6 MONTHS
+        </button>
+
+        <!-- Staking Summary -->
+        <div class="summary-grid">
+            <div class="summary-card"><div class="sc-label">Total Staked</div><div class="sc-value" id="sumTotalStaked">0 RND</div></div>
+            <div class="summary-card"><div class="sc-label">Staking Bonus</div><div class="sc-value gold" id="sumBonus">0 RND</div></div>
+            <div class="summary-card"><div class="sc-label">Available to Withdraw</div><div class="sc-value green" id="sumAvailable">0 RND</div></div>
+            <div class="summary-card"><div class="sc-label">Locked</div><div class="sc-value" id="sumLocked">0 RND</div></div>
+        </div>
+    </div>
+
+    <!-- ===== ACTIVE STAKES ===== -->
+    <div class="section">
+        <div class="section-title"><i class="fas fa-layer-group"></i><span>Active Stakes</span></div>
+        <div id="activeStakesContainer">
+            <div class="empty-state">
+                <i class="fas fa-lock-open"></i>
+                <p>No active stakes yet.<br>Stake your RND to earn a 20% bonus.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STAKING HISTORY ===== -->
+    <div class="section">
+        <div class="section-title"><i class="fas fa-history"></i><span>Staking History</span></div>
+        <div id="historyContainer">
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>Your staking history will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== REFERRAL SECTION ===== -->
     <div class="section">
         <div class="section-title"><i class="fas fa-link"></i><span>Your Referral Link</span></div>
         <div class="referral-box">
@@ -538,18 +999,18 @@
         </div>
     </div>
 
-    <!-- QUICK ACTIONS -->
+    <!-- ===== QUICK ACTIONS ===== -->
     <div class="section">
         <div class="section-title"><i class="fas fa-bolt"></i><span>Quick Actions</span></div>
         <div class="action-grid">
             <div class="action-card" onclick="navigateTo('profile')"><i class="fas fa-users"></i><h4>My Team</h4><small>View referrals</small></div>
             <div class="action-card" onclick="navigateTo('spin')"><i class="fas fa-gamepad"></i><h4>Spin & Earn</h4><small>Win rewards</small></div>
             <div class="action-card" onclick="navigateTo('tasks')"><i class="fab fa-facebook"></i><h4>Social Tasks</h4><small>Complete to withdraw</small></div>
-            <div class="action-card" onclick="navigateTo('staking')"><i class="fas fa-lock"></i><h4>RND Staking</h4><small>Earn 20% bonus</small></div>
+            <div class="action-card" onclick="navigateTo('withdraw')"><i class="fas fa-hand-holding-usd"></i><h4>Withdraw</h4><small>Min 10 RND</small></div>
         </div>
     </div>
 
-    <!-- TOKENOMICS -->
+    <!-- ===== TOKENOMICS ===== -->
     <div class="section">
         <div class="section-title"><i class="fas fa-chart-pie"></i><span>Tokenomics</span></div>
         <div class="info-grid">
@@ -567,7 +1028,7 @@
         </div>
     </div>
 
-    <!-- ROADMAP -->
+    <!-- ===== ROADMAP ===== -->
     <div class="section">
         <div class="section-title"><i class="fas fa-road"></i><span>Roadmap</span></div>
         <div class="roadmap-list">
@@ -578,7 +1039,7 @@
         </div>
     </div>
 
-    <!-- VISION -->
+    <!-- ===== VISION ===== -->
     <div class="section">
         <div class="section-title"><i class="fas fa-eye"></i><span>Our Vision</span></div>
         <p style="color:#cbd5e6; font-size:13px; line-height:1.55;">RND aims to become the leading reward-based ecosystem on BNB Chain. With a total supply of only 20,000 RND tokens, we are building a deflationary reward system where every action - referring, spinning, completing tasks - earns you real value. Our vision is to list on major exchanges and create a sustainable, community-driven project.</p>
