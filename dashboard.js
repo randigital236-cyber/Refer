@@ -183,9 +183,9 @@ function getMainWallet() {
     return getReferralWallet() + getSpinWallet();
 }
 
-/* Available for staking = referralWallet + mainWallet */
+/* ⭐ FIXED: Available for staking = referralWallet + totalBalance + spinWallet */
 function getStakingAvailable() {
-    return roundTo(getReferralWallet() + getMainWallet(), 8);
+    return roundTo(getReferralWallet() + getMainWallet() + getSpinWallet(), 8);
 }
 
 /* ============================================================
@@ -217,7 +217,6 @@ function loadUserData(user) {
             hideErrorState();
             document.getElementById('loadingScreen').classList.add('hide');
 
-            // Auto-apply eligible releases
             reconcileAllReleases().catch(e => console.warn('Reconcile:', e));
 
             renderAll();
@@ -588,6 +587,7 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 
 /* ============================================================
    ATOMIC STAKE CREATION
+   ⭐ FIXED: Deduct from referralWallet → totalBalance → spinWallet
    ============================================================ */
 window.confirmStake = async function() {
     if (isSubmitting) {
@@ -631,22 +631,39 @@ window.confirmStake = async function() {
             const refW = Number(cur.referralWallet) || 0;
             const mainW = (cur.totalBalance !== undefined && cur.totalBalance !== null)
                 ? Number(cur.totalBalance) || 0
-                : refW + (Number(cur.spinWallet) || 0);
-            const combined = refW + mainW;
+                : refW;
+            const spinW = Number(cur.spinWallet) || 0;
+            const combined = refW + mainW + spinW;
 
             if (principal > combined + 1e-9) return;
 
-            // Deduct from combined pool: first from referralWallet, then totalBalance
+            // ⭐ Deduct priority order:
+            // 1. referralWallet पहले
+            // 2. totalBalance दूसरा
+            // 3. spinWallet तीसरा
             let remainingToDeduct = principal;
 
+            // Step 1: Referral Wallet से
             const fromRef = Math.min(refW, remainingToDeduct);
             cur.referralWallet = roundTo(refW - fromRef);
             remainingToDeduct -= fromRef;
 
+            // Step 2: Main Wallet (totalBalance) से
             if (remainingToDeduct > 0) {
-                cur.totalBalance = roundTo(mainW - remainingToDeduct);
+                const fromMain = Math.min(mainW, remainingToDeduct);
+                cur.totalBalance = roundTo(mainW - fromMain);
+                remainingToDeduct -= fromMain;
             } else {
                 cur.totalBalance = roundTo(mainW);
+            }
+
+            // Step 3: Spin Wallet से
+            if (remainingToDeduct > 0) {
+                const fromSpin = Math.min(spinW, remainingToDeduct);
+                cur.spinWallet = roundTo(spinW - fromSpin);
+                remainingToDeduct -= fromSpin;
+            } else {
+                cur.spinWallet = roundTo(spinW);
             }
 
             // Create stake record
@@ -850,4 +867,4 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('🔒 RND Rewards Dashboard + Staking loaded');
+console.log('🔒 RND Rewards Dashboard + Staking loaded (spinWallet included)');
