@@ -1,9 +1,9 @@
 /* ============================================================
    RND REWARDS — SPIN WHEEL
-   Firebase Auth + Realtime Database
    - 6 segments: 0.70, 0.30, 0.12 (duplicated)
    - Cooldown: 8 hours between spins
    - Rewards: spinWallet + totalEarned
+   - Loading screen: data आने तक spinner
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -49,10 +49,32 @@ let currentUser = null;
 let userData = null;
 let isSpinning = false;
 let timerInterval = null;
+let dataReady = false;
 
 let canvas = document.getElementById("wheelCanvas");
 let ctx = canvas.getContext("2d");
 let currentAngle = 0;
+
+/* ============================================================
+   LOADING SCREEN HELPERS
+   ============================================================ */
+function hideLoadingScreen() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) {
+        ls.classList.add('hide');
+        setTimeout(() => { ls.style.display = 'none'; }, 500);
+    }
+}
+
+function showLoadingError() {
+    const err = document.getElementById('loaderError');
+    if (err) err.style.display = 'block';
+}
+
+/* 8-second timeout safety */
+setTimeout(() => {
+    if (!dataReady) showLoadingError();
+}, 8000);
 
 /* ============================================================
    DRAW WHEEL
@@ -76,7 +98,7 @@ function drawWheel() {
         ctx.arc(centerX, centerY, radius, start, end);
         ctx.fillStyle = SEGMENTS[i].color;
         ctx.fill();
-        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -85,28 +107,39 @@ function drawWheel() {
         ctx.translate(centerX, centerY);
         ctx.rotate(start + segmentAngle / 2);
         ctx.fillStyle = "#1f2937";
-        ctx.font = "bold 13px Inter";
+        ctx.font = "bold 14px Inter";
         ctx.shadowBlur = 0;
-        ctx.fillText(SEGMENTS[i].name, radius - 50, 8);
+        ctx.textAlign = "right";
+        ctx.fillText(SEGMENTS[i].name, radius - 20, 5);
         ctx.restore();
     }
 
     /* Center circle */
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 18, 0, TAU);
+    ctx.arc(centerX, centerY, 22, 0, TAU);
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.strokeStyle = "#667eea";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.stroke();
+
+    /* Inner dot */
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, TAU);
+    ctx.fillStyle = "#667eea";
+    ctx.fill();
 
     /* Pointer */
     ctx.beginPath();
-    ctx.moveTo(centerX - 10, 12);
+    ctx.moveTo(centerX - 12, 14);
     ctx.lineTo(centerX, 2);
-    ctx.lineTo(centerX + 10, 12);
+    ctx.lineTo(centerX + 12, 14);
+    ctx.closePath();
     ctx.fillStyle = "#dc2626";
     ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 }
 
 /* Initial draw */
@@ -123,6 +156,12 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     await loadUserData();
     checkCooldown();
+
+    /* ⭐ Data आया — loading hide करो */
+    if (!dataReady) {
+        dataReady = true;
+        hideLoadingScreen();
+    }
 });
 
 async function loadUserData() {
@@ -146,7 +185,7 @@ function checkCooldown() {
         const remaining = COOLDOWN_MS - (now - lastSpin);
         startTimer(remaining);
         document.getElementById('spinBtn').disabled = true;
-        document.getElementById('timerBadge').style.display = 'flex';
+        document.getElementById('timerBadge').style.display = 'inline-flex';
     } else {
         if (timerInterval) clearInterval(timerInterval);
         document.getElementById('spinBtn').disabled = false;
@@ -193,7 +232,7 @@ function showResult(message, isWin) {
     resultDiv.innerHTML = message;
     resultDiv.className = isWin ? 'result win' : 'result lose';
     resultDiv.style.display = 'block';
-    setTimeout(() => { resultDiv.style.display = 'none'; }, 3000);
+    setTimeout(() => { resultDiv.style.display = 'none'; }, 4000);
 }
 
 /* ============================================================
@@ -202,7 +241,6 @@ function showResult(message, isWin) {
 window.startSpin = async function () {
     if (isSpinning) return;
 
-    /* Cooldown check */
     const lastSpin = userData.lastSpinTime || 0;
     const now = Date.now();
 
@@ -220,22 +258,20 @@ window.startSpin = async function () {
     spinBtn.disabled = true;
     spinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Spinning...';
 
-    /* Random prize */
     const randomIndex = Math.floor(Math.random() * SEGMENTS.length);
     const prize = SEGMENTS[randomIndex];
 
-    /* Animation */
-    const spinDuration = 2500;
+    const spinDuration = 3000;
     const startTime = Date.now();
     const startAngle = currentAngle;
-    const fullRotations = 10 * TAU;
+    const fullRotations = 12 * TAU;
     const targetAngle = (randomIndex * segmentAngle) + (segmentAngle / 2);
     const targetRotation = startAngle + fullRotations + targetAngle;
 
     function animate() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(1, elapsed / spinDuration);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const easeOut = 1 - Math.pow(1 - progress, 3.5);
 
         currentAngle = startAngle + (targetRotation - startAngle) * easeOut;
         drawWheel();
@@ -321,4 +357,4 @@ window.addEventListener('beforeunload', () => {
     if (timerInterval) clearInterval(timerInterval);
 });
 
-console.log('🎰 RND Spin Wheel loaded');
+console.log('🎰 RND Spin Wheel loaded (premium UI)');
