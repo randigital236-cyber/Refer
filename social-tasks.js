@@ -1,9 +1,8 @@
 /* ============================================================
    RND REWARDS — SOCIAL TASKS
-   - Simple, no firebase storage, no screenshot saving
-   - Track "opened" state in-memory only
-   - Screenshot uploaded locally (preview) → then Submit
-   - Reward: +1 RND to spinWallet + totalEarned
+   - Simple flow: Open → Upload → Verify
+   - Rewards: +1 RND to socialTasksWallet + totalEarned
+   - Loading screen: data आने तक spinner, फिर hide
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -12,6 +11,7 @@ import {
     getDatabase, ref, get, update, onValue
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+/* ---------- FIREBASE CONFIG ---------- */
 const firebaseConfig = {
     apiKey: "AIzaSyARtuToUfDsK6EOrqpJ6nBpfSHx2JobWhQ",
     authDomain: "randigital-e7715.firebaseapp.com",
@@ -39,11 +39,34 @@ let currentUser = null;
 let userData = null;
 let unsubUser = null;
 
-/* In-memory only — हर page load पर reset होगा */
 const taskState = {
     facebook: { opened: false, hasImage: false },
     twitter:  { opened: false, hasImage: false }
 };
+
+/* ============================================================
+   LOADING SCREEN HELPERS
+   ============================================================ */
+function hideLoadingScreen() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) {
+        ls.classList.add('hide');
+        setTimeout(() => { ls.style.display = 'none'; }, 500);
+    }
+}
+
+function showLoadingError() {
+    const err = document.getElementById('loaderError');
+    if (err) err.style.display = 'block';
+}
+
+/* Timeout safety */
+setTimeout(() => {
+    const ls = document.getElementById('loadingScreen');
+    if (ls && !ls.classList.contains('hide')) {
+        showLoadingError();
+    }
+}, 8000);
 
 /* ============================================================
    OPEN FACEBOOK / TWITTER
@@ -60,7 +83,6 @@ window.openFacebookPage = function () {
     document.getElementById('fbInfoMsg').style.display = 'block';
     document.getElementById('fbUploadArea').style.display = 'block';
 
-    /* अगर image पहले से है, तो button enabled रहे */
     if (taskState.facebook.hasImage) {
         document.getElementById('fbVerifyBtn').disabled = false;
     }
@@ -84,13 +106,15 @@ window.openTwitterPage = function () {
 };
 
 /* ============================================================
-   FILE UPLOAD HANDLER
+   FILE UPLOAD
    ============================================================ */
 function setupFileUpload(type) {
     const prefix = type === 'facebook' ? 'fb' : 'tw';
     const fileInput = document.getElementById(`${prefix}File`);
     const previewDiv = document.getElementById(`${prefix}PreviewDiv`);
     const verifyBtn = document.getElementById(`${prefix}VerifyBtn`);
+
+    if (!fileInput) return;
 
     fileInput.addEventListener('change', function (e) {
         const file = e.target.files[0];
@@ -112,12 +136,10 @@ function setupFileUpload(type) {
             previewDiv.innerHTML = `<img src="${ev.target.result}" class="preview-img" alt="Preview">`;
             taskState[type].hasImage = true;
 
-            /* Popup/Open किए बिना upload? — user को warn करें, पर allow करें */
             if (!taskState[type].opened) {
                 alert('⚠️ You can upload, but please complete the task on ' +
                       (type === 'facebook' ? 'Facebook' : 'Twitter') + ' first!');
             }
-
             verifyBtn.disabled = false;
         };
         reader.readAsDataURL(file);
@@ -131,19 +153,15 @@ async function verifyTask(type) {
     const prefix = type === 'facebook' ? 'fb' : 'tw';
     const verifyBtn = document.getElementById(`${prefix}VerifyBtn`);
 
-    /* --- Already done? --- */
     if (userData?.socialTasks?.[type] === true) {
         alert('⚠️ This task is already completed!');
         return;
     }
-
-    /* --- Screenshot uploaded? --- */
     if (!taskState[type].hasImage) {
         alert('❌ Please select a screenshot first!');
         return;
     }
 
-    /* --- Opened? — चेतावनी दो, पर रोक न लो --- */
     if (!taskState[type].opened) {
         const proceed = confirm(
             '⚠️ आपने "Open" button नहीं दबाया!\n\n' +
@@ -157,7 +175,6 @@ async function verifyTask(type) {
     verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
 
     try {
-        /* Fresh read — prevent double reward */
         const freshSnap = await get(ref(db, `users/${currentUser.uid}`));
         const freshData = freshSnap.val() || {};
 
@@ -166,32 +183,30 @@ async function verifyTask(type) {
             return;
         }
 
-        const currentSpin = Number(freshData.spinWallet) || 0;
+        const currentTasksWallet = Number(freshData.socialTasksWallet) || 0;
         const currentEarned = Number(freshData.totalEarned) || 0;
 
         const updates = {
             [`socialTasks/${type}`]: true,
             [`socialTasks/${type}CompletedAt`]: new Date().toISOString(),
-            spinWallet: currentSpin + 1,
+            socialTasksWallet: currentTasksWallet + 1,
             totalEarned: currentEarned + 1
         };
 
         await update(ref(db, `users/${currentUser.uid}`), updates);
 
-        /* Local state update */
-        userData.spinWallet = currentSpin + 1;
+        userData.socialTasksWallet = currentTasksWallet + 1;
         userData.totalEarned = currentEarned + 1;
         if (!userData.socialTasks) userData.socialTasks = {};
         userData.socialTasks[type] = true;
 
-        /* UI update */
         document.getElementById(`${prefix}OpenBtn`).disabled = true;
         document.getElementById(`${prefix}UploadArea`).style.display = 'none';
         document.getElementById(`${prefix}Completed`).style.display = 'block';
         document.getElementById(`${prefix}AlreadyDone`).style.display = 'block';
         document.getElementById(`${prefix}InfoMsg`).style.display = 'none';
 
-        alert(`✅ ${type === 'facebook' ? 'Facebook' : 'Twitter'} Task Verified!\n+1 RND added to your Spin Wallet.`);
+        alert(`✅ ${type === 'facebook' ? 'Facebook' : 'Twitter'} Task Verified!\n+1 RND added to your Social Tasks Wallet.`);
 
     } catch (error) {
         console.error('Verify error:', error);
@@ -237,7 +252,7 @@ function loadTaskStatus() {
 }
 
 /* ============================================================
-   USER LISTENER (real-time)
+   USER LISTENER
    ============================================================ */
 function attachUserListener(uid) {
     if (unsubUser) unsubUser();
@@ -249,7 +264,13 @@ function attachUserListener(uid) {
         }
         userData = snap.val() || {};
         if (!userData.socialTasks) userData.socialTasks = {};
+
+        /* ⭐ Data आया — page दिखाओ */
         loadTaskStatus();
+        hideLoadingScreen();
+    }, (error) => {
+        console.error('DB error:', error);
+        showLoadingError();
     });
 }
 
@@ -262,14 +283,11 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
     currentUser = user;
-
     attachUserListener(user.uid);
 
-    /* Setup file upload listeners */
     setupFileUpload('facebook');
     setupFileUpload('twitter');
 
-    /* Setup verify button click handlers */
     document.getElementById('fbVerifyBtn').addEventListener('click', () => verifyTask('facebook'));
     document.getElementById('twVerifyBtn').addEventListener('click', () => verifyTask('twitter'));
 });
@@ -310,4 +328,4 @@ window.addEventListener('beforeunload', () => {
     if (unsubUser) unsubUser();
 });
 
-console.log('📱 RND Social Tasks loaded');
+console.log('📱 RND Social Tasks loaded (loading screen enabled)');
