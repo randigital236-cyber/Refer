@@ -1,9 +1,8 @@
 /* ============================================================
-   RND REWARDS — DASHBOARD + STAKING LOGIC
-   Firebase Auth + Realtime Database
-   - 5 wallets: totalBalance, referralWallet, spinWallet, releaseWallet, totalEarned
-   - Staking: 20% bonus, 6-month lock, 2% daily release
-   - Release Wallet: automatic daily release
+   RND REWARDS — DASHBOARD + STAKING
+   - 6 wallets: Total, Referral, Spin, SocialTasks, Release, TotalEarned
+   - Staking unlock: दोनों social tasks पूरे होने चाहिए
+   - Deduction priority: SocialTasks → Referral → Total → Spin
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -47,16 +46,14 @@ const db = getDatabase(app);
 let currentUser = null;
 let userData = null;
 let stakes = {};
-let dataLoaded = false;
 let realtimeListener = null;
 let retryCount = 0;
 const MAX_RETRIES = 2;
-
 let tickTimer = null;
 let pendingRequestId = null;
 let isSubmitting = false;
 let modalAmount = 0;
-let isReconciling = false;   // 🔒 prevent duplicate reconciliation
+let isReconciling = false;
 
 /* ============================================================
    HELPERS
@@ -103,6 +100,36 @@ const generateStakeId = () => {
     const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
     return `STK_${Date.now()}_${rand}`;
 };
+
+/* ============================================================
+   WALLET READERS
+   ============================================================ */
+function getReferralWallet() { return Number(userData?.referralWallet) || 0; }
+function getSpinWallet() { return Number(userData?.spinWallet) || 0; }
+function getSocialTasksWallet() { return Number(userData?.socialTasksWallet) || 0; }
+function getReleaseWallet() { return Number(userData?.releaseWallet) || 0; }
+function getTotalEarned() { return Number(userData?.totalEarned) || 0; }
+
+function getMainWallet() {
+    if (userData?.totalBalance !== undefined && userData?.totalBalance !== null) {
+        return Number(userData.totalBalance) || 0;
+    }
+    return getReferralWallet() + getSpinWallet() + getSocialTasksWallet();
+}
+
+/* ⭐ Available for staking = SocialTasks + Referral + Main + Spin */
+function getStakingAvailable() {
+    return roundTo(
+        getSocialTasksWallet() + getReferralWallet() + getMainWallet() + getSpinWallet(),
+        8
+    );
+}
+
+/* ⭐ Are both social tasks complete? */
+function areTasksCompleted() {
+    const tasks = userData?.socialTasks || {};
+    return tasks.facebook === true && tasks.twitter === true;
+}
 
 /* ============================================================
    TOAST
@@ -168,27 +195,7 @@ function hideErrorState() {
 }
 
 /* ============================================================
-   WALLET READERS
-   ============================================================ */
-function getReferralWallet() { return Number(userData?.referralWallet) || 0; }
-function getSpinWallet() { return Number(userData?.spinWallet) || 0; }
-function getReleaseWallet() { return Number(userData?.releaseWallet) || 0; }
-function getTotalEarned() { return Number(userData?.totalEarned) || 0; }
-
-function getMainWallet() {
-    if (userData?.totalBalance !== undefined && userData?.totalBalance !== null) {
-        return Number(userData.totalBalance) || 0;
-    }
-    return getReferralWallet() + getSpinWallet();
-}
-
-/* Available for staking = referralWallet + totalBalance + spinWallet */
-function getStakingAvailable() {
-    return roundTo(getReferralWallet() + getMainWallet() + getSpinWallet(), 8);
-}
-
-/* ============================================================
-   LOAD USER DATA (Realtime)
+   LOAD USER DATA
    ============================================================ */
 function loadUserData(user) {
     if (!user) { showErrorAndLogout('Please login again'); return; }
@@ -207,15 +214,11 @@ function loadUserData(user) {
 
             userData = data;
             stakes = data.staking || {};
-            dataLoaded = true;
             hideErrorState();
             document.getElementById('loadingScreen').classList.add('hide');
 
-            // Auto-apply eligible releases to releaseWallet
             reconcileAllReleases().catch(e => console.warn('Reconcile:', e));
-
             renderAll();
-
         } else {
             showErrorAndLogout('Account not found. Please contact support.');
             setTimeout(async () => {
@@ -227,8 +230,7 @@ function loadUserData(user) {
         console.error('Database error:', error);
         if (retryCount < MAX_RETRIES) {
             retryCount++;
-            const errorEl = document.getElementById('loaderError');
-            errorEl.style.display = 'block';
+            document.getElementById('loaderError').style.display = 'block';
             document.getElementById('errorMessage').textContent = `⚠️ Connection issue. Retry ${retryCount}/${MAX_RETRIES}...`;
         } else {
             showErrorAndLogout('Network error. Please check your internet connection.');
@@ -247,6 +249,7 @@ function renderAll() {
     if (!userData) return;
     renderWallets();
     renderStakingAvailable();
+    renderSocialTasksWarning();
     renderSummary();
     renderActiveStakes();
     renderHistory();
@@ -265,12 +268,19 @@ function renderWallets() {
     animateNumber(document.getElementById('totalBalance'), getMainWallet(), 2);
     animateNumber(document.getElementById('referralWallet'), getReferralWallet(), 2);
     animateNumber(document.getElementById('spinWallet'), getSpinWallet(), 2);
+    animateNumber(document.getElementById('socialTasksWallet'), getSocialTasksWallet(), 2);
     animateNumber(document.getElementById('releaseWallet'), getReleaseWallet(), 2);
     animateNumber(document.getElementById('totalEarned'), getTotalEarned(), 2);
 }
 
 function renderStakingAvailable() {
     animateNumber(document.getElementById('stakingAvailable'), getStakingAvailable(), 2);
+}
+
+function renderSocialTasksWarning() {
+    const banner = document.getElementById('socialTasksWarning');
+    if (!banner) return;
+    banner.style.display = areTasksCompleted() ? 'none' : 'block';
 }
 
 function aggregateStakes() {
@@ -344,8 +354,7 @@ function renderStakeCard(s, now) {
         : calc.status === 'releasing' ? 'status-releasing' : 'status-completed';
     const statusText = calc.status.toUpperCase();
 
-    let progressPct = 0;
-    let progressLabel = '';
+    let progressPct = 0, progressLabel = '';
     if (calc.status === 'locked') {
         const totalLockMs = lockEnd - start;
         const elapsed = Math.min(now - start, totalLockMs);
@@ -358,23 +367,11 @@ function renderStakeCard(s, now) {
 
     let countdownHTML = '';
     if (calc.status === 'locked') {
-        countdownHTML = `
-            <div class="countdown-box">
-                <div class="countdown-label">Release Starts In</div>
-                <div class="countdown-value" data-countdown-to="${lockEnd}">—</div>
-            </div>`;
+        countdownHTML = `<div class="countdown-box"><div class="countdown-label">Release Starts In</div><div class="countdown-value" data-countdown-to="${lockEnd}">—</div></div>`;
     } else if (calc.status === 'releasing') {
-        countdownHTML = `
-            <div class="countdown-box">
-                <div class="countdown-label">Next Release In</div>
-                <div class="countdown-value" data-countdown-next="${lockEnd}">—</div>
-            </div>`;
+        countdownHTML = `<div class="countdown-box"><div class="countdown-label">Next Release In</div><div class="countdown-value" data-countdown-next="${lockEnd}">—</div></div>`;
     } else {
-        countdownHTML = `
-            <div class="countdown-box">
-                <div class="countdown-label">Status</div>
-                <div class="countdown-value done">FULLY RELEASED</div>
-            </div>`;
+        countdownHTML = `<div class="countdown-box"><div class="countdown-label">Status</div><div class="countdown-value done">FULLY RELEASED</div></div>`;
     }
 
     return `
@@ -409,11 +406,7 @@ function renderHistory() {
         (b.stakeStartAt || 0) - (a.stakeStartAt || 0));
 
     if (list.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-inbox"></i>
-                <p>Your staking history will appear here.</p>
-            </div>`;
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Your staking history will appear here.</p></div>`;
         return;
     }
     const now = Date.now();
@@ -436,7 +429,7 @@ function renderHistory() {
 }
 
 /* ============================================================
-   COUNTDOWN TICKER
+   COUNTDOWN
    ============================================================ */
 function startTicker() {
     if (tickTimer) clearInterval(tickTimer);
@@ -491,24 +484,27 @@ function updateCalculator() {
     const total = calculateTotalStaking(amt);
     const daily = calculateDailyRelease(total);
 
-    const c1 = document.getElementById('cPrincipal');
-    const c2 = document.getElementById('cBonus');
-    const c3 = document.getElementById('cTotal');
-    const c4 = document.getElementById('cDaily');
-    if (c1) c1.textContent = `${formatRND(amt)} RND`;
-    if (c2) c2.textContent = `+${formatRND(bonus)} RND`;
-    if (c3) c3.textContent = `${formatRND(total)} RND`;
-    if (c4) c4.textContent = `${formatRND(daily)} RND`;
+    document.getElementById('cPrincipal').textContent = `${formatRND(amt)} RND`;
+    document.getElementById('cBonus').textContent = `+${formatRND(bonus)} RND`;
+    document.getElementById('cTotal').textContent = `${formatRND(total)} RND`;
+    document.getElementById('cDaily').textContent = `${formatRND(daily)} RND`;
 }
 
 function updateStakeButtonState() {
     const btn = document.getElementById('stakeBtn');
     if (!btn) return;
-    const amt = readStakeInput();
-    const available = getStakingAvailable();
 
     if (isSubmitting) { btn.disabled = true; return; }
 
+    /* ⭐ Tasks check first */
+    if (!areTasksCompleted()) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-tasks"></i> COMPLETE SOCIAL TASKS FIRST';
+        return;
+    }
+
+    const amt = readStakeInput();
+    const available = getStakingAvailable();
     const valid = amt > 0 && amt <= available + 1e-9;
     btn.disabled = !valid;
 
@@ -549,9 +545,16 @@ window.setStakeMax = function() {
 };
 
 /* ============================================================
-   STAKE CONFIRM MODAL
+   MODAL
    ============================================================ */
 window.openStakeModal = function() {
+    /* ⭐ Tasks check */
+    if (!areTasksCompleted()) {
+        showToast('Please complete Social Tasks first!', 'error');
+        setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
+        return;
+    }
+
     const amt = readStakeInput();
     const available = getStakingAvailable();
     if (amt <= 0) { showToast('Please enter a valid RND amount.', 'error'); return; }
@@ -582,12 +585,19 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 
 /* ============================================================
    ATOMIC STAKE CREATION
-   Deduct from: referralWallet → totalBalance → spinWallet
+   Priority: SocialTasks → Referral → Total → Spin
    ============================================================ */
 window.confirmStake = async function() {
-    if (isSubmitting) { showToast('This staking request is already being processed.', 'info'); return; }
-    if (!currentUser || !auth.currentUser) { showToast('Your session has expired. Please login again.', 'error'); return; }
+    if (isSubmitting) { showToast('Already processing...', 'info'); return; }
+    if (!currentUser || !auth.currentUser) { showToast('Session expired. Please login again.', 'error'); return; }
     if (modalAmount <= 0) { showToast('Please enter a valid RND amount.', 'error'); return; }
+
+    /* ⭐ Tasks check */
+    if (!areTasksCompleted()) {
+        showToast('Please complete Social Tasks first!', 'error');
+        window.closeStakeModal();
+        return;
+    }
 
     isSubmitting = true;
     const confirmBtn = document.getElementById('confirmStakeBtn');
@@ -613,43 +623,61 @@ window.confirmStake = async function() {
             if (!cur) return cur;
             if (cur._lastStakeRequestId === pendingRequestId) return;
 
+            /* ⭐ Double-check tasks server-side */
+            const tasks = cur.socialTasks || {};
+            if (tasks.facebook !== true || tasks.twitter !== true) return;
+
             const refW = Number(cur.referralWallet) || 0;
             const mainW = (cur.totalBalance !== undefined && cur.totalBalance !== null)
                 ? Number(cur.totalBalance) || 0
                 : refW;
             const spinW = Number(cur.spinWallet) || 0;
-            const combined = refW + mainW + spinW;
+            const taskW = Number(cur.socialTasksWallet) || 0;
 
+            const combined = refW + mainW + spinW + taskW;
             if (principal > combined + 1e-9) return;
 
-            // Deduct from referralWallet → totalBalance → spinWallet
-            let remainingToDeduct = principal;
+            /* ⭐ Deduct priority: SocialTasks → Referral → Total → Spin */
+            let remaining = principal;
 
-            const fromRef = Math.min(refW, remainingToDeduct);
-            cur.referralWallet = roundTo(refW - fromRef);
-            remainingToDeduct -= fromRef;
+            // 1. Social Tasks
+            const fromTasks = Math.min(taskW, remaining);
+            cur.socialTasksWallet = roundTo(taskW - fromTasks);
+            remaining -= fromTasks;
 
-            if (remainingToDeduct > 0) {
-                const fromMain = Math.min(mainW, remainingToDeduct);
+            // 2. Referral
+            if (remaining > 0) {
+                const fromRef = Math.min(refW, remaining);
+                cur.referralWallet = roundTo(refW - fromRef);
+                remaining -= fromRef;
+            } else {
+                cur.referralWallet = roundTo(refW);
+            }
+
+            // 3. Total Balance
+            if (remaining > 0) {
+                const fromMain = Math.min(mainW, remaining);
                 cur.totalBalance = roundTo(mainW - fromMain);
-                remainingToDeduct -= fromMain;
+                remaining -= fromMain;
             } else {
                 cur.totalBalance = roundTo(mainW);
             }
 
-            if (remainingToDeduct > 0) {
-                const fromSpin = Math.min(spinW, remainingToDeduct);
+            // 4. Spin
+            if (remaining > 0) {
+                const fromSpin = Math.min(spinW, remaining);
                 cur.spinWallet = roundTo(spinW - fromSpin);
-                remainingToDeduct -= fromSpin;
+                remaining -= fromSpin;
             } else {
                 cur.spinWallet = roundTo(spinW);
             }
 
-            // Initialize releaseWallet if missing
+            /* Init releaseWallet */
             if (cur.releaseWallet === undefined || cur.releaseWallet === null) {
                 cur.releaseWallet = 0;
             }
 
+            /* Create stake */
             cur.staking = cur.staking || {};
             cur.staking[stakeId] = {
                 stakeId,
@@ -677,7 +705,9 @@ window.confirmStake = async function() {
             const snap = await get(ref(db, `users/${currentUser.uid}`));
             const d = snap.val() || {};
             if (d._lastStakeRequestId === pendingRequestId) {
-                showToast('This staking request is already being processed.', 'info');
+                showToast('Already processed.', 'info');
+            } else if (!areTasksCompleted()) {
+                showToast('Complete Social Tasks first.', 'error');
             } else {
                 showToast('Insufficient RND balance.', 'error');
             }
@@ -692,7 +722,7 @@ window.confirmStake = async function() {
 
     } catch (err) {
         console.error('Stake error:', err);
-        showToast('Unable to process staking right now. Please try again.', 'error');
+        showToast('Unable to process staking right now.', 'error');
     } finally {
         isSubmitting = false;
         confirmBtn.disabled = false;
@@ -703,12 +733,10 @@ window.confirmStake = async function() {
 
 /* ============================================================
    RELEASE RECONCILIATION
-   Automatically moves daily 2% releases to releaseWallet
    ============================================================ */
 async function reconcileAllReleases() {
     if (!currentUser || !stakes || isReconciling) return;
     isReconciling = true;
-
     try {
         const now = Date.now();
         let totalNewRelease = 0;
@@ -716,17 +744,13 @@ async function reconcileAllReleases() {
         for (const [stakeId, stake] of Object.entries(stakes)) {
             const calc = calculateEligibleRelease(stake, now);
             const stored = Number(stake.releasedAmount) || 0;
-
             if (calc.released > stored + 1e-9) {
                 const delta = roundTo(calc.released - stored);
                 const success = await applyReleaseToStake(stakeId, calc.released);
-                if (success) {
-                    totalNewRelease += delta;
-                }
+                if (success) totalNewRelease += delta;
             }
         }
 
-        // Add the new release to releaseWallet (once per user, atomic)
         if (totalNewRelease > 0) {
             const userRef = ref(db, `users/${currentUser.uid}`);
             await runTransaction(userRef, (cur) => {
@@ -744,13 +768,11 @@ async function reconcileAllReleases() {
 async function applyReleaseToStake(stakeId, newReleased) {
     const stakeRef = ref(db, `users/${currentUser.uid}/staking/${stakeId}`);
     let committed = false;
-
     await runTransaction(stakeRef, (cur) => {
         if (!cur) return cur;
         const stored = Number(cur.releasedAmount) || 0;
         const total = Number(cur.totalStakingAmount) || 0;
-
-        if (newReleased <= stored + 1e-9) return cur;   // already up to date
+        if (newReleased <= stored + 1e-9) return cur;
 
         const capped = Math.min(newReleased, total);
         cur.releasedAmount = roundTo(capped);
@@ -761,7 +783,6 @@ async function applyReleaseToStake(stakeId, newReleased) {
         committed = true;
         return cur;
     });
-
     return committed;
 }
 
@@ -794,8 +815,7 @@ window.copyLink = function() {
     const inp = document.getElementById('referralLink');
     if (!inp || !inp.value) { showToast('No referral link available', 'error'); return; }
     const btn = document.querySelector('.copy-btn');
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
+    if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(inp.value).then(() => {
             btn.classList.add('copied');
             btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
@@ -856,7 +876,7 @@ window.logout = async function() {
     }
 };
 
-window.addEventListener('pageshow', function(event) {
+window.addEventListener('pageshow', (event) => {
     if (event.persisted && !auth.currentUser) {
         window.location.replace('index.html');
     }
@@ -867,4 +887,4 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('🔒 RND Dashboard loaded — releaseWallet active');
+console.log('🔒 RND Dashboard loaded — 6 wallets + tasks-unlock');
