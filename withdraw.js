@@ -1,12 +1,10 @@
 /* ============================================================
    RND REWARDS — WITHDRAW MODULE
-   Firebase Auth + Realtime Database
-   Rules:
    - Withdraw ONLY from releaseWallet
    - Fixed amount: 5 RND
    - Cooldown: 30 days between withdrawals
    - Global unique address check
-   - Real-time sync with dashboard's releaseWallet
+   - Loading screen: data आने तक spinner
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -44,6 +42,28 @@ let globalUsedAddresses = new Set();
 let userWithdrawals = [];
 let isProcessing = false;
 let tickTimer = null;
+let dataReady = false;
+
+/* ============================================================
+   LOADING SCREEN HELPERS
+   ============================================================ */
+function hideLoadingScreen() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) {
+        ls.classList.add('hide');
+        setTimeout(() => { ls.style.display = 'none'; }, 500);
+    }
+}
+
+function showLoadingError() {
+    const err = document.getElementById('loaderError');
+    if (err) err.style.display = 'block';
+}
+
+/* Timeout safety — 8 सेकंड में data न आए तो error */
+setTimeout(() => {
+    if (!dataReady) showLoadingError();
+}, 8000);
 
 /* ============================================================
    HELPERS
@@ -89,11 +109,10 @@ function getReleaseWallet() {
 }
 
 /* ============================================================
-   GET LAST WITHDRAWAL TIME
+   LAST WITHDRAWAL TIME
    ============================================================ */
 function getLastWithdrawalTime() {
     if (!userWithdrawals || userWithdrawals.length === 0) return 0;
-    // Most recent withdrawal
     const latest = userWithdrawals.reduce((max, w) => {
         const t = new Date(w.date).getTime();
         return t > max ? t : max;
@@ -102,13 +121,11 @@ function getLastWithdrawalTime() {
 }
 
 /* ============================================================
-   COOLDOWN CHECK
+   COOLDOWN
    ============================================================ */
 function getCooldownStatus() {
     const lastTime = getLastWithdrawalTime();
-    if (lastTime === 0) {
-        return { canWithdraw: true, remainingMs: 0 };
-    }
+    if (lastTime === 0) return { canWithdraw: true, remainingMs: 0 };
     const nextEligible = lastTime + COOLDOWN_MS;
     const remainingMs = nextEligible - Date.now();
     return {
@@ -129,9 +146,6 @@ function formatCooldown(ms) {
     return `${String(h).padStart(2,'0')}H ${String(m).padStart(2,'0')}M ${String(sec).padStart(2,'0')}S`;
 }
 
-/* ============================================================
-   UPDATE COOLDOWN UI
-   ============================================================ */
 function updateCooldownUI() {
     const status = getCooldownStatus();
     const cooldownBox = document.getElementById('cooldownBox');
@@ -143,8 +157,6 @@ function updateCooldownUI() {
         cooldownBox.style.display = 'flex';
         cooldownTime.textContent = formatCooldown(status.remainingMs);
     }
-
-    // Update button state
     updateButtonState();
 }
 
@@ -153,7 +165,6 @@ function updateCooldownUI() {
    ============================================================ */
 function updateButtonState() {
     const btn = document.getElementById('withdrawBtn');
-    const msgDiv = document.getElementById('message');
     if (!btn) return;
 
     if (isProcessing) {
@@ -165,7 +176,8 @@ function updateButtonState() {
     const releaseBal = getReleaseWallet();
     const cooldown = getCooldownStatus();
     const address = document.getElementById('address').value.trim();
-    const addressValid = address && address.startsWith('0x') && address.length === 42
+    const addressValid = address && address.startsWith('0x')
+                         && address.length === 42
                          && !globalUsedAddresses.has(address.toLowerCase());
 
     let canWithdraw = true;
@@ -173,19 +185,19 @@ function updateButtonState() {
 
     if (releaseBal < MIN_RELEASE_BALANCE) {
         canWithdraw = false;
-        reason = `Insufficient release balance. Need at least ${MIN_RELEASE_BALANCE} RND.`;
+        reason = `Need ${MIN_RELEASE_BALANCE} RND`;
     } else if (!cooldown.canWithdraw) {
         canWithdraw = false;
-        reason = `Cooldown active. Next withdrawal in ${formatCooldown(cooldown.remainingMs)}.`;
+        reason = `Cooldown active`;
     } else if (!addressValid) {
         canWithdraw = false;
-        reason = 'Please enter a valid BEP-20 wallet address.';
+        reason = 'Enter wallet address';
     }
 
     btn.disabled = !canWithdraw;
 
     if (!canWithdraw) {
-        btn.innerHTML = `<i class="fas fa-lock"></i> ${reason.length > 40 ? reason.slice(0, 40) + '...' : reason}`;
+        btn.innerHTML = `<i class="fas fa-lock"></i> ${reason}`;
     } else {
         btn.innerHTML = `<i class="fas fa-paper-plane"></i> Request Withdrawal (${WITHDRAW_AMOUNT} RND)`;
     }
@@ -199,34 +211,34 @@ window.checkAddress = function(address) {
     const normalized = address.toLowerCase().trim();
 
     if (!address || address.length < 10) {
-        hint.innerHTML = '<i class="fas fa-info-circle"></i> Enter your valid BEP-20 (BNB Chain) wallet address';
+        hint.innerHTML = '<i class="fas fa-info-circle"></i><span>Enter your valid BEP-20 (BNB Chain) wallet address</span>';
         hint.className = 'address-hint';
         updateButtonState();
         return false;
     }
 
     if (!address.startsWith('0x') || address.length !== 42) {
-        hint.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ⚠️ Invalid BEP20 address format. Must start with 0x and be 42 characters.';
+        hint.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>⚠️ Invalid format. Must start with 0x and be 42 characters.</span>';
         hint.className = 'address-hint error';
         updateButtonState();
         return false;
     }
 
     if (globalUsedAddresses.has(normalized)) {
-        hint.innerHTML = '<i class="fas fa-times-circle"></i> ❌ This wallet address has already been used! Each address can be used only once globally.';
+        hint.innerHTML = '<i class="fas fa-times-circle"></i><span>❌ Address already used. Each address can be used only once globally.</span>';
         hint.className = 'address-hint error';
         updateButtonState();
         return false;
     }
 
-    hint.innerHTML = '<i class="fas fa-check-circle"></i> ✅ This address is available for withdrawal.';
+    hint.innerHTML = '<i class="fas fa-check-circle"></i><span>✅ This address is available for withdrawal.</span>';
     hint.className = 'address-hint success';
     updateButtonState();
     return true;
 };
 
 /* ============================================================
-   LOAD GLOBAL USED ADDRESSES
+   LOAD DATA
    ============================================================ */
 async function loadGlobalAddresses() {
     globalUsedAddresses = new Set();
@@ -244,9 +256,6 @@ async function loadGlobalAddresses() {
     }
 }
 
-/* ============================================================
-   LOAD USER WITHDRAWALS
-   ============================================================ */
 async function loadUserWithdrawals() {
     userWithdrawals = [];
     try {
@@ -266,9 +275,6 @@ async function loadUserWithdrawals() {
     }
 }
 
-/* ============================================================
-   DISPLAY WITHDRAWAL STATUS
-   ============================================================ */
 function displayWithdrawalStatus(withdrawals) {
     const container = document.getElementById('withdrawalStatusList');
     if (!container) return;
@@ -314,16 +320,13 @@ function displayWithdrawalStatus(withdrawals) {
     });
 }
 
-/* ============================================================
-   UPDATE RELEASE WALLET DISPLAY
-   ============================================================ */
 function updateReleaseWalletDisplay() {
     const bal = getReleaseWallet();
     document.getElementById('releaseWalletBalance').textContent = formatRND(bal);
 }
 
 /* ============================================================
-   ATTACH USER LISTENER (real-time)
+   USER LISTENER
    ============================================================ */
 function attachUserListener(uid) {
     if (unsubUser) unsubUser();
@@ -336,11 +339,20 @@ function attachUserListener(uid) {
         userData = snap.val() || {};
         updateReleaseWalletDisplay();
         updateCooldownUI();
+
+        /* ⭐ Data आया — loading hide करो */
+        if (!dataReady) {
+            dataReady = true;
+            hideLoadingScreen();
+        }
+    }, (error) => {
+        console.error('DB error:', error);
+        showLoadingError();
     });
 }
 
 /* ============================================================
-   WITHDRAW SUBMIT
+   SUBMIT WITHDRAWAL
    ============================================================ */
 async function submitWithdrawal() {
     if (isProcessing) return;
@@ -352,7 +364,6 @@ async function submitWithdrawal() {
     const releaseBal = getReleaseWallet();
     const cooldown = getCooldownStatus();
 
-    /* --- Validations --- */
     if (!currentUser || !auth.currentUser) {
         msgDiv.innerHTML = '<div class="error">❌ Session expired. Please login again.</div>';
         return;
@@ -367,9 +378,10 @@ async function submitWithdrawal() {
         return;
     }
     if (!address || !address.startsWith('0x') || address.length !== 42) {
-        msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP-20 wallet address (0x... 42 chars).</div>';
+        msgDiv.innerHTML = '<div class="error">❌ Please enter a valid BEP-20 wallet address.</div>';
         return;
     }
+
     const normalizedAddress = address.toLowerCase();
     if (globalUsedAddresses.has(normalizedAddress)) {
         msgDiv.innerHTML = '<div class="warning">⚠️ This wallet address has already been used!</div>';
@@ -381,17 +393,17 @@ async function submitWithdrawal() {
     updateButtonState();
 
     try {
-        /* --- Fresh read to prevent race conditions --- */
+        /* Fresh read */
         const freshSnap = await get(ref(db, 'users/' + currentUser.uid));
         const freshData = freshSnap.val() || {};
         const freshBalance = Number(freshData.releaseWallet) || 0;
 
         if (freshBalance < MIN_RELEASE_BALANCE) {
-            msgDiv.innerHTML = '<div class="error">❌ Insufficient release balance (fresh check).</div>';
+            msgDiv.innerHTML = '<div class="error">❌ Insufficient release balance.</div>';
             return;
         }
 
-        /* --- Re-check cooldown against fresh withdrawals --- */
+        /* Fresh withdrawal check */
         const allWithdrawalsSnap = await get(ref(db, 'withdrawals'));
         let latestTime = 0;
         let addressAlreadyUsed = false;
@@ -417,13 +429,13 @@ async function submitWithdrawal() {
             return;
         }
 
-        /* --- Deduct from releaseWallet --- */
+        /* Deduct from releaseWallet */
         const newBalance = roundTo(freshBalance - WITHDRAW_AMOUNT);
         await update(ref(db, 'users/' + currentUser.uid), {
             releaseWallet: newBalance
         });
 
-        /* --- Create withdrawal request --- */
+        /* Create withdrawal request */
         const withdrawalRef = push(ref(db, 'withdrawals'));
         await set(withdrawalRef, {
             uid: currentUser.uid,
@@ -435,12 +447,12 @@ async function submitWithdrawal() {
             date: new Date().toISOString()
         });
 
-        /* --- Reload and update --- */
+        /* Update local state */
         globalUsedAddresses.add(normalizedAddress);
         await loadUserWithdrawals();
         document.getElementById('address').value = '';
         const hint = document.getElementById('addressHint');
-        hint.innerHTML = '<i class="fas fa-info-circle"></i> Enter your valid BEP-20 (BNB Chain) wallet address';
+        hint.innerHTML = '<i class="fas fa-info-circle"></i><span>Enter your valid BEP-20 (BNB Chain) wallet address</span>';
         hint.className = 'address-hint';
 
         msgDiv.innerHTML = `
@@ -474,7 +486,6 @@ function bindEvents() {
         checkAddress(this.value);
     });
 
-    // Live cooldown timer
     if (tickTimer) clearInterval(tickTimer);
     tickTimer = setInterval(() => {
         updateCooldownUI();
@@ -491,18 +502,18 @@ onAuthStateChanged(auth, async (user) => {
     }
     currentUser = user;
 
-    /* Load global used addresses first */
     await loadGlobalAddresses();
-
-    /* Attach real-time user listener */
     attachUserListener(user.uid);
-
-    /* Load user's own withdrawals */
     await loadUserWithdrawals();
 
-    /* Bind UI */
     bindEvents();
     updateButtonState();
+
+    /* ⭐ अगर data पहले से आ गया — loading hide करो */
+    if (userData && !dataReady) {
+        dataReady = true;
+        hideLoadingScreen();
+    }
 });
 
 /* ============================================================
@@ -549,4 +560,4 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('💸 RND Withdraw module loaded');
+console.log('💸 RND Withdraw loaded (loading screen + premium UI)');
