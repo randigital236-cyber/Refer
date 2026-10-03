@@ -3,6 +3,7 @@
    - 6 wallets: Total, Referral, Spin, SocialTasks, Release, TotalEarned
    - Staking unlock: दोनों social tasks पूरे होने चाहिए
    - Deduction priority: SocialTasks → Referral → Total → Spin
+   - FIXED: Confirm button bug (fresh Firebase check)
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -117,7 +118,7 @@ function getMainWallet() {
     return getReferralWallet() + getSpinWallet() + getSocialTasksWallet();
 }
 
-/* ⭐ Available for staking = SocialTasks + Referral + Main + Spin */
+/* Available for staking = SocialTasks + Referral + Main + Spin */
 function getStakingAvailable() {
     return roundTo(
         getSocialTasksWallet() + getReferralWallet() + getMainWallet() + getSpinWallet(),
@@ -125,9 +126,36 @@ function getStakingAvailable() {
     );
 }
 
-/* ⭐ Are both social tasks complete? */
+/* Are both social tasks complete? */
 function areTasksCompleted() {
     const tasks = userData?.socialTasks || {};
+    return tasks.facebook === true && tasks.twitter === true;
+}
+
+/* ⭐ NEW: Fresh check directly from Firebase (bypasses stale cache) */
+async function fetchFreshUserData() {
+    if (!currentUser) return null;
+    try {
+        const snap = await get(ref(db, `users/${currentUser.uid}`));
+        if (snap.exists()) {
+            const fresh = snap.val();
+            /* Sync local state */
+            userData = fresh;
+            stakes = fresh.staking || {};
+            return fresh;
+        }
+        return null;
+    } catch (err) {
+        console.error('Fresh fetch error:', err);
+        return null;
+    }
+}
+
+/* ⭐ NEW: Fresh task check — uses live Firebase data */
+async function areTasksCompletedFresh() {
+    const fresh = await fetchFreshUserData();
+    if (!fresh) return false;
+    const tasks = fresh.socialTasks || {};
     return tasks.facebook === true && tasks.twitter === true;
 }
 
@@ -137,6 +165,7 @@ function areTasksCompleted() {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
     const text = document.getElementById('toastText');
+    if (!toast || !text) return;
     toast.className = `toast ${type}`;
     text.textContent = message;
     toast.classList.add('show');
@@ -177,9 +206,9 @@ function showErrorAndLogout(message) {
     const loadingScreen = document.getElementById('loadingScreen');
     const errorEl = document.getElementById('loaderError');
     const errorMsg = document.getElementById('errorMessage');
-    errorMsg.textContent = message || '⚠️ Unable to load account data.';
-    errorEl.style.display = 'block';
-    loadingScreen.classList.remove('hide');
+    if (errorMsg) errorMsg.textContent = message || '⚠️ Unable to load account data.';
+    if (errorEl) errorEl.style.display = 'block';
+    if (loadingScreen) loadingScreen.classList.remove('hide');
     document.querySelectorAll('.stats-grid, .section, .header').forEach(el => {
         el.style.opacity = '0.3';
         el.style.pointerEvents = 'none';
@@ -187,7 +216,8 @@ function showErrorAndLogout(message) {
 }
 
 function hideErrorState() {
-    document.getElementById('loaderError').style.display = 'none';
+    const errorEl = document.getElementById('loaderError');
+    if (errorEl) errorEl.style.display = 'none';
     document.querySelectorAll('.stats-grid, .section, .header').forEach(el => {
         el.style.opacity = '1';
         el.style.pointerEvents = 'auto';
@@ -215,7 +245,8 @@ function loadUserData(user) {
             userData = data;
             stakes = data.staking || {};
             hideErrorState();
-            document.getElementById('loadingScreen').classList.add('hide');
+            const ls = document.getElementById('loadingScreen');
+            if (ls) ls.classList.add('hide');
 
             reconcileAllReleases().catch(e => console.warn('Reconcile:', e));
             renderAll();
@@ -230,8 +261,10 @@ function loadUserData(user) {
         console.error('Database error:', error);
         if (retryCount < MAX_RETRIES) {
             retryCount++;
-            document.getElementById('loaderError').style.display = 'block';
-            document.getElementById('errorMessage').textContent = `⚠️ Connection issue. Retry ${retryCount}/${MAX_RETRIES}...`;
+            const el = document.getElementById('loaderError');
+            if (el) el.style.display = 'block';
+            const msg = document.getElementById('errorMessage');
+            if (msg) msg.textContent = `⚠️ Connection issue. Retry ${retryCount}/${MAX_RETRIES}...`;
         } else {
             showErrorAndLogout('Network error. Please check your internet connection.');
             setTimeout(async () => {
@@ -261,7 +294,8 @@ function renderAll() {
 
 function renderUserName() {
     const n = userData?.name && String(userData.name).trim() ? String(userData.name).trim() : 'User';
-    document.getElementById('userName').innerText = n;
+    const el = document.getElementById('userName');
+    if (el) el.innerText = n;
 }
 
 function renderWallets() {
@@ -303,14 +337,19 @@ function aggregateStakes() {
 
 function renderSummary() {
     const agg = aggregateStakes();
-    document.getElementById('sumTotalStaked').textContent = `${formatRND(agg.totalStaked)} RND`;
-    document.getElementById('sumBonus').textContent = `${formatRND(agg.totalBonus)} RND`;
-    document.getElementById('sumAvailable').textContent = `${formatRND(agg.totalAvailable)} RND`;
-    document.getElementById('sumLocked').textContent = `${formatRND(agg.totalLocked)} RND`;
+    const e1 = document.getElementById('sumTotalStaked');
+    const e2 = document.getElementById('sumBonus');
+    const e3 = document.getElementById('sumAvailable');
+    const e4 = document.getElementById('sumLocked');
+    if (e1) e1.textContent = `${formatRND(agg.totalStaked)} RND`;
+    if (e2) e2.textContent = `${formatRND(agg.totalBonus)} RND`;
+    if (e3) e3.textContent = `${formatRND(agg.totalAvailable)} RND`;
+    if (e4) e4.textContent = `${formatRND(agg.totalLocked)} RND`;
 }
 
 function renderReferral() {
     const linkInput = document.getElementById('referralLink');
+    if (!linkInput) return;
     if (userData?.referralCode) {
         linkInput.value = `${OFFICIAL_DOMAIN}/?ref=${userData.referralCode}`;
         linkInput.placeholder = 'Referral code';
@@ -325,6 +364,7 @@ function renderReferral() {
    ============================================================ */
 function renderActiveStakes() {
     const container = document.getElementById('activeStakesContainer');
+    if (!container) return;
     const list = Object.values(stakes || {}).sort((a, b) =>
         (b.stakeStartAt || 0) - (a.stakeStartAt || 0));
 
@@ -402,6 +442,7 @@ function renderStakeCard(s, now) {
 
 function renderHistory() {
     const container = document.getElementById('historyContainer');
+    if (!container) return;
     const list = Object.values(stakes || {}).sort((a, b) =>
         (b.stakeStartAt || 0) - (a.stakeStartAt || 0));
 
@@ -484,10 +525,14 @@ function updateCalculator() {
     const total = calculateTotalStaking(amt);
     const daily = calculateDailyRelease(total);
 
-    document.getElementById('cPrincipal').textContent = `${formatRND(amt)} RND`;
-    document.getElementById('cBonus').textContent = `+${formatRND(bonus)} RND`;
-    document.getElementById('cTotal').textContent = `${formatRND(total)} RND`;
-    document.getElementById('cDaily').textContent = `${formatRND(daily)} RND`;
+    const c1 = document.getElementById('cPrincipal');
+    const c2 = document.getElementById('cBonus');
+    const c3 = document.getElementById('cTotal');
+    const c4 = document.getElementById('cDaily');
+    if (c1) c1.textContent = `${formatRND(amt)} RND`;
+    if (c2) c2.textContent = `+${formatRND(bonus)} RND`;
+    if (c3) c3.textContent = `${formatRND(total)} RND`;
+    if (c4) c4.textContent = `${formatRND(daily)} RND`;
 }
 
 function updateStakeButtonState() {
@@ -496,7 +541,7 @@ function updateStakeButtonState() {
 
     if (isSubmitting) { btn.disabled = true; return; }
 
-    /* ⭐ Tasks check first */
+    /* Tasks check */
     if (!areTasksCompleted()) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-tasks"></i> COMPLETE SOCIAL TASKS FIRST';
@@ -545,10 +590,17 @@ window.setStakeMax = function() {
 };
 
 /* ============================================================
-   MODAL
+   MODAL — ⭐ FIXED with fresh data check
    ============================================================ */
-window.openStakeModal = function() {
-    /* ⭐ Tasks check */
+window.openStakeModal = async function() {
+    /* ⭐ Fresh data fetch करो */
+    const fresh = await fetchFreshUserData();
+    if (!fresh) {
+        showToast('Unable to load account data.', 'error');
+        return;
+    }
+
+    /* ⭐ अब fresh check */
     if (!areTasksCompleted()) {
         showToast('Please complete Social Tasks first!', 'error');
         setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
@@ -565,17 +617,24 @@ window.openStakeModal = function() {
     const total = calculateTotalStaking(amt);
     const daily = calculateDailyRelease(total);
 
-    document.getElementById('mPrincipal').textContent = `${formatRND(amt)} RND`;
-    document.getElementById('mBonus').textContent = `${formatRND(bonus)} RND`;
-    document.getElementById('mTotal').textContent = `${formatRND(total)} RND`;
-    document.getElementById('mDaily').textContent = `${formatRND(daily)} RND/day`;
-    document.getElementById('mWarnPrincipal').textContent = `${formatRND(amt)} RND`;
+    const m1 = document.getElementById('mPrincipal');
+    const m2 = document.getElementById('mBonus');
+    const m3 = document.getElementById('mTotal');
+    const m4 = document.getElementById('mDaily');
+    const m5 = document.getElementById('mWarnPrincipal');
+    if (m1) m1.textContent = `${formatRND(amt)} RND`;
+    if (m2) m2.textContent = `${formatRND(bonus)} RND`;
+    if (m3) m3.textContent = `${formatRND(total)} RND`;
+    if (m4) m4.textContent = `${formatRND(daily)} RND/day`;
+    if (m5) m5.textContent = `${formatRND(amt)} RND`;
 
-    document.getElementById('confirmModal').classList.add('show');
+    const modal = document.getElementById('confirmModal');
+    if (modal) modal.classList.add('show');
 };
 
 window.closeStakeModal = function() {
-    document.getElementById('confirmModal').classList.remove('show');
+    const modal = document.getElementById('confirmModal');
+    if (modal) modal.classList.remove('show');
     modalAmount = 0;
 };
 
@@ -584,95 +643,135 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 });
 
 /* ============================================================
-   ATOMIC STAKE CREATION
+   ⭐⭐⭐ ATOMIC STAKE CREATION — FULLY FIXED ⭐⭐⭐
    Priority: SocialTasks → Referral → Total → Spin
+   FIX: Fresh Firebase check before processing
    ============================================================ */
 window.confirmStake = async function() {
+    /* ⭐ Double-click prevention */
+    const confirmBtn = document.getElementById('confirmStakeBtn');
+    if (!confirmBtn) return;
+    if (confirmBtn.disabled) return;
+
     if (isSubmitting) { showToast('Already processing...', 'info'); return; }
     if (!currentUser || !auth.currentUser) { showToast('Session expired. Please login again.', 'error'); return; }
     if (modalAmount <= 0) { showToast('Please enter a valid RND amount.', 'error'); return; }
 
-    /* ⭐ Tasks check */
-    if (!areTasksCompleted()) {
-        showToast('Please complete Social Tasks first!', 'error');
-        window.closeStakeModal();
-        return;
-    }
-
     isSubmitting = true;
-    const confirmBtn = document.getElementById('confirmStakeBtn');
     confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
-
-    if (!pendingRequestId) {
-        pendingRequestId = `REQ_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    }
-
-    const principal = roundTo(modalAmount);
-    const bonus = calculateStakingBonus(principal);
-    const total = calculateTotalStaking(principal);
-    const daily = calculateDailyRelease(total);
-    const stakeId = generateStakeId();
-    const now = Date.now();
-    const lockEnd = calculateLockEndDate(now);
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CHECKING...';
 
     try {
+        /* ⭐ STEP 1: Fresh data from Firebase */
+        const freshSnap = await get(ref(db, `users/${currentUser.uid}`));
+        const freshData = freshSnap.val() || {};
+
+        /* ⭐ STEP 2: Fresh tasks check */
+        const freshTasks = freshData.socialTasks || {};
+        if (freshTasks.facebook !== true || freshTasks.twitter !== true) {
+            showToast('Please complete Social Tasks first!', 'error');
+            window.closeStakeModal();
+            isSubmitting = false;
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'CONFIRM STAKE';
+            /* Auto-redirect */
+            setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
+            return;
+        }
+
+        /* ⭐ STEP 3: Sync local state */
+        userData = freshData;
+        stakes = freshData.staking || {};
+
+        /* ⭐ STEP 4: Fresh balance check */
+        const refW = Number(freshData.referralWallet) || 0;
+        const mainW = (freshData.totalBalance !== undefined && freshData.totalBalance !== null)
+            ? Number(freshData.totalBalance) || 0
+            : refW;
+        const spinW = Number(freshData.spinWallet) || 0;
+        const taskW = Number(freshData.socialTasksWallet) || 0;
+        const combined = refW + mainW + spinW + taskW;
+
+        if (modalAmount > combined + 1e-9) {
+            showToast('Insufficient RND balance.', 'error');
+            window.closeStakeModal();
+            isSubmitting = false;
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'CONFIRM STAKE';
+            return;
+        }
+
+        /* STEP 5: अब actual transaction */
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+
+        if (!pendingRequestId) {
+            pendingRequestId = `REQ_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        }
+
+        const principal = roundTo(modalAmount);
+        const bonus = calculateStakingBonus(principal);
+        const total = calculateTotalStaking(principal);
+        const daily = calculateDailyRelease(total);
+        const stakeId = generateStakeId();
+        const now = Date.now();
+        const lockEnd = calculateLockEndDate(now);
+
         const rootRef = ref(db, `users/${currentUser.uid}`);
 
         const result = await runTransaction(rootRef, (cur) => {
             if (!cur) return cur;
             if (cur._lastStakeRequestId === pendingRequestId) return;
 
-            /* ⭐ Double-check tasks server-side */
+            /* Server-side double check */
             const tasks = cur.socialTasks || {};
             if (tasks.facebook !== true || tasks.twitter !== true) return;
 
-            const refW = Number(cur.referralWallet) || 0;
-            const mainW = (cur.totalBalance !== undefined && cur.totalBalance !== null)
+            const rW = Number(cur.referralWallet) || 0;
+            const mW = (cur.totalBalance !== undefined && cur.totalBalance !== null)
                 ? Number(cur.totalBalance) || 0
-                : refW;
-            const spinW = Number(cur.spinWallet) || 0;
-            const taskW = Number(cur.socialTasksWallet) || 0;
+                : rW;
+            const sW = Number(cur.spinWallet) || 0;
+            const tW = Number(cur.socialTasksWallet) || 0;
 
-            const combined = refW + mainW + spinW + taskW;
-            if (principal > combined + 1e-9) return;
+            const cmb = rW + mW + sW + tW;
+            if (principal > cmb + 1e-9) return;
 
-            /* ⭐ Deduct priority: SocialTasks → Referral → Total → Spin */
+            /* Deduct priority: SocialTasks → Referral → Total → Spin */
             let remaining = principal;
 
-            // 1. Social Tasks
-            const fromTasks = Math.min(taskW, remaining);
-            cur.socialTasksWallet = roundTo(taskW - fromTasks);
+            /* 1. Social Tasks */
+            const fromTasks = Math.min(tW, remaining);
+            cur.socialTasksWallet = roundTo(tW - fromTasks);
             remaining -= fromTasks;
 
-            // 2. Referral
+            /* 2. Referral */
             if (remaining > 0) {
-                const fromRef = Math.min(refW, remaining);
-                cur.referralWallet = roundTo(refW - fromRef);
+                const fromRef = Math.min(rW, remaining);
+                cur.referralWallet = roundTo(rW - fromRef);
                 remaining -= fromRef;
             } else {
-                cur.referralWallet = roundTo(refW);
+                cur.referralWallet = roundTo(rW);
             }
 
-            // 3. Total Balance
+            /* 3. Total Balance */
             if (remaining > 0) {
-                const fromMain = Math.min(mainW, remaining);
-                cur.totalBalance = roundTo(mainW - fromMain);
+                const fromMain = Math.min(mW, remaining);
+                cur.totalBalance = roundTo(mW - fromMain);
                 remaining -= fromMain;
             } else {
-                cur.totalBalance = roundTo(mainW);
+                cur.totalBalance = roundTo(mW);
             }
 
-            // 4. Spin
+            /* 4. Spin */
             if (remaining > 0) {
-                const fromSpin = Math.min(spinW, remaining);
-                cur.spinWallet = roundTo(spinW - fromSpin);
+                const fromSpin = Math.min(sW, remaining);
+                cur.spinWallet = roundTo(sW - fromSpin);
                 remaining -= fromSpin;
             } else {
-                cur.spinWallet = roundTo(spinW);
+                cur.spinWallet = roundTo(sW);
             }
 
-            /* Init releaseWallet */
+            /* Init release wallet */
             if (cur.releaseWallet === undefined || cur.releaseWallet === null) {
                 cur.releaseWallet = 0;
             }
@@ -702,21 +801,27 @@ window.confirmStake = async function() {
         });
 
         if (!result.committed) {
+            /* Reason पता करो */
             const snap = await get(ref(db, `users/${currentUser.uid}`));
             const d = snap.val() || {};
+            const tasks = d.socialTasks || {};
+
             if (d._lastStakeRequestId === pendingRequestId) {
                 showToast('Already processed.', 'info');
-            } else if (!areTasksCompleted()) {
+            } else if (tasks.facebook !== true || tasks.twitter !== true) {
                 showToast('Complete Social Tasks first.', 'error');
+                setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
             } else {
                 showToast('Insufficient RND balance.', 'error');
             }
             return;
         }
 
+        /* SUCCESS */
         window.closeStakeModal();
         showToast(`✅ ${formatRND(principal)} RND successfully staked.`, 'success');
-        document.getElementById('stakeAmountInput').value = '';
+        const inp = document.getElementById('stakeAmountInput');
+        if (inp) inp.value = '';
         updateCalculator();
         pendingRequestId = null;
 
@@ -725,8 +830,10 @@ window.confirmStake = async function() {
         showToast('Unable to process staking right now.', 'error');
     } finally {
         isSubmitting = false;
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = 'CONFIRM STAKE';
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = 'CONFIRM STAKE';
+        }
         updateStakeButtonState();
     }
 };
@@ -791,8 +898,10 @@ async function applyReleaseToStake(stakeId, newReleased) {
    ============================================================ */
 window.retryLoad = function() {
     retryCount = 0;
-    document.getElementById('loaderError').style.display = 'none';
-    document.getElementById('loadingScreen').classList.remove('hide');
+    const e1 = document.getElementById('loaderError');
+    if (e1) e1.style.display = 'none';
+    const ls = document.getElementById('loadingScreen');
+    if (ls) ls.classList.remove('hide');
     const user = auth.currentUser;
     if (user) loadUserData(user);
 };
@@ -817,12 +926,16 @@ window.copyLink = function() {
     const btn = document.querySelector('.copy-btn');
     if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(inp.value).then(() => {
-            btn.classList.add('copied');
-            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            if (btn) {
+                btn.classList.add('copied');
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            }
             showToast('✅ Referral link copied!', 'success');
             setTimeout(() => {
-                btn.classList.remove('copied');
-                btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                if (btn) {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+                }
             }, 3000);
         }).catch(() => {
             inp.select();
@@ -843,8 +956,10 @@ window.openTwitter = function() { window.open(SOCIAL_LINKS.twitter, '_blank'); }
    NAVIGATION
    ============================================================ */
 window.toggleSidebar = function() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('open');
+    const s = document.getElementById('sidebar');
+    const o = document.getElementById('overlay');
+    if (s) s.classList.toggle('open');
+    if (o) o.classList.toggle('open');
 };
 
 window.navigateTo = function(page) {
@@ -887,4 +1002,4 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('🔒 RND Dashboard loaded — 6 wallets + tasks-unlock');
+console.log('🔒 RND Dashboard loaded — 6 wallets + tasks-unlock + FIXED confirm button');
