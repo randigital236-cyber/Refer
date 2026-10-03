@@ -1,6 +1,9 @@
 /* ============================================================
    RND REWARDS — DASHBOARD + STAKING LOGIC
    Firebase Auth + Realtime Database
+   - 5 wallets: totalBalance, referralWallet, spinWallet, releaseWallet, totalEarned
+   - Staking: 20% bonus, 6-month lock, 2% daily release
+   - Release Wallet: automatic daily release
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -53,6 +56,7 @@ let tickTimer = null;
 let pendingRequestId = null;
 let isSubmitting = false;
 let modalAmount = 0;
+let isReconciling = false;   // 🔒 prevent duplicate reconciliation
 
 /* ============================================================
    HELPERS
@@ -122,9 +126,7 @@ function animateNumber(element, targetValue, decimals = 2) {
     const start = isNaN(currentRaw) ? 0 : currentRaw;
     const target = parseFloat(targetValue);
     if (Math.abs(start - target) < 0.01) {
-        element.innerText = target.toLocaleString(undefined, {
-            minimumFractionDigits: decimals, maximumFractionDigits: decimals
-        });
+        element.innerText = target.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         return;
     }
     const duration = Math.min(400, 100 + Math.abs(target - start) * 2);
@@ -134,13 +136,9 @@ function animateNumber(element, targetValue, decimals = 2) {
         const progress = Math.min(1, elapsed / duration);
         const easeOut = 1 - Math.pow(1 - progress, 2);
         const val = start + (target - start) * easeOut;
-        element.innerText = val.toLocaleString(undefined, {
-            minimumFractionDigits: decimals, maximumFractionDigits: decimals
-        });
+        element.innerText = val.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         if (progress < 1) requestAnimationFrame(update);
-        else element.innerText = target.toLocaleString(undefined, {
-            minimumFractionDigits: decimals, maximumFractionDigits: decimals
-        });
+        else element.innerText = target.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
     requestAnimationFrame(update);
 }
@@ -174,6 +172,7 @@ function hideErrorState() {
    ============================================================ */
 function getReferralWallet() { return Number(userData?.referralWallet) || 0; }
 function getSpinWallet() { return Number(userData?.spinWallet) || 0; }
+function getReleaseWallet() { return Number(userData?.releaseWallet) || 0; }
 function getTotalEarned() { return Number(userData?.totalEarned) || 0; }
 
 function getMainWallet() {
@@ -183,7 +182,7 @@ function getMainWallet() {
     return getReferralWallet() + getSpinWallet();
 }
 
-/* ⭐ FIXED: Available for staking = referralWallet + totalBalance + spinWallet */
+/* Available for staking = referralWallet + totalBalance + spinWallet */
 function getStakingAvailable() {
     return roundTo(getReferralWallet() + getMainWallet() + getSpinWallet(), 8);
 }
@@ -192,14 +191,9 @@ function getStakingAvailable() {
    LOAD USER DATA (Realtime)
    ============================================================ */
 function loadUserData(user) {
-    if (!user) {
-        showErrorAndLogout('Please login again');
-        return;
-    }
-    if (realtimeListener) {
-        realtimeListener();
-        realtimeListener = null;
-    }
+    if (!user) { showErrorAndLogout('Please login again'); return; }
+    if (realtimeListener) { realtimeListener(); realtimeListener = null; }
+
     const userRef = ref(db, 'users/' + user.uid);
 
     realtimeListener = onValue(userRef, (snapshot) => {
@@ -217,6 +211,7 @@ function loadUserData(user) {
             hideErrorState();
             document.getElementById('loadingScreen').classList.add('hide');
 
+            // Auto-apply eligible releases to releaseWallet
             reconcileAllReleases().catch(e => console.warn('Reconcile:', e));
 
             renderAll();
@@ -234,8 +229,7 @@ function loadUserData(user) {
             retryCount++;
             const errorEl = document.getElementById('loaderError');
             errorEl.style.display = 'block';
-            document.getElementById('errorMessage').textContent =
-                `⚠️ Connection issue. Retry ${retryCount}/${MAX_RETRIES}...`;
+            document.getElementById('errorMessage').textContent = `⚠️ Connection issue. Retry ${retryCount}/${MAX_RETRIES}...`;
         } else {
             showErrorAndLogout('Network error. Please check your internet connection.');
             setTimeout(async () => {
@@ -271,6 +265,7 @@ function renderWallets() {
     animateNumber(document.getElementById('totalBalance'), getMainWallet(), 2);
     animateNumber(document.getElementById('referralWallet'), getReferralWallet(), 2);
     animateNumber(document.getElementById('spinWallet'), getSpinWallet(), 2);
+    animateNumber(document.getElementById('releaseWallet'), getReleaseWallet(), 2);
     animateNumber(document.getElementById('totalEarned'), getTotalEarned(), 2);
 }
 
@@ -587,21 +582,12 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 
 /* ============================================================
    ATOMIC STAKE CREATION
-   ⭐ FIXED: Deduct from referralWallet → totalBalance → spinWallet
+   Deduct from: referralWallet → totalBalance → spinWallet
    ============================================================ */
 window.confirmStake = async function() {
-    if (isSubmitting) {
-        showToast('This staking request is already being processed.', 'info');
-        return;
-    }
-    if (!currentUser || !auth.currentUser) {
-        showToast('Your session has expired. Please login again.', 'error');
-        return;
-    }
-    if (modalAmount <= 0) {
-        showToast('Please enter a valid RND amount.', 'error');
-        return;
-    }
+    if (isSubmitting) { showToast('This staking request is already being processed.', 'info'); return; }
+    if (!currentUser || !auth.currentUser) { showToast('Your session has expired. Please login again.', 'error'); return; }
+    if (modalAmount <= 0) { showToast('Please enter a valid RND amount.', 'error'); return; }
 
     isSubmitting = true;
     const confirmBtn = document.getElementById('confirmStakeBtn');
@@ -625,7 +611,6 @@ window.confirmStake = async function() {
 
         const result = await runTransaction(rootRef, (cur) => {
             if (!cur) return cur;
-
             if (cur._lastStakeRequestId === pendingRequestId) return;
 
             const refW = Number(cur.referralWallet) || 0;
@@ -637,18 +622,13 @@ window.confirmStake = async function() {
 
             if (principal > combined + 1e-9) return;
 
-            // ⭐ Deduct priority order:
-            // 1. referralWallet पहले
-            // 2. totalBalance दूसरा
-            // 3. spinWallet तीसरा
+            // Deduct from referralWallet → totalBalance → spinWallet
             let remainingToDeduct = principal;
 
-            // Step 1: Referral Wallet से
             const fromRef = Math.min(refW, remainingToDeduct);
             cur.referralWallet = roundTo(refW - fromRef);
             remainingToDeduct -= fromRef;
 
-            // Step 2: Main Wallet (totalBalance) से
             if (remainingToDeduct > 0) {
                 const fromMain = Math.min(mainW, remainingToDeduct);
                 cur.totalBalance = roundTo(mainW - fromMain);
@@ -657,7 +637,6 @@ window.confirmStake = async function() {
                 cur.totalBalance = roundTo(mainW);
             }
 
-            // Step 3: Spin Wallet से
             if (remainingToDeduct > 0) {
                 const fromSpin = Math.min(spinW, remainingToDeduct);
                 cur.spinWallet = roundTo(spinW - fromSpin);
@@ -666,7 +645,11 @@ window.confirmStake = async function() {
                 cur.spinWallet = roundTo(spinW);
             }
 
-            // Create stake record
+            // Initialize releaseWallet if missing
+            if (cur.releaseWallet === undefined || cur.releaseWallet === null) {
+                cur.releaseWallet = 0;
+            }
+
             cur.staking = cur.staking || {};
             cur.staking[stakeId] = {
                 stakeId,
@@ -720,35 +703,66 @@ window.confirmStake = async function() {
 
 /* ============================================================
    RELEASE RECONCILIATION
+   Automatically moves daily 2% releases to releaseWallet
    ============================================================ */
 async function reconcileAllReleases() {
-    if (!currentUser || !stakes) return;
-    const now = Date.now();
-    for (const [stakeId, stake] of Object.entries(stakes)) {
-        const calc = calculateEligibleRelease(stake, now);
-        const stored = Number(stake.releasedAmount) || 0;
-        if (calc.released > stored + 1e-9) {
-            await applyReleaseToStake(stakeId);
+    if (!currentUser || !stakes || isReconciling) return;
+    isReconciling = true;
+
+    try {
+        const now = Date.now();
+        let totalNewRelease = 0;
+
+        for (const [stakeId, stake] of Object.entries(stakes)) {
+            const calc = calculateEligibleRelease(stake, now);
+            const stored = Number(stake.releasedAmount) || 0;
+
+            if (calc.released > stored + 1e-9) {
+                const delta = roundTo(calc.released - stored);
+                const success = await applyReleaseToStake(stakeId, calc.released);
+                if (success) {
+                    totalNewRelease += delta;
+                }
+            }
         }
+
+        // Add the new release to releaseWallet (once per user, atomic)
+        if (totalNewRelease > 0) {
+            const userRef = ref(db, `users/${currentUser.uid}`);
+            await runTransaction(userRef, (cur) => {
+                if (!cur) return cur;
+                cur.releaseWallet = roundTo((Number(cur.releaseWallet) || 0) + totalNewRelease);
+                cur.lastReleaseCreditedAt = Date.now();
+                return cur;
+            });
+        }
+    } finally {
+        isReconciling = false;
     }
 }
 
-async function applyReleaseToStake(stakeId) {
+async function applyReleaseToStake(stakeId, newReleased) {
     const stakeRef = ref(db, `users/${currentUser.uid}/staking/${stakeId}`);
+    let committed = false;
+
     await runTransaction(stakeRef, (cur) => {
         if (!cur) return cur;
-        const fresh = calculateEligibleRelease(cur, Date.now());
         const stored = Number(cur.releasedAmount) || 0;
-        if (fresh.released <= stored + 1e-9) return cur;
+        const total = Number(cur.totalStakingAmount) || 0;
 
-        const capped = Math.min(fresh.released, Number(cur.totalStakingAmount) || 0);
+        if (newReleased <= stored + 1e-9) return cur;   // already up to date
+
+        const capped = Math.min(newReleased, total);
         cur.releasedAmount = roundTo(capped);
         cur.availableAmount = roundTo(capped);
-        cur.remainingAmount = roundTo((Number(cur.totalStakingAmount) || 0) - capped);
+        cur.remainingAmount = roundTo(total - capped);
         cur.status = cur.remainingAmount <= 0 ? 'completed' : 'releasing';
         cur.lastReleaseAt = Date.now();
+        committed = true;
         return cur;
     });
+
+    return committed;
 }
 
 /* ============================================================
@@ -766,10 +780,7 @@ window.retryLoad = function() {
    AUTH BOOTSTRAP
    ============================================================ */
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.replace('index.html');
-        return;
-    }
+    if (!user) { window.location.replace('index.html'); return; }
     currentUser = user;
     loadUserData(user);
     bindStakeInput();
@@ -781,10 +792,7 @@ onAuthStateChanged(auth, async (user) => {
    ============================================================ */
 window.copyLink = function() {
     const inp = document.getElementById('referralLink');
-    if (!inp || !inp.value) {
-        showToast('No referral link available', 'error');
-        return;
-    }
+    if (!inp || !inp.value) { showToast('No referral link available', 'error'); return; }
     const btn = document.querySelector('.copy-btn');
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -828,9 +836,7 @@ window.navigateTo = function(page) {
         'staking': 'dashboard.html',
         'withdraw': 'withdraw.html'
     };
-    if (pages[page]) {
-        window.location.href = pages[page];
-    }
+    if (pages[page]) window.location.href = pages[page];
 };
 
 /* ============================================================
@@ -838,10 +844,7 @@ window.navigateTo = function(page) {
    ============================================================ */
 window.logout = async function() {
     try {
-        if (realtimeListener) {
-            realtimeListener();
-            realtimeListener = null;
-        }
+        if (realtimeListener) { realtimeListener(); realtimeListener = null; }
         if (tickTimer) clearInterval(tickTimer);
         await signOut(auth);
         localStorage.clear();
@@ -853,9 +856,6 @@ window.logout = async function() {
     }
 };
 
-/* ============================================================
-   Prevent Back Button After Logout
-   ============================================================ */
 window.addEventListener('pageshow', function(event) {
     if (event.persisted && !auth.currentUser) {
         window.location.replace('index.html');
@@ -867,4 +867,4 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('🔒 RND Rewards Dashboard + Staking loaded (spinWallet included)');
+console.log('🔒 RND Dashboard loaded — releaseWallet active');
