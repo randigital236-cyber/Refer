@@ -1,7 +1,7 @@
 /* ============================================================
    RND REWARDS — MY REFERRALS (profile page)
    Firebase Auth + Realtime Database
-   Referral list logic: UNCHANGED
+   Loading screen: data आने तक spinner
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -27,6 +27,28 @@ const db = getDatabase(app);
 /* ---------- STATE ---------- */
 let currentUser = null;
 let allUsers = [];
+let dataReady = false;
+
+/* ============================================================
+   LOADING SCREEN HELPERS
+   ============================================================ */
+function hideLoadingScreen() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) {
+        ls.classList.add('hide');
+        setTimeout(() => { ls.style.display = 'none'; }, 500);
+    }
+}
+
+function showLoadingError() {
+    const err = document.getElementById('loaderError');
+    if (err) err.style.display = 'block';
+}
+
+/* Timeout safety — 8 सेकंड में data न आए तो error */
+setTimeout(() => {
+    if (!dataReady) showLoadingError();
+}, 8000);
 
 /* ============================================================
    AUTH STATE
@@ -37,8 +59,18 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
     currentUser = user;
-    await loadAllUsers();
-    await loadReferrals();
+
+    try {
+        await loadAllUsers();
+        await loadReferrals();
+
+        /* ⭐ Data आया — loading hide करो */
+        dataReady = true;
+        hideLoadingScreen();
+    } catch (err) {
+        console.error('Load error:', err);
+        showLoadingError();
+    }
 });
 
 /* ============================================================
@@ -77,10 +109,15 @@ async function loadReferrals() {
     displayReferrals('level1', level1);
     displayReferrals('level2', level2);
 
-    document.getElementById('level1Count').innerText = level1.length;
-    document.getElementById('level2Count').innerText = level2.length;
-    document.getElementById('level1Badge').innerHTML = level1.length + ' Members';
-    document.getElementById('level2Badge').innerHTML = level2.length + ' Members';
+    const el1c = document.getElementById('level1Count');
+    const el2c = document.getElementById('level2Count');
+    const el1b = document.getElementById('level1Badge');
+    const el2b = document.getElementById('level2Badge');
+
+    if (el1c) el1c.innerText = level1.length;
+    if (el2c) el2c.innerText = level2.length;
+    if (el1b) el1b.innerHTML = level1.length + ' Members';
+    if (el2b) el2b.innerHTML = level2.length + ' Members';
 }
 
 /* ============================================================
@@ -156,7 +193,7 @@ window.navigateTo = function(page) {
         'profile': 'profile.html',
         'spin': 'spin.html',
         'tasks': 'social-tasks.html',
-        'staking': 'dashboard.html',   // staking dashboard पर ही है
+        'staking': 'dashboard.html',
         'withdraw': 'withdraw.html'
     };
     if (routes[page]) window.location.href = routes[page];
@@ -168,4 +205,4 @@ window.logout = async function() {
     window.location.href = 'index.html';
 };
 
-console.log('👥 RND Referrals page loaded');
+console.log('👥 RND Referrals page loaded (with loading screen)');
