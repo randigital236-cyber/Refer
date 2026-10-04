@@ -13,7 +13,7 @@
         body::-webkit-scrollbar-track { background: #0a0a12; }
         body::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #667eea, #a855f7); border-radius: 10px; }
 
-        /* ===== BACKGROUND (same as dashboard) ===== */
+        /* ===== BACKGROUND ===== */
         .bg-gradient { position: fixed; inset: 0; z-index: -3; background: radial-gradient(ellipse at top, #0d0d1a 0%, #07070c 50%, #04040a 100%); }
         .bg-grid { position: fixed; inset: 0; z-index: -2;
             background-image: linear-gradient(rgba(102,126,234,0.04) 1px, transparent 1px),
@@ -37,7 +37,28 @@
             50% { transform: translate(40px,-30px) scale(1.15); opacity: 0.9; }
         }
 
-        /* ===== SIDEBAR (same as dashboard) ===== */
+        /* ===== ⭐ LOADING SCREEN (NEW) ===== */
+        #loadingScreen { position: fixed; inset: 0; background: #07070c; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 24px; transition: opacity 0.4s ease; }
+        #loadingScreen.hide { opacity: 0; pointer-events: none; }
+        .loader-spinner { width: 56px; height: 56px;
+            border: 3px solid rgba(102,126,234,0.15);
+            border-top-color: #667eea; border-right-color: #a855f7;
+            border-radius: 50%; animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { color: #94a3b8; font-size: 14px; font-weight: 500;
+            animation: pulse 1.6s ease-in-out infinite; letter-spacing: 0.5px; }
+        .loader-error { color: #f87171; font-size: 13px; margin-top: 10px;
+            display: none; text-align: center; max-width: 300px; }
+        .loader-error .retry-btn { margin-top: 14px;
+            background: linear-gradient(95deg, #5b6fdf, #8b5cf6);
+            border: none; color: white; padding: 10px 28px;
+            border-radius: 24px; cursor: pointer; font-size: 13px;
+            font-weight: 600; box-shadow: 0 6px 20px rgba(102,126,234,0.35); }
+        @keyframes pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* ===== SIDEBAR ===== */
         .sidebar { position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
             background: linear-gradient(160deg, rgba(15,15,25,0.98), rgba(10,10,18,0.98));
             backdrop-filter: blur(30px); border-right: 1px solid rgba(139,92,246,0.2);
@@ -75,7 +96,7 @@
             backdrop-filter: blur(6px); z-index: 999; display: none; transition: 0.2s; }
         .overlay.open { display: block; }
 
-        /* ===== HEADER (same as dashboard) ===== */
+        /* ===== HEADER ===== */
         .header { padding: 20px 20px 70px; position: relative;
             background: linear-gradient(180deg, rgba(102,126,234,0.08) 0%, transparent 100%); }
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
@@ -104,11 +125,10 @@
         .page-title h3 i { font-size: 26px; }
         .page-title p { font-size: 13px; color: #7c7c8a; margin-top: 8px; font-weight: 500; }
 
-        /* ===== STATS (like dashboard wallet cards) ===== */
+        /* ===== STATS ===== */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr);
             gap: 14px; padding: 0 20px; margin-top: -50px; margin-bottom: 24px;
             position: relative; z-index: 2; }
-
         .stat-card { background: linear-gradient(145deg, rgba(22,22,36,0.9), rgba(15,15,26,0.85));
             backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.08);
             border-radius: 26px; padding: 22px 18px; transition: all 0.3s cubic-bezier(0.2,0.9,0.3,1);
@@ -124,10 +144,8 @@
             border-color: rgba(139,92,246,0.4);
             box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(139,92,246,0.2); }
         .stat-card:hover::after { opacity: 0.12; }
-
         .stat-card.lvl1 { color: #60a5fa; }
         .stat-card.lvl2 { color: #a78bfa; }
-
         .stat-icon { width: 48px; height: 48px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
             font-size: 22px; margin-bottom: 16px;
@@ -136,7 +154,6 @@
         .stat-icon i { background: linear-gradient(135deg, #fff, currentColor);
             -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent; }
-
         .stat-number { font-size: 40px; font-weight: 900; letter-spacing: -2px;
             line-height: 1; margin-bottom: 8px;
             background: linear-gradient(135deg, #fff, #d9c8ff);
@@ -146,7 +163,7 @@
         .stat-label { font-size: 11.5px; color: #7c7c8a; font-weight: 700;
             letter-spacing: 0.8px; text-transform: uppercase; }
 
-        /* ===== SECTION (same as dashboard) ===== */
+        /* ===== SECTION ===== */
         .section { background: linear-gradient(145deg, rgba(22,22,36,0.7), rgba(15,15,26,0.6));
             backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.07);
             border-radius: 28px; margin: 18px 20px; padding: 24px 22px;
@@ -180,7 +197,6 @@
         .referral-list::-webkit-scrollbar { width: 4px; }
         .referral-list::-webkit-scrollbar-track { background: transparent; }
         .referral-list::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 10px; }
-
         .referral-item { display: flex; justify-content: space-between;
             align-items: center; padding: 14px 16px;
             background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
@@ -211,7 +227,7 @@
         .empty-state small { font-size: 12px; color: #5a5a6a;
             line-height: 1.5; display: block; }
 
-        /* ===== INFO CARDS (how referral works) ===== */
+        /* ===== INFO CARDS ===== */
         .info-card { display: flex; align-items: center; gap: 14px;
             padding: 16px; background: linear-gradient(95deg, rgba(102,126,234,0.1), rgba(168,85,247,0.05));
             border: 1px solid rgba(139,92,246,0.15);
@@ -231,7 +247,7 @@
             display: block; margin-bottom: 4px; }
         .info-text span { color: #d4af37; font-size: 12.5px; font-weight: 600; }
 
-        /* ===== BOTTOM NAV (same as dashboard) ===== */
+        /* ===== BOTTOM NAV ===== */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0;
             max-width: 500px; margin: 0 auto;
             background: linear-gradient(180deg, rgba(15,15,25,0.85), rgba(10,10,18,0.98));
@@ -288,6 +304,16 @@
     </style>
 </head>
 <body>
+    <!-- ⭐ LOADING SCREEN (NEW) -->
+    <div id="loadingScreen">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading Referrals...</div>
+        <div class="loader-error" id="loaderError">
+            <div id="errorMessage">⚠️ Unable to load referral data.</div>
+            <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
+        </div>
+    </div>
+
     <div class="bg-gradient"></div>
     <div class="bg-grid"></div>
     <div class="bg-glow g1"></div>
