@@ -1,27 +1,29 @@
 /* ============================================================
-   RND REWARDS — DASHBOARD + STAKING (PRODUCTION-READY)
+   RND REWARDS — DASHBOARD + STAKING (FINAL)
    ============================================================
    
    WALLET SYSTEM:
-   - referralWallet    : Referral earnings
-   - spinWallet        : Spin wheel winnings
-   - socialTasksWallet : Facebook + Twitter task rewards
-   - releaseWallet     : Staking daily releases (withdrawal only)
-   - totalBalance      : DISPLAY ONLY — sum of above (referral+spin+tasks)
-   - totalEarned       : All-time total earnings (info only)
+   - referralWallet    : STAKEABLE
+   - spinWallet        : STAKEABLE
+   - socialTasksWallet : STAKEABLE
+   - releaseWallet     : WITHDRAWAL ONLY
+   - totalBalance      : DERIVED (referral + spin + tasks)
+   - totalEarned       : INFO only
    
    STAKING:
-   - Uses ONLY 3 wallets: referralWallet + spinWallet + socialTasksWallet
-   - Deduction priority: SocialTasks → Referral → Spin
+   - Deduction priority: socialTasks → referral → spin
    - 20% bonus, 6-month lock, 2% daily release (non-compound)
-   - Release accounting: crash-safe (single transaction per stake)
+   - MAX uses floorTo (no upward rounding)
+   - First release: 6 months + 24 hours (Option A)
    
    FIXES:
-   - Balance double-counting eliminated
-   - Consistent fallback everywhere
-   - Crash-safe release accounting
-   - Double-click prevention on confirm
-   - Fresh Firebase check on modal open + confirm
+   ✅ Network-ambiguous retry safety (same requestId)
+   ✅ Request reconciliation on failure
+   ✅ Existing stake recovery on "already processed"
+   ✅ Crash-safe atomic release
+   ✅ Idempotent releases (multi-tab safe)
+   ✅ Post-stake refresh
+   ✅ UI text: "First Release In" (was "Release Starts In")
    ============================================================ */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -77,8 +79,17 @@ let isReconciling = false;
 /* ============================================================
    HELPERS
    ============================================================ */
-const roundTo = (n, dp = STAKING_CONFIG.DECIMAL_PLACES) =>
-    Math.round((n + Number.EPSILON) * 10 ** dp) / 10 ** dp;
+const roundTo = (n, dp = STAKING_CONFIG.DECIMAL_PLACES) => {
+    if (!isFinite(n)) return 0;
+    return Math.round((n + Number.EPSILON) * 10 ** dp) / 10 ** dp;
+};
+
+/* FLOOR rounding for safe MAX (never round up) */
+const floorTo = (n, dp = STAKING_CONFIG.DECIMAL_PLACES) => {
+    if (!isFinite(n)) return 0;
+    const factor = 10 ** dp;
+    return Math.floor(n * factor + 1e-9) / factor;
+};
 
 const calculateStakingBonus = (amount) => roundTo(amount * STAKING_CONFIG.BONUS_RATE);
 const calculateTotalStaking = (amount) => roundTo(amount + calculateStakingBonus(amount));
@@ -121,85 +132,75 @@ const generateStakeId = () => {
 };
 
 /* ============================================================
-   ⭐ SINGLE SOURCE OF TRUTH — WALLET BALANCES
-   ============================================================
-   ये function हर जगह use होते हैं — display, validation, transaction.
-   इससे fallback inconsistency खत्म हो जाती है।
+   SINGLE SOURCE OF TRUTH — WALLET READERS
    ============================================================ */
-
-/* Referral wallet balance */
 function getReferralWalletFrom(data) {
     if (!data) return 0;
-    return Number(data.referralWallet) || 0;
+    return roundTo(Number(data.referralWallet) || 0);
 }
 
-/* Spin wallet balance */
 function getSpinWalletFrom(data) {
     if (!data) return 0;
-    return Number(data.spinWallet) || 0;
+    return roundTo(Number(data.spinWallet) || 0);
 }
 
-/* Social Tasks wallet balance */
 function getSocialTasksWalletFrom(data) {
     if (!data) return 0;
-    return Number(data.socialTasksWallet) || 0;
+    return roundTo(Number(data.socialTasksWallet) || 0);
 }
 
-/* Release wallet balance (withdrawal only — NOT stakeable) */
 function getReleaseWalletFrom(data) {
     if (!data) return 0;
-    return Number(data.releaseWallet) || 0;
+    return roundTo(Number(data.releaseWallet) || 0);
 }
 
-/* Total earned (info only) */
 function getTotalEarnedFrom(data) {
     if (!data) return 0;
-    return Number(data.totalEarned) || 0;
+    return roundTo(Number(data.totalEarned) || 0);
 }
 
-/* ⭐ MAIN WALLET (a.k.a. totalBalance) — DISPLAY ONLY
-   यह एक DERIVED value है, standalone wallet नहीं।
-   Formula: referralWallet + spinWallet + socialTasksWallet
-*/
+/* Main wallet — DERIVED (display only) */
 function getMainWalletFrom(data) {
     if (!data) return 0;
-    return (
+    return roundTo(
         getReferralWalletFrom(data) +
         getSpinWalletFrom(data) +
         getSocialTasksWalletFrom(data)
     );
 }
 
-/* ⭐ STAKING AVAILABLE — Single source of truth
-   Formula: referralWallet + spinWallet + socialTasksWallet
-   (totalBalance यहाँ use नहीं होता — वो सिर्फ display के लिए है)
-*/
-function getStakingAvailableFrom(data) {
+/* Stakeable — single source of truth */
+function getStakeableFrom(data) {
     if (!data) return 0;
     return roundTo(
         getReferralWalletFrom(data) +
         getSpinWalletFrom(data) +
-        getSocialTasksWalletFrom(data),
-        8
+        getSocialTasksWalletFrom(data)
     );
 }
 
-/* Wrappers for current userData */
+/* Wrappers */
 function getReferralWallet() { return getReferralWalletFrom(userData); }
 function getSpinWallet() { return getSpinWalletFrom(userData); }
 function getSocialTasksWallet() { return getSocialTasksWalletFrom(userData); }
 function getReleaseWallet() { return getReleaseWalletFrom(userData); }
 function getTotalEarned() { return getTotalEarnedFrom(userData); }
 function getMainWallet() { return getMainWalletFrom(userData); }
-function getStakingAvailable() { return getStakingAvailableFrom(userData); }
+function getStakeable() { return getStakeableFrom(userData); }
 
-/* Check if both social tasks complete */
+/* Task checks */
 function areTasksCompleted() {
     const tasks = userData?.socialTasks || {};
     return tasks.facebook === true && tasks.twitter === true;
 }
 
-/* Fresh fetch from Firebase (bypass stale cache) */
+function areTasksCompletedFrom(data) {
+    if (!data) return false;
+    const tasks = data.socialTasks || {};
+    return tasks.facebook === true && tasks.twitter === true;
+}
+
+/* Fresh fetch */
 async function fetchFreshUserData() {
     if (!currentUser) return null;
     try {
@@ -215,14 +216,6 @@ async function fetchFreshUserData() {
         console.error('Fresh fetch error:', err);
         return null;
     }
-}
-
-/* Fresh tasks check */
-async function areTasksCompletedFresh() {
-    const fresh = await fetchFreshUserData();
-    if (!fresh) return false;
-    const tasks = fresh.socialTasks || {};
-    return tasks.facebook === true && tasks.twitter === true;
 }
 
 /* ============================================================
@@ -374,7 +367,7 @@ function renderWallets() {
 }
 
 function renderStakingAvailable() {
-    animateNumber(document.getElementById('stakingAvailable'), getStakingAvailable(), 2);
+    animateNumber(document.getElementById('stakingAvailable'), getStakeable(), 2);
 }
 
 function renderSocialTasksWarning() {
@@ -471,9 +464,10 @@ function renderStakeCard(s, now) {
         progressLabel = 'Release Progress';
     }
 
+    /* ⭐ FIXED: "First Release In" instead of "Release Starts In" */
     let countdownHTML = '';
     if (calc.status === 'locked') {
-        countdownHTML = `<div class="countdown-box"><div class="countdown-label">Release Starts In</div><div class="countdown-value" data-countdown-to="${lockEnd}">—</div></div>`;
+        countdownHTML = `<div class="countdown-box"><div class="countdown-label">First Release In</div><div class="countdown-value" data-countdown-to="${lockEnd}">—</div></div>`;
     } else if (calc.status === 'releasing') {
         countdownHTML = `<div class="countdown-box"><div class="countdown-label">Next Release In</div><div class="countdown-value" data-countdown-next="${lockEnd}">—</div></div>`;
     } else {
@@ -496,7 +490,7 @@ function renderStakeCard(s, now) {
         </div>
         <div class="stake-grid" style="grid-template-columns:1fr 1fr;">
             <div class="stake-item"><div class="si-label">Stake Date</div><div class="si-value" style="font-size:12px;">${formatDate(start)}</div></div>
-            <div class="stake-item"><div class="si-label">Release Starts</div><div class="si-value" style="font-size:12px;">${formatDate(lockEnd)}</div></div>
+            <div class="stake-item"><div class="si-label">First Release</div><div class="si-value" style="font-size:12px;">${formatDate(lockEnd)}</div></div>
         </div>
         <div class="progress-wrap">
             <div class="progress-head"><span>${progressLabel}</span><span>${progressPct.toFixed(2)}%</span></div>
@@ -607,7 +601,6 @@ function updateStakeButtonState() {
 
     if (isSubmitting) { btn.disabled = true; return; }
 
-    /* Tasks check */
     if (!areTasksCompleted()) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-tasks"></i> COMPLETE SOCIAL TASKS FIRST';
@@ -615,7 +608,7 @@ function updateStakeButtonState() {
     }
 
     const amt = readStakeInput();
-    const available = getStakingAvailable();
+    const available = getStakeable();
     const valid = amt > 0 && amt <= available + 1e-9;
     btn.disabled = !valid;
 
@@ -646,11 +639,14 @@ function bindStakeInput() {
     });
 }
 
+/* MAX — floor-based to prevent upward rounding */
 window.setStakeMax = function() {
-    const available = getStakingAvailable();
+    const available = getStakeable();
     const el = document.getElementById('stakeAmountInput');
     if (!el) return;
-    el.value = available.toFixed(2);
+
+    const safeMax = floorTo(available, 8);
+    el.value = safeMax.toString();
     updateCalculator();
     updateStakeButtonState();
 };
@@ -659,14 +655,12 @@ window.setStakeMax = function() {
    MODAL
    ============================================================ */
 window.openStakeModal = async function() {
-    /* Fresh data fetch */
     const fresh = await fetchFreshUserData();
     if (!fresh) {
         showToast('Unable to load account data.', 'error');
         return;
     }
 
-    /* Fresh tasks check */
     if (!areTasksCompleted()) {
         showToast('Please complete Social Tasks first!', 'error');
         setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
@@ -674,7 +668,7 @@ window.openStakeModal = async function() {
     }
 
     const amt = readStakeInput();
-    const available = getStakingAvailable();
+    const available = getStakeable();
     if (amt <= 0) { showToast('Please enter a valid RND amount.', 'error'); return; }
     if (amt > available + 1e-9) { showToast('Insufficient RND balance.', 'error'); return; }
 
@@ -702,6 +696,10 @@ window.closeStakeModal = function() {
     const modal = document.getElementById('confirmModal');
     if (modal) modal.classList.remove('show');
     modalAmount = 0;
+    /* User explicitly cancelled — safe to clear requestId */
+    if (!isSubmitting) {
+        pendingRequestId = null;
+    }
 };
 
 document.getElementById('confirmModal')?.addEventListener('click', (e) => {
@@ -710,8 +708,7 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 
 /* ============================================================
    ATOMIC STAKE CREATION
-   Deduction priority: SocialTasks → Referral → Spin
-   (totalBalance is display-only, not used for staking)
+   Deduction: socialTasks → referral → spin
    ============================================================ */
 window.confirmStake = async function() {
     const confirmBtn = document.getElementById('confirmStakeBtn');
@@ -742,12 +739,10 @@ window.confirmStake = async function() {
             return;
         }
 
-        /* Sync local state */
         userData = freshData;
         stakes = freshData.staking || {};
 
-        /* Fresh balance check */
-        const freshAvailable = getStakingAvailableFrom(freshData);
+        const freshAvailable = getStakeableFrom(freshData);
         if (modalAmount > freshAvailable + 1e-9) {
             showToast('Insufficient RND balance.', 'error');
             window.closeStakeModal();
@@ -777,11 +772,9 @@ window.confirmStake = async function() {
             if (!cur) return cur;
             if (cur._lastStakeRequestId === pendingRequestId) return;
 
-            /* Server-side tasks double-check */
             const tasks = cur.socialTasks || {};
             if (tasks.facebook !== true || tasks.twitter !== true) return;
 
-            /* Use same balance calculation as client */
             const rW = Number(cur.referralWallet) || 0;
             const sW = Number(cur.spinWallet) || 0;
             const tW = Number(cur.socialTasksWallet) || 0;
@@ -789,7 +782,7 @@ window.confirmStake = async function() {
             const cmb = rW + sW + tW;
             if (principal > cmb + 1e-9) return;
 
-            /* Deduct priority: SocialTasks → Referral → Spin */
+            /* Deduct priority: socialTasks → referral → spin */
             let remaining = principal;
 
             /* 1. Social Tasks */
@@ -815,19 +808,17 @@ window.confirmStake = async function() {
                 cur.spinWallet = roundTo(sW);
             }
 
-            /* Sync totalBalance (display-only derived value) */
+            /* Sync totalBalance (derived) */
             cur.totalBalance = roundTo(
                 (Number(cur.referralWallet) || 0) +
                 (Number(cur.spinWallet) || 0) +
                 (Number(cur.socialTasksWallet) || 0)
             );
 
-            /* Init releaseWallet */
             if (cur.releaseWallet === undefined || cur.releaseWallet === null) {
                 cur.releaseWallet = 0;
             }
 
-            /* Create stake */
             cur.staking = cur.staking || {};
             cur.staking[stakeId] = {
                 stakeId,
@@ -852,31 +843,103 @@ window.confirmStake = async function() {
         });
 
         if (!result.committed) {
+            /* ⭐ IMPROVED: Already-processed case with stake recovery */
             const snap = await get(ref(db, `users/${currentUser.uid}`));
             const d = snap.val() || {};
             const tasks = d.socialTasks || {};
 
             if (d._lastStakeRequestId === pendingRequestId) {
-                showToast('Already processed.', 'info');
+                /* Transaction was actually processed — recover it */
+                const processedStake = Object.values(d.staking || {}).find(
+                    s => s && s.requestId === pendingRequestId
+                );
+
+                if (processedStake) {
+                    userData = d;
+                    stakes = d.staking || {};
+
+                    showToast(
+                        `✅ ${formatRND(Number(processedStake.principalAmount) || 0)} RND stake confirmed.`,
+                        'success'
+                    );
+
+                    window.closeStakeModal();
+                    const inp = document.getElementById('stakeAmountInput');
+                    if (inp) inp.value = '';
+                    updateCalculator();
+                    renderAll();
+
+                    pendingRequestId = null;
+                } else {
+                    showToast('Transaction was already processed. Please refresh your dashboard.', 'info');
+                    pendingRequestId = null;
+                }
             } else if (tasks.facebook !== true || tasks.twitter !== true) {
                 showToast('Complete Social Tasks first.', 'error');
                 setTimeout(() => { window.location.href = 'social-tasks.html'; }, 1500);
+                pendingRequestId = null;
             } else {
                 showToast('Insufficient RND balance.', 'error');
+                pendingRequestId = null;
             }
             return;
         }
 
+        /* Success */
         window.closeStakeModal();
         showToast(`✅ ${formatRND(principal)} RND successfully staked.`, 'success');
         const inp = document.getElementById('stakeAmountInput');
         if (inp) inp.value = '';
         updateCalculator();
+
         pendingRequestId = null;
 
+        await fetchFreshUserData();
+        renderAll();
+
     } catch (err) {
+        /* ⭐ FIXED: Network-error safe handling — DO NOT clear pendingRequestId */
         console.error('Stake error:', err);
-        showToast('Unable to process staking right now.', 'error');
+
+        try {
+            const verifySnap = await get(ref(db, `users/${currentUser.uid}`));
+            const verifyData = verifySnap.val() || {};
+            const processedRequestId = verifyData._lastStakeRequestId;
+
+            if (processedRequestId === pendingRequestId) {
+                /* Transaction actually committed — reconcile */
+                userData = verifyData;
+                stakes = verifyData.staking || {};
+
+                const matchedStake = Object.values(verifyData.staking || {}).find(
+                    s => s && s.requestId === pendingRequestId
+                );
+
+                if (matchedStake) {
+                    showToast(
+                        `✅ ${formatRND(Number(matchedStake.principalAmount) || 0)} RND successfully staked.`,
+                        'success'
+                    );
+                } else {
+                    showToast('✅ Stake transaction was successfully processed.', 'success');
+                }
+
+                window.closeStakeModal();
+                const inp = document.getElementById('stakeAmountInput');
+                if (inp) inp.value = '';
+                updateCalculator();
+                renderAll();
+
+                pendingRequestId = null;
+            } else {
+                /* Cannot confirm — keep requestId for safe retry */
+                showToast('Network issue. Please retry the same staking request.', 'error');
+            }
+        } catch (verifyErr) {
+            console.error('Stake reconciliation error:', verifyErr);
+            /* DO NOT clear pendingRequestId — user must retry same request */
+            showToast('Network issue. Your stake status could not be confirmed. Please retry.', 'error');
+        }
     } finally {
         isSubmitting = false;
         if (confirmBtn) {
@@ -888,50 +951,34 @@ window.confirmStake = async function() {
 };
 
 /* ============================================================
-   ⭐⭐⭐ CRASH-SAFE RELEASE RECONCILIATION ⭐⭐⭐
-   ============================================================
-   
-   पुराना design (दो अलग transactions):
-     1. applyReleaseToStake() → releasedAmount update
-     2. reconcileAllReleases() → releaseWallet += delta
-   
-   अगर बीच में crash → releasedAmount updated, releaseWallet नहीं → LOST
-   
-   नया design (एक ही transaction):
-     हर stake के लिए अलग transaction जो दोनों काम करता है:
-     - stake.releasedAmount update
-     - user.releaseWallet += delta (एक ही transaction में)
-   
-   इससे अगर crash हुआ तो पूरी transaction rollback होगी, आधी नहीं।
+   CRASH-SAFE RELEASE RECONCILIATION
    ============================================================ */
-
 async function reconcileAllReleases() {
     if (!currentUser || !stakes || isReconciling) return;
     isReconciling = true;
 
     try {
         const now = Date.now();
+        const stakeIds = Object.keys(stakes);
 
-        for (const [stakeId, stake] of Object.entries(stakes)) {
+        for (const stakeId of stakeIds) {
+            const stake = stakes[stakeId];
+            if (!stake) continue;
+
             const calc = calculateEligibleRelease(stake, now);
             const stored = Number(stake.releasedAmount) || 0;
 
-            /* कोई नया release नहीं? Skip */
             if (calc.released <= stored + 1e-9) continue;
 
-            const delta = roundTo(calc.released - stored);
-
-            /* ⭐ ATOMIC: stake + releaseWallet एक साथ update */
-            await applyReleaseCrashSafe(stakeId, calc.released, delta);
+            await applyReleaseCrashSafe(stakeId, calc.released);
         }
     } finally {
         isReconciling = false;
     }
 }
 
-/* ⭐ Crash-safe: एक transaction में दोनों update */
-async function applyReleaseCrashSafe(stakeId, newReleased, delta) {
-    /* हम user node पर transaction करते हैं ताकि stake + releaseWallet एक साथ update हों */
+/* Atomic: stake + releaseWallet in single transaction */
+async function applyReleaseCrashSafe(stakeId, newReleased) {
     const userRef = ref(db, `users/${currentUser.uid}`);
 
     await runTransaction(userRef, (cur) => {
@@ -942,24 +989,27 @@ async function applyReleaseCrashSafe(stakeId, newReleased, delta) {
         const stored = Number(stake.releasedAmount) || 0;
         const total = Number(stake.totalStakingAmount) || 0;
 
-        /* अगर पहले से updated है — skip */
+        /* Idempotent check */
         if (newReleased <= stored + 1e-9) return cur;
 
         const capped = Math.min(newReleased, total);
         const actualDelta = roundTo(capped - stored);
 
-        /* 1. Stake update */
+        /* Safety: no negative delta */
+        if (actualDelta <= 0) return cur;
+
+        /* 1. Stake updates */
         stake.releasedAmount = roundTo(capped);
         stake.availableAmount = roundTo(capped);
         stake.remainingAmount = roundTo(total - capped);
         stake.status = stake.remainingAmount <= 0 ? 'completed' : 'releasing';
         stake.lastReleaseAt = Date.now();
 
-        /* 2. Release wallet update — same transaction */
+        /* 2. Release wallet credit — same transaction */
         cur.releaseWallet = roundTo((Number(cur.releaseWallet) || 0) + actualDelta);
         cur.lastReleaseCreditedAt = Date.now();
 
-        /* 3. Sync totalBalance (display-only) */
+        /* 3. Sync totalBalance (derived) */
         cur.totalBalance = roundTo(
             (Number(cur.referralWallet) || 0) +
             (Number(cur.spinWallet) || 0) +
@@ -1079,8 +1129,10 @@ window.addEventListener('beforeunload', () => {
     if (tickTimer) clearInterval(tickTimer);
 });
 
-console.log('🔒 RND Dashboard loaded — PRODUCTION-READY');
-console.log('✅ Balance: single source of truth (no double-counting)');
-console.log('✅ Fallback: consistent everywhere');
-console.log('✅ Release accounting: crash-safe');
-console.log('✅ Confirm button: fresh Firebase check');
+console.log('🔒 RND Dashboard loaded — FINAL');
+console.log('✅ Network-error safe retry (same requestId preserved)');
+console.log('✅ Request reconciliation on failure');
+console.log('✅ Existing stake recovery on "already processed"');
+console.log('✅ Crash-safe atomic release');
+console.log('✅ Idempotent releases (multi-tab safe)');
+console.log('✅ UI text: "First Release In" (Option A)');
